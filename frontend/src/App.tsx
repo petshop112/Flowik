@@ -1,12 +1,6 @@
-import { Car } from 'lucide-react'
 import './App.css'
 import { Button } from "./components/ui/button"
-import {
-  Card,
-
-  CardHeader,
- 
-} from "@/components/ui/card"
+import {Card} from "./components/ui/card"
 
 function App() {
   
