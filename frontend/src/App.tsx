@@ -4,6 +4,8 @@ import { useFetch } from './hooks/useFetch.ts';
 import './App.css'
 import { Button } from "./components/ui/button"
 import { Card } from "./components/ui/card"
+import Login from './pages/auth/Login.tsx';
+import Register from './pages/auth/Register.tsx';
 
 type User = {
   id: number;
@@ -41,6 +43,9 @@ function App() {
           </ul>
         )}
       </div>
+
+      <Login />
+      <Register />
     </>
   )
 }
