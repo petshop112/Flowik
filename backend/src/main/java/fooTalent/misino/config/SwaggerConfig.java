@@ -29,7 +29,7 @@ import org.springframework.http.HttpHeaders;
                 ),
                 @Server(
                         description = "Server Render",
-                        url = "https://petshop-db4w.onrender.com/swagger-ui/index.html"
+                        url = "https://petshop-db4w.onrender.com"
                 )
         },
         security = @SecurityRequirement(
