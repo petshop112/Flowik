@@ -26,6 +26,10 @@ import org.springframework.http.HttpHeaders;
                 @Server(
                         description = "Local Server",
                         url = "http://localhost:8080"
+                ),
+                @Server(
+                        description = "Server Render",
+                        url = "https://petshop-db4w.onrender.com/swagger-ui/index.html"
                 )
         },
         security = @SecurityRequirement(
