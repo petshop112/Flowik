@@ -38,7 +38,7 @@ public class securityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/saludoo/**","/auth/**","/v3/api-docs", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/").permitAll()
+                        .requestMatchers("/auth/**","/v3/api-docs", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
