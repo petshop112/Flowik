@@ -2,6 +2,7 @@ package fooTalent.misino.products.entity;
 
 import fooTalent.misino.products.dto.ProductRegister;
 import fooTalent.misino.products.dto.ProductUpdated;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
