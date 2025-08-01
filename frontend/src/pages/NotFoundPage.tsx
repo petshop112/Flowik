@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 
 const NotFoundPage = () => {
     return (
@@ -6,11 +7,13 @@ const NotFoundPage = () => {
                 <h1 className="text-4xl font-bold mb-4">404 - Pagina no encontrada</h1>
                 <p className="text-gray-600">La ruta que estas buscando no existe.</p>
                 <button className="bg-black rounded-sm p-2 m-4">
-                    <a className="text-white" href="/">Volver a inicio</a>
+                    <Link to="/" className="text-grey-600">
+                        Volver al inicio
+                    </Link>
                 </button>
             </div>
         </div>
     )
 }
 
-export default NotFoundPage
+export default NotFoundPage;
