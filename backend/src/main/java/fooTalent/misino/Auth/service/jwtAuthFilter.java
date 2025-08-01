@@ -32,9 +32,8 @@ public class jwtAuthFilter extends OncePerRequestFilter {
 
         if (
                 path.startsWith("/auth") ||
-                        path.startsWith("/swagger-ui") ||
-                        path.startsWith("/v3/api-docs") ||
-                        path.startsWith("/saludoo")
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs")
         ) {
             filterChain.doFilter(request, response);
             System.out.println("Request interceptado por filtro: " + path);
