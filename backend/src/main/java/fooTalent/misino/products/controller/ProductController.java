@@ -6,6 +6,7 @@ import fooTalent.misino.products.dto.ProductResponse;
 import fooTalent.misino.products.dto.ProductUpdated;
 import fooTalent.misino.products.entity.Product;
 import fooTalent.misino.products.service.ProductServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -23,6 +24,7 @@ public class ProductController {
         this.productService = productService;
     }
 
+    @Operation(summary = "Registrar un nuevo producto")
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRegister productRegister,
                                                          UriComponentsBuilder uriComponentsBuilder){
@@ -37,6 +39,7 @@ public class ProductController {
         return ResponseEntity.created(url).body(productResponse);
     }
 
+    @Operation(summary = "Listar todos los productos")
     @GetMapping
     public ResponseEntity<List<ProductList>> getAllProducts(){
 
@@ -47,6 +50,7 @@ public class ProductController {
         );
     }
 
+    @Operation(summary = "Traer un producto por ID")
     @GetMapping("/{id_product}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable("id_product") Long idProduct){
 
@@ -56,6 +60,7 @@ public class ProductController {
         );
     }
 
+    @Operation(summary = "Modificar un producto")
     @PutMapping("/{id_product}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id_product") Long idProduct,
                                                          @RequestBody ProductUpdated productUpdated){
@@ -67,6 +72,7 @@ public class ProductController {
         return ResponseEntity.ok(productResponse);
     }
 
+    @Operation(summary = "Eliminar un producto")
     @DeleteMapping("/{id_product}")
     public ResponseEntity deleteProductById(@PathVariable("id_product") Long idProduct){
 
