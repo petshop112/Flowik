@@ -1,29 +1,47 @@
 package fooTalent.misino.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
+import org.springframework.http.HttpHeaders;
 
 @OpenAPIDefinition(
         info = @Info(
-                title = "",
-                description = "",
+                title = "Petshop API",
+                description = "API para control de stock de petshops",
+                termsOfService = "www.footalent.com",
                 version = "1.0.0",
                 contact = @Contact(
-                        name = "",
-                        email = "",
+                        name = "Petshop",
+                        email = "petshop112@hotmail.com",
                         url = ""
                 )
         ),
         servers = {
                 @Server(
-                        description = "",
+                        description = "Local Server",
                         url = "http://localhost:8080"
                 )
-        }
-)
+        },
+        security = @SecurityRequirement(
+                name = "securityToken"
+        )
+    )
+    @SecurityScheme(
+            name = "securityToken",
+            description = "Access Token For My API",
+            type = SecuritySchemeType.HTTP,
+            paramName = HttpHeaders.AUTHORIZATION,
+            in = SecuritySchemeIn.HEADER,
+            scheme = "bearer",
+            bearerFormat = "JWT"
+    )
+
 public class SwaggerConfig {
 
-    // http://localhost:8080/swagger-ui/index.html
 }

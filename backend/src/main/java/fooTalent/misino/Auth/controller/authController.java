@@ -32,11 +32,6 @@ public class authController {
     @Value("${URL_FRONT}")
     private String frontUrl;
 
-    @GetMapping("/saludoo")
-    public String hello() {
-        return "¡El backend está funcionando!";
-    }
-
     @PostMapping("/register")
     public ResponseEntity<authResponse> register(@Valid @RequestBody registerRequest request) {
         System.out.println("Nombre completo recibido: '" + request.firstName() + " " + request.lastName() + "'");
