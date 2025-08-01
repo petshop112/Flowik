@@ -1,13 +1,13 @@
 package fooTalent.misino.Auth.dto;
 
-import fooTalent.misino.users.entity.user;
+import fooTalent.misino.users.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
 
-public record customUserDetails(user user) implements UserDetails {
+public record CustomUserDetails(User user) implements UserDetails {
     @Override
     public String getUsername() {
         return user.getEmail();
