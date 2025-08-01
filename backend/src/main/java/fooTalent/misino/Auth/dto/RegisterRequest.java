@@ -3,7 +3,7 @@ package fooTalent.misino.Auth.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record registerRequest(
+public record RegisterRequest(
         @NotBlank(message = "El campo apellido no puede estar vacío")
         @Size(min = 2, max = 50, message = "El apellido debe tener entre 2 y 50 caracteres")
         String lastName,

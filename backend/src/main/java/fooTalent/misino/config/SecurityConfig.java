@@ -1,9 +1,9 @@
 package fooTalent.misino.config;
 
-import fooTalent.misino.Auth.dto.customUserDetails;
-import fooTalent.misino.Auth.service.customUserDetailService;
-import fooTalent.misino.Auth.service.jwtAuthFilter;
-import fooTalent.misino.users.repositories.userRepository;
+import fooTalent.misino.Auth.dto.CustomUserDetails;
+import fooTalent.misino.Auth.service.CustomUserDetailService;
+import fooTalent.misino.Auth.service.JwtAuthFilter;
+import fooTalent.misino.users.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,11 +28,11 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class securityConfig {
+public class SecurityConfig {
 
-    private final userRepository userRepository;
-    private final customUserDetailService userDetailsService;
-    private final jwtAuthFilter jwtAuthFilter;
+    private final UserRepository userRepository;
+    private final CustomUserDetailService userDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -60,7 +60,7 @@ public class securityConfig {
     public UserDetailsService userDetailsService() {
         return username -> userRepository
                 .findByUserName(username)
-                .map(customUserDetails::new)
+                .map(CustomUserDetails::new)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 

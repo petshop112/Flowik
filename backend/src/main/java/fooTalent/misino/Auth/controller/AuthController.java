@@ -1,12 +1,13 @@
 package fooTalent.misino.Auth.controller;
 
-import fooTalent.misino.Auth.dto.authResponse;
-import fooTalent.misino.Auth.dto.loginRequest;
-import fooTalent.misino.Auth.dto.registerRequest;
-import fooTalent.misino.Auth.repositories.verificationTokenRepository;
-import fooTalent.misino.Auth.service.authService;
-import fooTalent.misino.users.entity.user;
-import fooTalent.misino.users.repositories.userRepository;
+import fooTalent.misino.Auth.dto.AuthResponse;
+import fooTalent.misino.Auth.dto.LoginRequest;
+import fooTalent.misino.Auth.dto.RegisterRequest;
+import fooTalent.misino.Auth.repositories.VerificationTokenRepository;
+import fooTalent.misino.Auth.service.AuthService;
+import fooTalent.misino.users.entity.User;
+import fooTalent.misino.users.repositories.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Value;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -23,36 +24,37 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-public class authController {
+public class AuthController {
 
-    private final authService authService;
-    private final verificationTokenRepository verificationTokenRepository;
-    private final userRepository userRepository;
+    private final AuthService authService;
+    private final VerificationTokenRepository verificationTokenRepository;
+    private final UserRepository userRepository;
 
     @Value("${URL_FRONT}")
     private String frontUrl;
 
+    @Operation(summary = "Registrar un nuevo usuario")
     @PostMapping("/register")
-    public ResponseEntity<authResponse> register(@Valid @RequestBody registerRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         System.out.println("Nombre completo recibido: '" + request.firstName() + " " + request.lastName() + "'");
-        authResponse response = authService.register(request);
+        AuthResponse response = authService.register(request);
 
         if (!response.success()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         return ResponseEntity.ok(response);
     }
-
+    @Operation(summary = "Iniciar sesion")
     @PostMapping("/login")
-    public ResponseEntity<authResponse> login(@Valid @RequestBody loginRequest request) {
-        authResponse response = authService.login(request);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
 
         if (!response.success()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
         return ResponseEntity.ok(response);
     }
-
+    @Operation(summary = "Endpoint para verificaciones, USO EN BACKEND LOCAL")
     @GetMapping("/verifyToken")
     public void verifyAccount(@RequestParam("token") String token, HttpServletResponse response) throws IOException {
         if (token == null || token.isEmpty()) {
@@ -60,14 +62,14 @@ public class authController {
             return;
         }
 
-        Optional<user> optionalUser = userRepository.findByVerificationToken(token);
+        Optional<User> optionalUser = userRepository.findByVerificationToken(token);
 
         if (optionalUser.isEmpty()) {
             response.sendRedirect(frontUrl + "/login?verified=invalid");
             return;
         }
 
-        user user = optionalUser.get();
+        User user = optionalUser.get();
 
         if (user.getVerificationTokenExpiration() == null || user.getVerificationTokenExpiration().before(new Date())) {
             response.sendRedirect(frontUrl + "/login?verified=expired");
