@@ -17,6 +17,9 @@ public class jwtService {
         return JWT.create()
                 .withSubject(user.getEmail())
                 .withClaim("id", user.getId())
+                .withClaim("lastName", user.getLastName())
+                .withClaim("firstName", user.getFirstName())
+                .withClaim("userName", user.getUserName())
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 86400000)) // 1 día
                 .sign(Algorithm.HMAC256(SECRET_KEY));
