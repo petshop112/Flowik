@@ -1,60 +1,62 @@
 package fooTalent.misino.provider.controller;
 
+import fooTalent.misino.provider.dto.ProviderList;
 import fooTalent.misino.provider.dto.ProviderRegister;
 import fooTalent.misino.provider.dto.ProviderResponse;
 import fooTalent.misino.provider.dto.ProviderUpdated;
-import fooTalent.misino.provider.dto.ProviderList;
 import fooTalent.misino.provider.entity.Provider;
-import fooTalent.misino.provider.service.ProviderServicelmpl;
+import fooTalent.misino.provider.service.ProviderService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import java.net.URI;
 import java.util.List;
+
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/providers")
 public class ProviderController {
 
-    private final ProviderServicelmpl providerService;
+    private final ProviderService providerService;
 
-    public ProviderController(ProviderServicelmpl providerService){
-        this.providerService=providerService;
+    public ProviderController(ProviderService providerService) {
+        this.providerService = providerService;
     }
-    @Operation (summary = "Creacion de proveedor/provider")
+
+    @Operation(summary = "Crear proveedor")
     @PostMapping
     public ResponseEntity<ProviderResponse> create(@RequestBody ProviderRegister providerRegister,
-                                                   UriComponentsBuilder uriComponentsBuilder){
+                                                   UriComponentsBuilder uriBuilder) {
         Provider provider = providerService.createProvider(new Provider(providerRegister));
-        URI url= uriComponentsBuilder.path("/api/provider/{idprovider}")
+        URI location = uriBuilder.path("/api/providers/{id}")
                 .buildAndExpand(provider.getId_provider())
                 .toUri();
-        ProviderResponse providerResponse = new ProviderResponse(provider);
-        return ResponseEntity.created(url).body(providerResponse);
+        return ResponseEntity.created(location).body(new ProviderResponse(provider));
     }
-    @Operation (summary = "Listado de proveedor/provider")
-    @GetMapping
-    public ResponseEntity<List<ProviderList>> getAllProviders(){
-        return ResponseEntity.ok(
-                providerService.getAllProvider().stream()
-                        .map(pr->new ProviderList(pr))
-                        .toList()
-        );
-    }
-    @Operation (summary = "Modificar proveedor/provider")
-    @PutMapping("/{idprovider}")
-    public ResponseEntity<ProviderResponse> updateProvider(@PathVariable("idprovider") Long idprovider,
-                                                            @RequestBody ProviderUpdated providerUpdated){
-        Provider provider= providerService.getProviderById(idprovider);
-        providerService.updateProvider(provider);
 
-        ProviderResponse providerResponse = new ProviderResponse(provider);
-        return ResponseEntity.ok(providerResponse);
+    @Operation(summary = "Listar todos los proveedores")
+    @GetMapping
+    public ResponseEntity<List<ProviderList>> getAllProviders() {
+        List<ProviderList> providers = providerService.getAllProvider().stream()
+                .map(ProviderList::new)
+                .toList();
+        return ResponseEntity.ok(providers);
     }
-    @Operation (summary = "Modificar proveedor/provider")
-    @DeleteMapping("/{idprovider}")
-    public ResponseEntity DeleteProviderById(@PathVariable("idprovider") Long idprovider){
-        providerService.deleteProviderById(idprovider);
+
+    @Operation(summary = "Actualizar proveedor por ID")
+    @PutMapping("/{id}")
+    public ResponseEntity<ProviderResponse> updateProvider(@PathVariable Long id,
+                                                           @RequestBody ProviderUpdated providerUpdated) {
+        Provider updated = providerService.updateProvider(id, providerUpdated);
+        return ResponseEntity.ok(new ProviderResponse(updated));
+    }
+
+
+    @Operation(summary = "Eliminar proveedor por ID")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProvider(@PathVariable Long id) {
+        providerService.deleteProviderById(id);
         return ResponseEntity.noContent().build();
     }
 }
