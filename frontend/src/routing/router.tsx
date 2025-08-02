@@ -3,25 +3,21 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import Home from "../pages/home/home";
 import NotFoundPage from "../pages/NotFoundPage";
+import Layout from "../components/Layout";
 
 const router = createBrowserRouter([
     {
-        path: "/login",
-        element: <Login />,
-    },
-    {
-        path: "/register",
-        element: <Register />,
-    },
-    {
-        path: "/",
-        element: <Home />,
-    },
-    {
-        path: '*',
-        element: <NotFoundPage />
+      path: "/",
+      element: <Layout />,
+      children: [
+        { index: true, element: <Home /> },
+        { path: "login", element: <Login /> },
+        { path: "register", element: <Register /> },
+        { path: "*", element: <NotFoundPage /> }
+      ]
     }
-]);
+  ]);
+  
 
 
 export default router
