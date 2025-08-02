@@ -2,6 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { CheckCircle } from "lucide-react";
 
 const validationSchema = Yup.object({
     firstName: Yup.string()
@@ -14,6 +24,23 @@ const validationSchema = Yup.object({
         .required('El apellido es obligatorio'),
     email: Yup.string()
         .email('Correo electrónico inválido')
+        .matches(
+            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+            'El formato del email no es válido'
+        )
+        .test('valid-domain', 'Solo se permiten emails de dominios conocidos (Gmail, Yahoo, Outlook, etc.)', function (value) {
+            if (!value) return false;
+            const domain = value.split('@')[1];
+            if (!domain) return false;
+
+            const validDomains = [
+                'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
+                'live.com', 'icloud.com', 'yahoo.es', 'hotmail.es', 'outlook.es',
+                'protonmail.com', 'zoho.com', 'aol.com', 'yandex.com', 'mail.com'
+            ];
+
+            return validDomains.includes(domain.toLowerCase());
+        })
         .required('El correo es obligatorio'),
     password: Yup.string()
         .min(8, 'La contraseña debe tener al menos 8 caracteres')
@@ -26,10 +53,15 @@ const validationSchema = Yup.object({
 
 const RegisterForm = () => {
     const [submitError, setSubmitError] = useState('');
-    const [submitSuccess, setSubmitSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const navigate = useNavigate();
+
+    const handleCloseModal = () => {
+        setShowSuccessModal(false);
+        navigate('/');
+    };
 
     const handleSubmit = async (
         values: {
@@ -42,27 +74,50 @@ const RegisterForm = () => {
         { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
     ) => {
         setSubmitError('');
-        setSubmitSuccess('');
         setLoading(true);
 
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+            }, 30000);
+
             const response = await fetch('https://petshop-db4w.onrender.com/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(values),
+                signal: controller.signal
             });
 
-            const data = await response.json();
+            clearTimeout(timeoutId);
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Error al registrar');
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                data = { message: `Error del servidor (${response.status}): ${response.statusText}` };
             }
 
-            setSubmitSuccess('¡Registro exitoso! Ahora puedes iniciar sesión.');
-            navigate('/');
+            if (!response.ok) {
+                throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
+            }
+
+            setShowSuccessModal(true);
         } catch (err: unknown) {
             if (err instanceof Error) {
-                setSubmitError(err.message);
+                if (err.name === 'AbortError') {
+                    setSubmitError('La petición tardó demasiado tiempo. Verifica tu conexión e intenta nuevamente.');
+                } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                    setSubmitError('Error de conexión. Verifica tu internet y que el servidor esté disponible.');
+                } else if (err.message.includes('email') || err.message.toLowerCase().includes('correo')) {
+                    setSubmitError('Este email ya está registrado o no es válido. Intenta con otro email.');
+                } else if (err.message.includes('400')) {
+                    setSubmitError('Los datos ingresados no son válidos. Verifica la información.');
+                } else if (err.message.includes('500')) {
+                    setSubmitError('Error interno del servidor. Intenta nuevamente en unos minutos.');
+                } else {
+                    setSubmitError(err.message);
+                }
             } else {
                 setSubmitError('Ocurrió un error inesperado');
             }
@@ -72,95 +127,120 @@ const RegisterForm = () => {
         }
     };
 
-    return(
-        <Formik
-            initialValues={{
-                firstName: '',
-                lastName: '',
-                email: '',
-                password: '',
-                confirmPassword: '',
-            }}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-        >
-            <Form className="space-y-6">
-                <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                        Nombre
-                    </label>
-                    <Field
-                        name="firstName"
-                        type="text"
-                        className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                    />
-                    <ErrorMessage name="firstName" component="div" className="text-red-500 text-sm mt-1" />
-                </div>
+    return (
+        <>
+            <Formik
+                initialValues={{
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    password: '',
+                    confirmPassword: '',
+                }}
+                validationSchema={validationSchema}
+                onSubmit={handleSubmit}
+            >
+                <Form className="space-y-6">
+                    <div>
+                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                            Nombre
+                        </label>
+                        <Field
+                            name="firstName"
+                            type="text"
+                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                        />
+                        <ErrorMessage name="firstName" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
 
-                <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                        Apellido
-                    </label>
-                    <Field
-                        name="lastName"
-                        type="text"
-                        className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                    />
-                    <ErrorMessage name="lastName" component="div" className="text-red-500 text-sm mt-1" />
-                </div>
+                    <div>
+                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                            Apellido
+                        </label>
+                        <Field
+                            name="lastName"
+                            type="text"
+                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                        />
+                        <ErrorMessage name="lastName" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
 
-                <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                        Correo electrónico
-                    </label>
-                    <Field
-                        name="email"
-                        type="email"
-                        className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                    />
-                    <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
-                </div>
+                    <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                            Correo electrónico
+                        </label>
+                        <Field
+                            name="email"
+                            type="email"
+                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                        />
+                        <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
 
-                <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                        Contraseña
-                    </label>
-                    <Field
-                        name="password"
-                        type="password"
-                        className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                    />
-                    <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
-                </div>
+                    <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                            Contraseña
+                        </label>
+                        <Field
+                            name="password"
+                            type="password"
+                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                        />
+                        <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
 
-                <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                        Confirmar contraseña
-                    </label>
-                    <Field
-                        name="confirmPassword"
-                        type="password"
-                        className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                    />
-                    <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
-                </div>
+                    <div>
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                            Confirmar contraseña
+                        </label>
+                        <Field
+                            name="confirmPassword"
+                            type="password"
+                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                        />
+                        <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
 
-                {submitError && <div className="text-red-500 text-sm text-center">{submitError}</div>}
-                {submitSuccess && <div className="text-green-500 text-sm text-center">{submitSuccess}</div>}
+                    {submitError && <div className="text-red-500 text-sm text-center">{submitError}</div>}
 
-                <button
-                    type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-xl transition duration-300"
-                    disabled={loading}
-                >
-                    {loading ? 'Registrando...' : 'Registrarse'}
-                </button>
+                    <button
+                        type="submit"
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-xl transition duration-300"
+                        disabled={loading}
+                    >
+                        {loading ? 'Registrando...' : 'Registrarse'}
+                    </button>
 
-                <p className="text-center text-sm text-gray-500">
-                    ¿Ya tienes una cuenta? <a href="/login" className="text-indigo-600 hover:underline">Inicia sesión</a>
-                </p>
-            </Form>
-        </Formik>
+                    <p className="text-center text-sm text-gray-500">
+                        ¿Ya tienes una cuenta? <a href="/login" className="text-indigo-600 hover:underline">Inicia sesión</a>
+                    </p>
+                </Form>
+            </Formik>
+
+            <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+                <DialogContent className="sm:max-w-md" showCloseButton={false}>
+                    <DialogHeader className="text-center">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                            <CheckCircle className="h-8 w-8 text-green-600" />
+                        </div>
+                        <DialogTitle className="text-2xl font-bold text-gray-900">
+                            ¡Registro Exitoso!
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-600">
+                            Tu cuenta ha sido creada correctamente. Ahora puedes iniciar sesión.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="sm:justify-center">
+                        <Button
+                            onClick={handleCloseModal}
+                            className="w-full bg-green-600 hover:bg-green-700"
+                        >
+                            Continuar
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 
