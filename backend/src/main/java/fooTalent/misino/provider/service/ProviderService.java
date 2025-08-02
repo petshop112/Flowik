@@ -1,47 +1,18 @@
 package fooTalent.misino.provider.service;
 
+import fooTalent.misino.provider.dto.ProviderUpdated;
 import fooTalent.misino.provider.entity.Provider;
-import fooTalent.misino.provider.repositories.ProviderRepositorylmpl;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
-public class ProviderService implements ProviderServicelmpl {
-    private final ProviderServicelmpl providerRepository;
+public interface ProviderService {
+    Provider createProvider(Provider provider);
+    List<Provider> getAllProvider();
+    Provider getProviderById(Long id);
+    boolean existProvider(Long id);
+    Provider updateProvider(Provider provider);
 
-    public ProviderService(ProviderServicelmpl providerRepository){this.providerRepository= providerRepository;}
+    Provider updateProvider(Long id, ProviderUpdated providerUpdated);
 
-
-    @Override
-    public Provider createProvider(Provider provider) {
-        return null;
-    }
-
-    @Override
-    public List<Provider> getAllProvider() {
-        return List.of();
-    }
-
-    @Override
-    public Provider getProviderById(Long id) {
-        return null;
-    }
-
-    @Override
-    public boolean existProvider(Long id) {
-        return false;
-    }
-
-    @Override
-    public Provider updateProvider(Provider provider) {
-        return null;
-    }
-
-    @Override
-    public void deleteProviderById(Long id) {
-
-    }
+    void deleteProviderById(Long id);
 }

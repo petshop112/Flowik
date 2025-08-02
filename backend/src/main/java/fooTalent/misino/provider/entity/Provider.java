@@ -1,13 +1,12 @@
 package fooTalent.misino.provider.entity;
 import fooTalent.misino.provider.dto.ProviderRegister;
+import fooTalent.misino.provider.dto.ProviderUpdated;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter @Setter
+@Data
 @Entity
 @Table(name = "provider")
 public class Provider {
@@ -33,4 +32,21 @@ public class Provider {
         this.telephone_provider = pr.telephone_provider();
         this.provider_description = pr.provider_description();
     }
+
+    public void updateFromDto(ProviderUpdated dto) {
+        if (dto.name_provider() != null) {
+            this.name_provider = dto.name_provider();
+        }
+        if (dto.direction_provider() != null) {
+            this.direction_provider = dto.direction_provider();
+        }
+        if (dto.telephone_provider() != null) {
+            this.telephone_provider = dto.telephone_provider();
+        }
+        if (dto.provider_description() != null) {
+            this.provider_description = dto.provider_description();
+        }
+    }
+
+
 }
