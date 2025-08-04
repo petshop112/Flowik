@@ -22,22 +22,37 @@ type User = {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-  
+    const token = localStorage.getItem("token");
+
     useEffect(() => {
-      fetch("https://petshop-db4w.onrender.com/user/getAllUsers")
-        .then((res) => {
-          if (!res.ok) throw new Error("Error al obtener los usuarios");
-          return res.json();
-        })
-        .then((data: User[]) => {
-          setUsers(data);
-          setLoading(false);
-        })
-        .catch((e) => {
-          setError(e.message);
-          setLoading(false);
-        });
-    }, []);
+        const fetchUsers = async () => {
+          if (!token) {
+            setError("No token, no info. Please log in");
+            setLoading(false);
+            return;
+          }
+          try {
+            const res = await fetch("https://petshop-db4w.onrender.com/user/getAllUsers", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+    
+            if (!res.ok) {
+              throw new Error("Error al obtener los usuarios");
+            }
+    
+            const data: User[] = await res.json();
+            setUsers(data);
+          } catch (e: any) {
+            setError(e.message || "Error desconocido al obtener usuarios");
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        fetchUsers();
+      }, [token]);
   
     return (
       <div className="flex-col justify-start items-start text-white p-4">
