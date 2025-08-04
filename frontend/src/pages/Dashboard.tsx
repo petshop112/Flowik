@@ -34,14 +34,20 @@ const Dashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const token = localStorage.getItem("token");
 
+  const filteredUsers = users.filter(
+    (user) => 
+      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) || user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  const paginatedUsers = users.slice(
+  const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -94,7 +100,16 @@ const Dashboard = () => {
       <h2 className="mb-3 font-bold text-lg">Usuarios Registrados</h2>
       {loading && <p className="text-blue-400">Cargando usuarios...</p>}
       {error && <p className="text-red-400">{error}</p>}
-  
+
+      <input 
+        data-test="user-search-input" 
+        type="text" 
+        placeholder="Buscar por nombre, apellido o email" 
+        value={searchTerm} 
+        onChange={(e) => setSearchTerm(e.target.value)} 
+        className="mb-4 p-2 rounded-md border border-gray-300 text-azure w-full max-w-md" 
+      />
+
       <Table>
         <TableCaption>Lista de usuarios de la base de datos</TableCaption>
         <TableHeader>
