@@ -8,7 +8,7 @@ import {
     TableRow,
   } from "../components/ui/table";
   import { CircleUserRound } from "lucide-react";
-  import React, { useEffect, useState } from "react";
+  import { useEffect, useState } from "react";
 
 type User = {
     id: number;
