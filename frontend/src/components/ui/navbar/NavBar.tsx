@@ -8,9 +8,13 @@ import {
 
 import { Link } from "react-router-dom";
 import useAuthToken from "../../../hooks/useAuthToken";
+import { CircleUserRound } from 'lucide-react';
+
 
 const NavBar = () => {
   const token = useAuthToken();
+  const userName =  localStorage.getItem("username");
+
   return (
     <nav className="flex bg-slate-900 text-white justify-between rounded-2xl p-2 text-2xl">
       {/*Home link */}
@@ -26,7 +30,14 @@ const NavBar = () => {
     
 
       {token ? (
+        <div className="flex items-center">
+        <div className="flex ">
+          <span><CircleUserRound /></span>
+          <p className="ml-2 text-sm">Welcome, {userName}</p>
+        </div>
         <Logout />
+        </div>
+        
       ) : (
         <div className="flex">
           {/*login link */}
