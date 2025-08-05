@@ -1,5 +1,6 @@
 package fooTalent.misino.products.service;
 
+import fooTalent.misino.exceptions.ResourceNotFoundException;
 import fooTalent.misino.products.entity.Product;
 import fooTalent.misino.products.repositories.ProductRepositoryImpl;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,7 +32,7 @@ public class ProductService implements ProductServiceImpl{
     @Override
     public Product getProductById(Long id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("No se encontró el producto con ID " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto", "ID", id));
     }
 
     @Override
@@ -43,7 +44,7 @@ public class ProductService implements ProductServiceImpl{
     @Transactional
     public Product updateProduct(Product product) {
         if(!this.existProduct(product.getId())){
-            throw new EntityNotFoundException("No se encontró el producto con ID " + product.getId());
+            throw new ResourceNotFoundException("Producto", "ID", product.getId());
         }
         return productRepository.save(product);
     }
@@ -52,7 +53,7 @@ public class ProductService implements ProductServiceImpl{
     @Transactional
     public void deleteProductById(Long id) {
         if(!this.existProduct(id)){
-            throw new EntityNotFoundException("No se encontró el producto con ID " + id);
+            throw new ResourceNotFoundException("Producto", "ID", id);
         }
         productRepository.deleteById(id);
     }
