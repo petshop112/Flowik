@@ -7,6 +7,7 @@ import fooTalent.misino.products.dto.ProductUpdated;
 import fooTalent.misino.products.entity.Product;
 import fooTalent.misino.products.service.ProductServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -26,7 +27,7 @@ public class ProductController {
 
     @Operation(summary = "Registrar un nuevo producto")
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRegister productRegister,
+    public ResponseEntity<ProductResponse> createProduct(@RequestBody @Valid ProductRegister productRegister,
                                                          UriComponentsBuilder uriComponentsBuilder){
 
         Product product = productService.createProduct(new Product(productRegister));
@@ -63,7 +64,7 @@ public class ProductController {
     @Operation(summary = "Modificar un producto")
     @PutMapping("/{id_product}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id_product") Long idProduct,
-                                                         @RequestBody ProductUpdated productUpdated){
+                                                         @RequestBody @Valid ProductUpdated productUpdated){
         Product product = productService.getProductById(idProduct);
         product.updateProduct(productUpdated);
         product = productService.updateProduct(product);
