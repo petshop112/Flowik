@@ -22,3 +22,10 @@ export interface ProductModalProps {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
 }
+
+export interface DeleteProductConfirmationModalProps {
+  showDeleteModal: boolean;
+  actionLoading: boolean;
+  closeDeleteModal: () => void;
+  handleDelete: () => Promise<boolean>;
+}
