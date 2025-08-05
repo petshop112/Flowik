@@ -148,6 +148,7 @@ const RegisterForm = () => {
                         <Field
                             name="firstName"
                             type="text"
+                            data-test="username"
                             className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
                         />
                         <ErrorMessage name="firstName" component="div" className="text-red-500 text-sm mt-1" />
@@ -160,6 +161,7 @@ const RegisterForm = () => {
                         <Field
                             name="lastName"
                             type="text"
+                            data-test="lastname"
                             className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
                         />
                         <ErrorMessage name="lastName" component="div" className="text-red-500 text-sm mt-1" />
@@ -172,6 +174,7 @@ const RegisterForm = () => {
                         <Field
                             name="email"
                             type="email"
+                            data-test="email"
                             className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
                         />
                         <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
@@ -184,6 +187,7 @@ const RegisterForm = () => {
                         <Field
                             name="password"
                             type="password"
+                            data-test="password"
                             className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
                         />
                         <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
@@ -196,6 +200,7 @@ const RegisterForm = () => {
                         <Field
                             name="confirmPassword"
                             type="password"
+                            data-test="confirmpassword"
                             className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
                         />
                         <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
@@ -207,6 +212,7 @@ const RegisterForm = () => {
                         type="submit"
                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-xl transition duration-300"
                         disabled={loading}
+                        data-test="register-button"
                     >
                         {loading ? 'Registrando...' : 'Registrarse'}
                     </button>
