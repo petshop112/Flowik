@@ -6,20 +6,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  } from "../components/ui/table";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationPrevious, 
+} from "../components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
   PaginationNext,
-  PaginationLink
+  PaginationLink,
 } from "../components/ui/pagination";
-import { 
-  CircleUserRound,
-  ChevronsLeft,
-  ChevronsRight
- } from "lucide-react";
+import { CircleUserRound, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type User = {
@@ -28,7 +24,7 @@ type User = {
   lastName: string;
   email: string;
 };
-  
+
 const Dashboard = () => {
   const userName = localStorage.getItem("username");
   const [users, setUsers] = useState<User[]>([]);
@@ -38,10 +34,12 @@ const Dashboard = () => {
   const token = localStorage.getItem("token");
 
   const filteredUsers = users.filter(
-    (user) => 
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) || user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-  
+    (user) =>
+      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -60,32 +58,35 @@ const Dashboard = () => {
         return;
       }
       try {
-        const res = await fetch("https://petshop-db4w.onrender.com/user/getAllUsers", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-    
+        const res = await fetch(
+          "https://petshop-db4w.onrender.com/user/getAllUsers",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
         if (!res.ok) {
           throw new Error("Error al obtener los usuarios");
         }
-    
+
         const data: User[] = await res.json();
         setUsers(data);
       } catch (e: unknown) {
-          if (e instanceof Error) {
-            setError(e.message);
-          } else {
-            setError("Error desconocido al obtener usuarios");
-          }
+        if (e instanceof Error) {
+          setError(e.message);
+        } else {
+          setError("Error desconocido al obtener usuarios");
+        }
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchUsers();
   }, [token]);
-  
+
   return (
     <div className="flex-col justify-start items-start text-white p-4">
       <h3 className="text-2xl mb-1">Dashboard</h3>
@@ -94,20 +95,22 @@ const Dashboard = () => {
         <span>
           <CircleUserRound />
         </span>
-        <h1 className="ml-2 text-sm">Welcome, {userName}</h1>
+        <h1 className="ml-2 text-sm" data-test="dashboard-welcome-user">
+          Welcome, {userName}
+        </h1>
       </div>
-  
+
       <h2 className="mb-3 font-bold text-lg">Usuarios Registrados</h2>
       {loading && <p className="text-blue-400">Cargando usuarios...</p>}
       {error && <p className="text-red-400">{error}</p>}
 
-      <input 
-        data-test="user-search-input" 
-        type="text" 
-        placeholder="Buscar por nombre, apellido o email" 
-        value={searchTerm} 
-        onChange={(e) => setSearchTerm(e.target.value)} 
-        className="mb-4 p-2 rounded-md border border-gray-300 text-azure w-full max-w-md" 
+      <input
+        data-test="user-search-input"
+        type="text"
+        placeholder="Buscar por nombre, apellido o email"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-4 p-2 rounded-md border border-gray-300 text-azure w-full max-w-md"
       />
 
       <Table>
@@ -123,10 +126,12 @@ const Dashboard = () => {
         <TableBody>
           {paginatedUsers.map((user) => (
             <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.id}</TableCell>
-              <TableCell>{user.firstName}</TableCell>
-              <TableCell>{user.lastName}</TableCell>
-              <TableCell>{user.email}</TableCell>
+              <TableCell className="font-medium" data-test="user-id">
+                {user.id}
+              </TableCell>
+              <TableCell data-test="user-firstName">{user.firstName}</TableCell>
+              <TableCell data-test="user-lastName">{user.lastName}</TableCell>
+              <TableCell data-test="user-email">{user.email}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -138,8 +143,11 @@ const Dashboard = () => {
           <PaginationItem>
             <PaginationLink
               onClick={() => setCurrentPage(1)}
+              data-test="pagination-first"
               size="default"
-              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              className={
+                currentPage === 1 ? "pointer-events-none opacity-50" : ""
+              }
             >
               <ChevronsLeft className="w-4 h-4" />
             </PaginationLink>
@@ -148,30 +156,47 @@ const Dashboard = () => {
           {/* Página anterior */}
           <PaginationItem>
             <PaginationPrevious
+              data-test="pagination-prev"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              className={
+                currentPage === 1 ? "pointer-events-none opacity-50" : ""
+              }
             />
           </PaginationItem>
 
           {/* Página actual */}
           <PaginationItem>
-            <span className="px-3 text-sm text-white">{`Página ${currentPage} de ${totalPages}`}</span>
+            <span
+              className="px-3 text-sm text-white"
+              data-test="pagination-current"
+            >{`Página ${currentPage} de ${totalPages}`}</span>
           </PaginationItem>
 
           {/* Página siguiente */}
           <PaginationItem>
             <PaginationNext
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              className={
+                currentPage === totalPages
+                  ? "pointer-events-none opacity-50"
+                  : ""
+              }
             />
           </PaginationItem>
 
           {/* Ir a la última página */}
           <PaginationItem>
             <PaginationLink
+              data-test="pagination-last"
               onClick={() => setCurrentPage(totalPages)}
               size="default"
-              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              className={
+                currentPage === totalPages
+                  ? "pointer-events-none opacity-50"
+                  : ""
+              }
             >
               <ChevronsRight className="w-4 h-4" />
             </PaginationLink>
