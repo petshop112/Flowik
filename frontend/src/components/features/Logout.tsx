@@ -10,7 +10,7 @@ const Logout = () => {
         navigate("/login");
     }
     return (
-        <Button className="bg-transparent" onClick={handleLogout}>Logout</Button>
+        <Button className="bg-transparent" data-test="logout-button" onClick={handleLogout}>Logout</Button>
     )
 }
 
