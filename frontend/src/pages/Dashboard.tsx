@@ -101,8 +101,8 @@ const Dashboard = () => {
       </div>
 
       <h2 className="mb-3 font-bold text-lg">Usuarios Registrados</h2>
-      {loading && <p className="text-blue-400">Cargando usuarios...</p>}
-      {error && <p className="text-red-400">{error}</p>}
+      {loading && <p className="text-blue-400" data-test="loading-users">Cargando usuarios...</p>}
+      {error && <p className="text-red-400" data-test="error-users">{error}</p>}
 
       <input
         data-test="user-search-input"
