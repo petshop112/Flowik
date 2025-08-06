@@ -45,6 +45,7 @@ public class AuthController {
         }
         return ResponseEntity.ok(response);
     }
+
     @Operation(summary = "Iniciar sesion")
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -55,6 +56,7 @@ public class AuthController {
         }
         return ResponseEntity.ok(response);
     }
+
     @Operation(summary = "Endpoint para verificaciones, USO EN BACKEND LOCAL")
     @GetMapping("/verifyToken")
     public void verifyAccount(@RequestParam("token") String token, HttpServletResponse response) throws IOException {
@@ -89,5 +91,4 @@ public class AuthController {
 
         response.sendRedirect(frontUrl + "/login?verified=success");
     }
-
 }
