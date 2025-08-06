@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -33,7 +33,8 @@ public class AuthController {
     @Value("${URL_FRONT}")
     private String frontUrl;
 
-    @Operation(summary = "Registrar un nuevo usuario")
+    @Operation(summary = "Registrar un nuevo usuario." +
+            " El campo Rol recibe USER o ADMIN")
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         System.out.println("Nombre completo recibido: '" + request.firstName() + " " + request.lastName() + "'");

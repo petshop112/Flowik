@@ -1,6 +1,10 @@
 package fooTalent.misino.users.controller;
 
+import fooTalent.misino.Auth.service.JwtService;
+import fooTalent.misino.config.SecurityUtil;
+import fooTalent.misino.exceptions.ResourceNotFoundException;
 import fooTalent.misino.users.dto.UserDto;
+import fooTalent.misino.users.dto.UserUpdateRequest;
 import fooTalent.misino.users.entity.User;
 import fooTalent.misino.users.repositories.UserRepository;
 import fooTalent.misino.users.service.UserService;
@@ -8,22 +12,23 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     @Operation(summary = "Obtener todos los usuarios")
     @GetMapping("/getAllUsers")
@@ -35,9 +40,9 @@ public class UserController {
             "por seguridad de datos")
     @GetMapping("/getUserByID/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        String authenticatedEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = SecurityUtil.getAuthenticatedEmail();
 
-        Optional<User> optionalUser = userRepository.findByEmail(authenticatedEmail);
+        Optional<User> optionalUser = userRepository.findByEmail(email);
 
         if (optionalUser.isEmpty()) {
             return ResponseEntity
@@ -55,6 +60,19 @@ public class UserController {
 
         return ResponseEntity.ok(currentUser);
     }
-
-
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Permite eliminar un usuario, SOLO ADMIN")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteUserById(@PathVariable Long id) {
+        SecurityUtil.validateUserAccess(userRepository, id);
+        userService.deleteById(id);
+        return ResponseEntity.ok("El usuario fue eliminado correctamente");
+    }
+    @Operation(summary = "Actualizar datos de usuario")
+    @PutMapping("/update")
+    public ResponseEntity<?> updateUserProfile(@RequestBody UserUpdateRequest updatedUserDTO) {
+        String email = SecurityUtil.getAuthenticatedEmail();
+        userService.updateUser(email, updatedUserDTO);
+        return ResponseEntity.ok("Perfil actualizado correctamente.");
+    }
 }

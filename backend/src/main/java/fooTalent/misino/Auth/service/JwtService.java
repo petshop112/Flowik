@@ -20,6 +20,7 @@ public class JwtService {
                 .withClaim("lastName", user.getLastName())
                 .withClaim("firstName", user.getFirstName())
                 .withClaim("userName", user.getUserName())
+                .withClaim("Role", user.getRole().name())
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 86400000)) // 1 día
                 .sign(Algorithm.HMAC256(SECRET_KEY));
