@@ -2,11 +2,13 @@ package fooTalent.misino.products.dto;
 
 import fooTalent.misino.products.entity.Product;
 
+import java.math.BigDecimal;
+
 public record ProductList(
 
         Long id,
         String title,
-        Double price,
+        BigDecimal price,
         String description,
         String category,
         String image

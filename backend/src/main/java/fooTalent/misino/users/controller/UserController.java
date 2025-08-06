@@ -23,22 +23,22 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
     private final JwtService jwtService;
 
-    @Operation(summary = "Obtener todos los usuarios")
-    @GetMapping("/getAllUsers")
+    @Operation(summary = "Listar todos los usuarios")
+    @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
-    @Operation(summary = "Obtener datos del usuario por su Id, " +
-            "solo se obtienen datos de cada usuario," +
-            "por seguridad de datos")
-    @GetMapping("/getUserByID/{id}")
+
+    @Operation(summary = "Obtener datos del usuario por su ID " +
+                         "(solo se obtienen datos de cada usuario por seguridad de datos)")
+    @GetMapping("/{id_user}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         String email = SecurityUtil.getAuthenticatedEmail();
 
@@ -60,16 +60,18 @@ public class UserController {
 
         return ResponseEntity.ok(currentUser);
     }
+
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Permite eliminar un usuario, SOLO ADMIN")
-    @DeleteMapping("/delete/{id}")
+    @Operation(summary = "Eliminar un usuario, SOLO ADMIN")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUserById(@PathVariable Long id) {
         SecurityUtil.validateUserAccess(userRepository, id);
         userService.deleteById(id);
         return ResponseEntity.ok("El usuario fue eliminado correctamente");
     }
-    @Operation(summary = "Actualizar datos de usuario")
-    @PutMapping("/update")
+
+    @Operation(summary = "Modificar datos de un usuario")
+    @PutMapping
     public ResponseEntity<?> updateUserProfile(@RequestBody UserUpdateRequest updatedUserDTO) {
         String email = SecurityUtil.getAuthenticatedEmail();
         userService.updateUser(email, updatedUserDTO);

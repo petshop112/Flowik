@@ -46,17 +46,16 @@ public class ProviderController {
     }
 
     @Operation(summary = "Actualizar proveedor por ID")
-    @PutMapping("/{id}")
+    @PutMapping("/{id_provider}")
     public ResponseEntity<ProviderResponse> updateProvider(@PathVariable Long id,
                                                            @RequestBody ProviderUpdated providerUpdated) {
         Provider updated = providerService.updateProvider(id, providerUpdated);
         return ResponseEntity.ok(new ProviderResponse(updated));
     }
 
-
     @Operation(summary = "Eliminar proveedor por ID, SOLO ADMIN")
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id_provider}")
     public ResponseEntity<Void> deleteProvider(@PathVariable Long id) {
         providerService.deleteProviderById(id);
         return ResponseEntity.noContent().build();

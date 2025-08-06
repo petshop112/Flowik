@@ -1,23 +1,27 @@
 package fooTalent.misino.products.dto;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
 
 public record ProductRegister(
 
         @NotBlank(message = "El nombre del producto es obligatorio.")
         String title,
 
-        @DecimalMin(value = "0.01", message = "El valor del producto debe ser mayor a 0.")
-        Double price,
+        @NotNull(message = "El precio no puede ser nulo.")
+        @DecimalMin(value = "0.01", inclusive = true, message = "El precio debe ser mayor o igual a 0.01.")
+        @Digits(integer = 10, fraction = 2, message = "El precio debe tener hasta 10 dígitos enteros y 2 decimales.")
+        BigDecimal price,
 
-        @NotBlank(message = "El nombre del producto es obligatorio.")
+        @NotBlank(message = "La descripción del producto es obligatorio.")
         String description,
 
-        @NotNull(message = "La cantidad del producto no puede ser nula.")
+        @NotNull(message = "La categoría del producto no puede ser nula.")
+        @NotBlank(message = "La categoría del producto es obligatoria.")
         String category,
 
+        @Pattern(regexp = "^(http(s?):)([/|.|\\w|\\s|-])*\\.(?:jpg|jpeg|png)$", message = "La URL de la imagen no es válida.")
         String image
 ){
 }
