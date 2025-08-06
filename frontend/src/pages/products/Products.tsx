@@ -25,11 +25,11 @@ function Products() {
   } = useProducts(token);
 
   if (fetchLoading) {
-    return <p className="text-white p-4">Cargando productos...</p>;
+    return <p className="text-white p-4" data-test="loading-products">Cargando productos...</p>;
   }
 
   if (fetchError) {
-    return <p className="text-red-500 p-4">Error: {fetchError}</p>;
+    return <p className="text-red-500 p-4" data-test="error-products">Error: {fetchError}</p>;
   }
 
   return (
@@ -41,6 +41,7 @@ function Products() {
           </h1>
           <button
             onClick={() => openModal()}
+            data-test="add-product-btn"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Agregar Producto
@@ -54,7 +55,7 @@ function Products() {
         )}
 
         <main className="bg-gray-800 rounded-lg overflow-hidden shadow-lg overflow-x-auto">
-          <table className="w-full min-w-lg">
+          <table className="w-full min-w-lg" data-test="products-table">
             <thead className="bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-white font-semibold">
@@ -81,14 +82,14 @@ function Products() {
                     key={product.id}
                     className="border-b border-gray-700 hover:bg-gray-750"
                   >
-                    <td className="px-6 py-4 text-gray-300">{product.id}</td>
+                    <td className="px-6 py-4 text-gray-300" data-test="product-id">{product.id}</td>
                     <td className="px-6 py-4 text-white font-medium">
                       {product.title}
                     </td>
-                    <td className="px-6 py-4 text-green-400">
+                    <td className="px-6 py-4 text-green-400" data-test="product-price">
                       ${product.price}
                     </td>
-                    <td className="px-6 py-4 text-gray-300">
+                    <td className="px-6 py-4 text-gray-300" data-test="product-category">
                       {product.category}
                     </td>
                     <td className="px-6 py-4">
@@ -97,6 +98,7 @@ function Products() {
                           onClick={() => openModal(product)}
                           className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm transition-colors"
                           disabled={actionLoading}
+                          data-test={`edit-product-btn-${product.id}`}
                         >
                           Editar
                         </button>
@@ -104,6 +106,7 @@ function Products() {
                           onClick={() => openDeleteModal(product.id)}
                           className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
                           disabled={actionLoading}
+                          data-test={`delete-product-btn-${product.id}`}
                         >
                           Eliminar
                         </button>
@@ -116,6 +119,7 @@ function Products() {
                   <td
                     colSpan={5}
                     className="px-6 py-8 text-center text-gray-400"
+                    data-test="no-products"
                   >
                     No hay productos disponibles
                   </td>
