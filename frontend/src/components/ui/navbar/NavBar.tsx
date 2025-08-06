@@ -21,7 +21,7 @@ const NavBar = () => {
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuLink asChild>
-              <Link to="/">Home</Link>
+              <Link to="/" data-test="nav-home">Home</Link>
             </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
@@ -33,7 +33,7 @@ const NavBar = () => {
             <span>
               <CircleUserRound />
             </span>
-            <p className="ml-2 text-sm">Welcome, {userName}</p>
+            <p className="ml-2 text-sm" data-test="nav-welcome-user">Welcome, {userName}</p>
           </div>
 
           {/*Products link */}
@@ -41,7 +41,7 @@ const NavBar = () => {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/products">Products</Link>
+                  <Link to="/products" data-test="nav-products">Products</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -57,7 +57,7 @@ const NavBar = () => {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/login">Login</Link>
+                  <Link to="/login" data-test="nav-login">Login</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -69,7 +69,7 @@ const NavBar = () => {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/register">Register</Link>
+                  <Link to="/register" data-test="nav-register">Register</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
