@@ -67,6 +67,7 @@ public class AuthService {
         user.setVerificationToken(verificationToken);
         user.setVerificationTokenExpiration(new Date(System.currentTimeMillis() + 86400000)); // Expira en 1 día
         user.setIsActive(false);
+        user.setRole(request.role());
 
         try {
             String link = backUrl + "/auth/verifyToken?token=" + verificationToken;

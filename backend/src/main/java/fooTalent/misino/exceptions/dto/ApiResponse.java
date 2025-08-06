@@ -1,4 +1,4 @@
-package fooTalent.misino.exceptions;
+package fooTalent.misino.exceptions.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

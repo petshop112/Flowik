@@ -1,5 +1,6 @@
 package fooTalent.misino.users.entity;
 
+import fooTalent.misino.Auth.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +28,9 @@ public class User {
     private boolean isActive;
     private String verificationToken;
     private Date verificationTokenExpiration;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
 
     public boolean getIsActive() {

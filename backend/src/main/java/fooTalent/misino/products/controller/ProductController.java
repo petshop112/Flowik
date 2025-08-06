@@ -9,6 +9,7 @@ import fooTalent.misino.products.service.ProductServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -73,7 +74,8 @@ public class ProductController {
         return ResponseEntity.ok(productResponse);
     }
 
-    @Operation(summary = "Eliminar un producto")
+    @Operation(summary = "Eliminar un producto, SOLO ADMIN")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id_product}")
     public ResponseEntity deleteProductById(@PathVariable("id_product") Long idProduct){
 

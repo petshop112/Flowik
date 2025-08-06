@@ -8,6 +8,7 @@ import fooTalent.misino.provider.entity.Provider;
 import fooTalent.misino.provider.service.ProviderService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -53,7 +54,8 @@ public class ProviderController {
     }
 
 
-    @Operation(summary = "Eliminar proveedor por ID")
+    @Operation(summary = "Eliminar proveedor por ID, SOLO ADMIN")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProvider(@PathVariable Long id) {
         providerService.deleteProviderById(id);

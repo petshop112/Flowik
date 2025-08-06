@@ -1,6 +1,9 @@
 package fooTalent.misino.Auth.dto;
 
+import fooTalent.misino.Auth.enums.Role;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
@@ -21,5 +24,8 @@ public record RegisterRequest(
 
         @NotBlank(message = "El campo contraseña no puede estar vacío")
         @Size(min = 8, max = 16)
-        String confirmPassword
+        String confirmPassword,
+
+        @NotNull(message = "El rol es obligatorio")
+        Role role
 ) {}
