@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
+
         @NotBlank(message = "El campo apellido no puede estar vacío")
         @Size(min = 2, max = 50, message = "El apellido debe tener entre 2 y 50 caracteres")
         String lastName,
@@ -28,4 +29,5 @@ public record RegisterRequest(
 
         @NotNull(message = "El rol es obligatorio")
         Role role
-) {}
+){
+}
