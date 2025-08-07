@@ -1,13 +1,15 @@
 package fooTalent.misino.provider.dto;
+
 import fooTalent.misino.provider.entity.Provider;
+
 public record ProviderResponse(
+
         Long id_provider,
         String name_provider,
         String direction_provider,
         String telephone_provider,
         String provider_description
-
-) {
+){
     public ProviderResponse(Provider pr){
         this(
                 (pr !=null)? pr.getId_provider():null,
@@ -17,5 +19,4 @@ public record ProviderResponse(
                 (pr !=null)? pr.getProvider_description():null
         );
     }
-
 }

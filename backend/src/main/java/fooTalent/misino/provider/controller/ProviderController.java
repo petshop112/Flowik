@@ -7,6 +7,7 @@ import fooTalent.misino.provider.dto.ProviderUpdated;
 import fooTalent.misino.provider.entity.Provider;
 import fooTalent.misino.provider.service.ProviderService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class ProviderController {
 
     @Operation(summary = "Crear proveedor")
     @PostMapping
-    public ResponseEntity<ProviderResponse> create(@RequestBody ProviderRegister providerRegister,
+    public ResponseEntity<ProviderResponse> create(@RequestBody @Valid ProviderRegister providerRegister,
                                                    UriComponentsBuilder uriBuilder) {
         Provider provider = providerService.createProvider(new Provider(providerRegister));
         URI location = uriBuilder.path("/api/providers/{id}")
@@ -47,9 +48,9 @@ public class ProviderController {
 
     @Operation(summary = "Actualizar proveedor por ID")
     @PutMapping("/{id_provider}")
-    public ResponseEntity<ProviderResponse> updateProvider(@PathVariable Long id,
-                                                           @RequestBody ProviderUpdated providerUpdated) {
-        Provider updated = providerService.updateProvider(id, providerUpdated);
+    public ResponseEntity<ProviderResponse> updateProvider(@PathVariable Long id_provider,
+                                                           @RequestBody @Valid ProviderUpdated providerUpdated) {
+        Provider updated = providerService.updateProvider(id_provider, providerUpdated);
         return ResponseEntity.ok(new ProviderResponse(updated));
     }
 

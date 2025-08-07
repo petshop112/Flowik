@@ -63,7 +63,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar un usuario, SOLO ADMIN")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id_user}")
     public ResponseEntity<?> deleteUserById(@PathVariable Long id) {
         SecurityUtil.validateUserAccess(userRepository, id);
         userService.deleteById(id);
