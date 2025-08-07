@@ -38,27 +38,11 @@ public class UserController {
 
     @Operation(summary = "Obtener datos del usuario por su ID " +
                          "(solo se obtienen datos de cada usuario por seguridad de datos)")
-    @GetMapping("/{id_user}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        String email = SecurityUtil.getAuthenticatedEmail();
-
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("No estás autenticado para realizar esta acción.");
-        }
-
-        User currentUser = optionalUser.get();
-
-        if (!currentUser.getId().equals(id)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body("No estás autorizado para acceder a los datos de otro usuario.");
-        }
-
-        return ResponseEntity.ok(currentUser);
+        SecurityUtil.validateUserAccess(userRepository, id);
+        User user = userService.getById(id);
+        return ResponseEntity.ok(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -70,7 +54,7 @@ public class UserController {
         return ResponseEntity.ok("El usuario fue eliminado correctamente");
     }
 
-    @Operation(summary = "Modificar datos de un usuario")
+    @Operation(summary = "Modificar datos del usuario")
     @PutMapping
     public ResponseEntity<?> updateUserProfile(@RequestBody UserUpdateRequest updatedUserDTO) {
         String email = SecurityUtil.getAuthenticatedEmail();
