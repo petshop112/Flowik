@@ -1,6 +1,7 @@
 package fooTalent.misino.Auth.dto;
 
 import fooTalent.misino.Auth.enums.Role;
+import fooTalent.misino.validation.OnlyLettersAndSpaces;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,10 +11,12 @@ public record RegisterRequest(
 
         @NotBlank(message = "El campo apellido no puede estar vacío")
         @Size(min = 2, max = 50, message = "El apellido debe tener entre 2 y 50 caracteres")
+        @OnlyLettersAndSpaces
         String lastName,
 
         @NotBlank(message = "El campo nombre no puede estar vacío")
         @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres")
+        @OnlyLettersAndSpaces
         String firstName,
 
         @NotBlank(message = "El campo email no puede estar vacío")

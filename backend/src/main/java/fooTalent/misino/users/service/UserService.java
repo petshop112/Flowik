@@ -3,6 +3,7 @@ package fooTalent.misino.users.service;
 import fooTalent.misino.Auth.dto.AuthResponse;
 import fooTalent.misino.Auth.util.UserValidation;
 import fooTalent.misino.exceptions.ForbiddenException;
+import fooTalent.misino.exceptions.ResourceNotFoundException;
 import fooTalent.misino.exceptions.UnauthorizedException;
 import fooTalent.misino.users.dto.UserDto;
 import fooTalent.misino.users.dto.UserUpdateRequest;
@@ -77,5 +78,10 @@ public class UserService {
         }
 
         userRepository.save(existingUser);
+    }
+
+    public User getById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
     }
 }
