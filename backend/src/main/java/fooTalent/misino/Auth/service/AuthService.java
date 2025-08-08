@@ -70,7 +70,7 @@ public class AuthService {
         user.setRole(request.role());
 
         try {
-            String link = backUrl + "/auth/verifyToken?token=" + verificationToken;
+            String link = backUrl + "/api/auth/verifyToken?token=" + verificationToken;
             emailService.sendEmail(user.getEmail(), "Verifica tu cuenta",
                     "<p>Hola " + user.getUserName() + ",</p>" +
                             "<p>Gracias por registrarte en nuestra web app para controlar tu " +

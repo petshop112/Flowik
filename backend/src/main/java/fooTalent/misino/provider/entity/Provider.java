@@ -23,7 +23,7 @@ public class Provider {
     @Column(nullable = false, length = 20)
     private String telephone_provider;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 300)
     private String provider_description;
 
     public Provider(ProviderRegister pr){
