@@ -1,11 +1,13 @@
 package fooTalent.misino.products.controller;
 
+import fooTalent.misino.config.SecurityUtil;
 import fooTalent.misino.products.dto.ProductList;
 import fooTalent.misino.products.dto.ProductRegister;
 import fooTalent.misino.products.dto.ProductResponse;
 import fooTalent.misino.products.dto.ProductUpdated;
 import fooTalent.misino.products.entity.Product;
 import fooTalent.misino.products.service.ProductServiceImpl;
+import fooTalent.misino.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,40 +23,49 @@ import java.util.List;
 public class ProductController {
 
     private final ProductServiceImpl productService;
+    private final UserRepository userRepository;
 
-    public ProductController(ProductServiceImpl productService){
+    public ProductController(ProductServiceImpl productService,
+                             UserRepository userRepository){
         this.productService = productService;
+        this.userRepository = userRepository;
     }
 
     @Operation(summary = "Registrar un nuevo producto")
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody @Valid ProductRegister productRegister,
+    @PostMapping("/{id_user}")
+    public ResponseEntity<ProductResponse> createProduct(@PathVariable("id_user") Long idUser,
+                                                         @RequestBody @Valid ProductRegister productRegister,
                                                          UriComponentsBuilder uriComponentsBuilder){
+
+        SecurityUtil.validateUserAccess(userRepository, idUser);
 
         Product product = productService.createProduct(new Product(productRegister));
 
         URI url = uriComponentsBuilder.path("/api/products/{id_product}")
                 .buildAndExpand(product.getId())
                 .toUri();
-
-        ProductResponse productResponse = new ProductResponse(product);
-        return ResponseEntity.created(url).body(productResponse);
+        return ResponseEntity.created(url).body(new ProductResponse(product));
     }
 
     @Operation(summary = "Listar todos los productos")
-    @GetMapping
-    public ResponseEntity<List<ProductList>> getAllProducts(){
+    @GetMapping("/{id_user}")
+    public ResponseEntity<List<ProductList>> getAllProducts(@PathVariable("id_user") Long idUser){
+
+        SecurityUtil.validateUserAccess(userRepository, idUser);
 
         return ResponseEntity.ok(
                 productService.getAllProducts().stream()
-                        .map(p -> new ProductList(p))
+                        .map(ProductList::new)
                         .toList()
         );
     }
 
     @Operation(summary = "Traer un producto por ID")
-    @GetMapping("/{id_product}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id_product") Long idProduct){
+    @GetMapping("/{id_user}/{id_product}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id_user") Long idUser,
+                                                          @PathVariable("id_product") Long idProduct){
+
+        SecurityUtil.validateUserAccess(userRepository, idUser);
 
         Product product = productService.getProductById(idProduct);
         return ResponseEntity.ok(
@@ -63,18 +74,18 @@ public class ProductController {
     }
 
     @Operation(summary = "Modificar un producto")
-    @PutMapping("/{id_product}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id_product") Long idProduct,
+    @PutMapping("/{id_user}/{id_product}")
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id_user") Long idUser,
+                                                         @PathVariable("id_product") Long idProduct,
                                                          @RequestBody @Valid ProductUpdated productUpdated){
-        Product product = productService.getProductById(idProduct);
-        product.updateProduct(productUpdated);
-        product = productService.updateProduct(product);
 
-        ProductResponse productResponse = new ProductResponse(product);
-        return ResponseEntity.ok(productResponse);
+        SecurityUtil.validateUserAccess(userRepository, idUser);
+
+        Product product = productService.updateProduct(idProduct, productUpdated);
+        return ResponseEntity.ok(new ProductResponse(product));
     }
 
-    @Operation(summary = "Eliminar un producto, SOLO ADMIN")
+    @Operation(summary = "Eliminar un producto por ID, SOLO ADMIN")
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id_product}")
     public ResponseEntity deleteProductById(@PathVariable("id_product") Long idProduct){

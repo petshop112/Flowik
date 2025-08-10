@@ -25,51 +25,58 @@ public class ProviderController {
     private final ProviderService providerService;
     private final UserRepository userRepository;
 
-    public ProviderController(ProviderService providerService, UserRepository userRepository) {
+    public ProviderController(ProviderService providerService,
+                              UserRepository userRepository) {
         this.providerService = providerService;
         this.userRepository = userRepository;
     }
 
-    @Operation(summary = "Crear proveedor")
-    @PostMapping("/{userId}")
-    public ResponseEntity<ProviderResponse> create(@PathVariable Long userId,
+    @Operation(summary = "Registrar un nuevo proveedor")
+    @PostMapping("/{id_user}")
+    public ResponseEntity<ProviderResponse> create(@PathVariable("id_user") Long idUser,
                                                    @RequestBody @Valid ProviderRegister providerRegister,
                                                    UriComponentsBuilder uriBuilder) {
-        SecurityUtil.validateUserAccess(userRepository, userId);
+
+        SecurityUtil.validateUserAccess(userRepository, idUser);
 
         Provider provider = providerService.createProvider(new Provider(providerRegister));
-        URI location = uriBuilder.path("/api/providers/{id}")
+
+        URI location = uriBuilder.path("/api/providers/{id_provider}")
                 .buildAndExpand(provider.getId_provider())
                 .toUri();
         return ResponseEntity.created(location).body(new ProviderResponse(provider));
     }
 
-    @Operation(summary = "Listar todos los proveedores de un usuario")
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<ProviderList>> getAllProviders(@PathVariable Long userId) {
-        SecurityUtil.validateUserAccess(userRepository, userId);
+    @Operation(summary = "Listar todos los proveedores")
+    @GetMapping("/{id_user}")
+    public ResponseEntity<List<ProviderList>> getAllProviders(@PathVariable("id_user") Long idUser) {
 
-        List<ProviderList> providers = providerService.getAllProvider().stream()
+        SecurityUtil.validateUserAccess(userRepository, idUser);
+
+        return ResponseEntity.ok(
+                providerService.getAllProvider().stream()
                 .map(ProviderList::new)
-                .toList();
-        return ResponseEntity.ok(providers);
+                .toList()
+        );
     }
 
-    @Operation(summary = "Actualizar proveedor por ID")
-    @PutMapping("/{userId}/{id_provider}")
-    public ResponseEntity<ProviderResponse> updateProvider(@PathVariable Long userId,
+    @Operation(summary = "Modificar un proveedor por ID")
+    @PutMapping("/{id_user}/{id_provider}")
+    public ResponseEntity<ProviderResponse> updateProvider(@PathVariable("id_user") Long idUser,
                                                            @PathVariable Long id_provider,
                                                            @RequestBody @Valid ProviderUpdated providerUpdated) {
-        SecurityUtil.validateUserAccess(userRepository, userId);
+
+        SecurityUtil.validateUserAccess(userRepository, idUser);
 
         Provider updated = providerService.updateProvider(id_provider, providerUpdated);
         return ResponseEntity.ok(new ProviderResponse(updated));
     }
 
-    @Operation(summary = "Eliminar proveedor por ID, SOLO ADMIN")
+    @Operation(summary = "Eliminar un proveedor por ID, SOLO ADMIN")
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id_provider}")
     public ResponseEntity<Void> deleteProvider(@PathVariable Long id_provider) {
+
         providerService.deleteProviderById(id_provider);
         return ResponseEntity.noContent().build();
     }

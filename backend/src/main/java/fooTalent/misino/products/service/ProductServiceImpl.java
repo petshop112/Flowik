@@ -1,5 +1,6 @@
 package fooTalent.misino.products.service;
 
+import fooTalent.misino.products.dto.ProductUpdated;
 import fooTalent.misino.products.entity.Product;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public interface ProductServiceImpl {
 
     boolean existProduct(Long id);
 
-    Product updateProduct(Product product);
+    Product updateProduct(Long id, ProductUpdated productUpdated);
 
     void deleteProductById(Long id);
 }
