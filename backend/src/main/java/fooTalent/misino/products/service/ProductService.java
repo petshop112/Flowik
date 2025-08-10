@@ -1,9 +1,9 @@
 package fooTalent.misino.products.service;
 
 import fooTalent.misino.exceptions.ResourceNotFoundException;
+import fooTalent.misino.products.dto.ProductUpdated;
 import fooTalent.misino.products.entity.Product;
 import fooTalent.misino.products.repositories.ProductRepositoryImpl;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,10 +42,13 @@ public class ProductService implements ProductServiceImpl{
 
     @Override
     @Transactional
-    public Product updateProduct(Product product) {
-        if(!this.existProduct(product.getId())){
-            throw new ResourceNotFoundException("Producto", "ID", product.getId());
+    public Product updateProduct(Long id, ProductUpdated productUpdated) {
+        if(!this.existProduct(id)){
+            throw new ResourceNotFoundException("Producto", "ID", id);
         }
+
+        Product product = getProductById(id);
+        product.updateProduct(productUpdated);
         return productRepository.save(product);
     }
 

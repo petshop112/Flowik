@@ -38,7 +38,7 @@ public class UserController {
 
     @Operation(summary = "Obtener datos del usuario por su ID " +
                          "(solo se obtienen datos de cada usuario por seguridad de datos)")
-    @GetMapping("/{id}")
+    @GetMapping("/{id_user}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         SecurityUtil.validateUserAccess(userRepository, id);
         User user = userService.getById(id);
