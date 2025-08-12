@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { decodeJwt } from "../../utils/auth";
+// import { ReactComponent as EyeIcon } from "./eye.svg";
+// import { ReactComponent as EyeSlashIcon } from "./eye-slash.svg";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -17,6 +19,7 @@ const validationSchema = Yup.object({
 const LoginForm = () => {
   const [submitError, setSubmitError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -78,7 +81,7 @@ const LoginForm = () => {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert"
           >
             Correo electrónico
           </label>
@@ -87,7 +90,7 @@ const LoginForm = () => {
             type="email"
             id="email"
             data-test="email"
-            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+            className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
           />
           <ErrorMessage
             name="email"
@@ -99,22 +102,42 @@ const LoginForm = () => {
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert"
           >
             Contraseña
           </label>
-          <Field
-            name="password"
-            type="password"
-            id="password"
-            data-test="password"
-            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
-          />
+          <div className="relative">
+            <Field
+              name="password"
+              type={showPassword ? "text" : "password"}
+              id="password"
+              data-test="password"
+              placeholder="Placeholder"
+              className="mt-1 mb-2 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+            >
+              {/* {showPassword ? (
+                <EyeIcon className="h-5 w-5" />
+              ) : (
+                <EyeSlashIcon className="h-5 w-5" />
+              )} */}
+            </button>
+          </div>
           <ErrorMessage
             name="password"
             component="div"
             className="text-red-500 text-sm mt-1"
           />
+          <a
+            href="#"
+            className="text-[#5685FA] font-['Albert_Sans'] text-[16px] font-normal leading-[19.2px] cursor-pointer hover:underline"
+          >
+            ¿Has olvidado tu contraseña?
+          </a>
         </div>
 
         {submitError && (
@@ -123,19 +146,15 @@ const LoginForm = () => {
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-xl transition duration-300"
+          className="flex w-[479px] h-12 px-6 py-3 justify-center items-center gap-2 
+             rounded-[6px] border border-[#9CB7FC] 
+             bg-[#F1F9FE] text-[#9CB7FC] font-[400] text-[16px] leading-[120%] 
+             font-['Albert Sans'] transition duration-300"
           disabled={loading}
           data-test="login-button"
         >
           {loading ? "Cargando..." : "Iniciar sesión"}
         </button>
-
-        <p className="text-center text-sm text-gray-500">
-          ¿No tienes cuenta?{" "}
-          <a href="/register" className="text-indigo-600 hover:underline">
-            Regístrate
-          </a>
-        </p>
       </Form>
     </Formik>
   );
