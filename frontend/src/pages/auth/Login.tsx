@@ -6,10 +6,10 @@ const Login = () => {
             {/* Columna izquierda */}
             <div className="flex flex-col justify-center items-center w-1/2 bg-[#FAFBFC] px-12 gap-y-3">
                 <h1 className="text-[53px] text-[#333333] text-center font-semibold leading-[63.6px] font-['Albert_Sans']">
-                    Bienvenido a Flowik
+                    Iniciar sesión
                 </h1>
                 <p className="text-[#636060] text-[16px] font-albert font-semibold leading-[19.2px] mb-8">
-                    MAKE YOUR BUSINESS FLOW
+                    MENOS PLANTILLAS, MÁS CONTROL
                 </p>
                 <div className="w-120">
                     <LoginForm />

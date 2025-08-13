@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { decodeJwt } from "../../utils/auth";
-// import { ReactComponent as EyeIcon } from "./eye.svg";
-// import { ReactComponent as EyeSlashIcon } from "./eye-slash.svg";
+import EyeIcon from "../../icons/eye.svg?react";
+import EyeIconSlash from "../../icons/eye-slash.svg?react";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -77,13 +77,13 @@ const LoginForm = () => {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      <Form className="space-y-6">
+      <Form className="space-y-8">
         <div>
           <label
             htmlFor="email"
             className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert"
           >
-            Correo electrónico
+            Email
           </label>
           <Field
             name="email"
@@ -100,12 +100,20 @@ const LoginForm = () => {
         </div>
 
         <div>
-          <label
-            htmlFor="password"
-            className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert"
-          >
-            Contraseña
-          </label>
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="password"
+              className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert"
+            >
+              Contraseña
+            </label>
+            <a
+              href="#"
+              className="text-[#5685FA] font-['Albert Sans'] text-[16px] font-normal leading-[120%]"
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
           <div className="relative">
             <Field
               name="password"
@@ -118,13 +126,13 @@ const LoginForm = () => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+              className="absolute inset-y-0 right-3 flex items-center bg-transparent p-0 text-gray-400 hover:text-gray-600 focus:outline-none"
             >
-              {/* {showPassword ? (
-                <EyeIcon className="h-5 w-5" />
+              {showPassword ? (
+                <EyeIconSlash className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
               ) : (
-                <EyeSlashIcon className="h-5 w-5" />
-              )} */}
+                <EyeIcon className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+              )}
             </button>
           </div>
           <ErrorMessage
@@ -132,12 +140,6 @@ const LoginForm = () => {
             component="div"
             className="text-red-500 text-sm mt-1"
           />
-          <a
-            href="#"
-            className="text-[#5685FA] font-['Albert_Sans'] text-[16px] font-normal leading-[19.2px] cursor-pointer hover:underline"
-          >
-            ¿Has olvidado tu contraseña?
-          </a>
         </div>
 
         {submitError && (
@@ -146,15 +148,23 @@ const LoginForm = () => {
 
         <button
           type="submit"
-          className="flex w-[479px] h-12 px-6 py-3 justify-center items-center gap-2 
-             rounded-[6px] border border-[#9CB7FC] 
-             bg-[#F1F9FE] text-[#9CB7FC] font-[400] text-[16px] leading-[120%] 
-             font-['Albert Sans'] transition duration-300"
+          className="flex w-full h-12 px-6 py-3 justify-center items-center gap-2 
+             rounded-[6px] 
+             bg-[#5685FA] text-white font-normal text-[16px] leading-[120%] font-['Albert Sans'] 
+             transition duration-300 hover:bg-[#4170e8] disabled:opacity-50 mt-12"
           disabled={loading}
           data-test="login-button"
         >
           {loading ? "Cargando..." : "Iniciar sesión"}
         </button>
+
+        <p className="text-[#5685FA] font-['Albert Sans'] text-[16px] font-normal leading-[120%] text-center">
+          ¿Primera vez aquí?{" "}
+          <a
+            href="#"
+            className="ml-1 border-b border-[#5685FA] text-[#5685FA] font-['Albert Sans'] text-[16px] font-semibold leading-[120%] hover:border-b-2"
+          >Regístrate</a>
+        </p>
       </Form>
     </Formik>
   );
