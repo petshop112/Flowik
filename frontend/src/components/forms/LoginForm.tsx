@@ -32,7 +32,7 @@ const LoginForm = () => {
 
     try {
       const response = await fetch(
-        "https://petshop-db4w.onrender.com/auth/login",
+        "https://petshop-db4w.onrender.com/api/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -47,9 +47,6 @@ const LoginForm = () => {
       }
 
       localStorage.setItem("token", data.token);
-
-      // grab the username from the token decodification 
-      // and saving it into the local storage
       
       const payload = decodeJwt(data.token);
       console.log("Payload JWT:", payload);
