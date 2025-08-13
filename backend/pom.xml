@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>fooTalent</groupId>
-	<artifactId>misino</artifactId>
+	<artifactId>flowik</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>misino</name>
 	<description>Demo project for Spring Boot</description>
