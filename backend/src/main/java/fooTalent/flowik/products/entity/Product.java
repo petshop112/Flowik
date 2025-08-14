@@ -10,6 +10,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,34 +26,63 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, name = "buy_date")
+    private LocalDate buyDate;
+
+    @Column(nullable = false)
+    private LocalDate expiration;
+
     @Column(nullable = false, length = 50)
-    private String title;
+    private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-
-    @Column(nullable = false, length = 150)
+    @Column(nullable = true, length = 255)
     private String description;
+
+    @Column(nullable = true)
+    private double weigth;
+
+    @Column(nullable = false)
+    private int amount;
+
+    @Column(nullable = false, precision = 10, scale = 2, name = "sell_price")
+    private BigDecimal sellPrice;
 
     @Column(nullable = false)
     private String category;
 
-    @Column(nullable = false)
-    private String image;
+    @Column(nullable = false, name = "is_active")
+    private boolean isActive;
 
-    public Product(ProductRegister p) {
-        this.title = p.title();
-        this.price = p.price();
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "products_supplier",
+                     joinColumns = @JoinColumn(name = "id")
+    )
+    private Set<String> supplierNames = new HashSet<>();
+
+    public Product(ProductRegister p, Set<String> supplierNames) {
+        this.buyDate = LocalDate.now();
+        this.expiration = p.expiration();
+        this.name = p.name();
         this.description = p.description();
+        this.weigth = p.weight();
+        this.amount = p.amount();
+        this.sellPrice = p.sellPrice();
         this.category = p.category();
-        this.image = p.image();
+        this.isActive = true;
+        this.supplierNames = supplierNames;
     }
 
-    public void updateProduct(ProductUpdated p) {
-        if(p.title() != null) this.title = p.title();
-        if(p.price() != null) this.price = p.price();
+    public void updateProduct(ProductUpdated p, Set<String> supplierNamesNew) {
+        if(p.expiration() != null) this.expiration = p.expiration();
+        if(p.name() != null) this.name = p.name();
         if(p.description() != null) this.description = p.description();
-        if(p.category() != null) this.category = p.category();
-        if(p.image() != null) this.image = p.image();
+        if(p.weight() != null) this.weigth = p.weight();
+        if(p.amount() != null) this.amount = p.amount();
+        if(p.sellPrice() != null) this.sellPrice = p.sellPrice();
+        if(!supplierNamesNew.isEmpty()) this.supplierNames = supplierNamesNew;
+    }
+
+    public void desactivate() {
+        this.isActive = false;
     }
 }

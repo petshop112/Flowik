@@ -39,7 +39,7 @@ public class ProductController {
 
         SecurityUtil.validateUserAccess(userRepository, idUser);
 
-        Product product = productService.createProduct(new Product(productRegister));
+        Product product = productService.createProduct(productRegister);
 
         URI url = uriComponentsBuilder.path("/api/products/{id_product}")
                 .buildAndExpand(product.getId())
@@ -91,5 +91,13 @@ public class ProductController {
 
         productService.deleteProductById(idProduct);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Desactivar un producto por ID")
+    @PatchMapping("/{id_product}")
+    public ResponseEntity<ProductResponse> desactivateProductById(@PathVariable("id_product") Long idProduct){
+
+        Product product = productService.desactivateProductById(idProduct);
+        return ResponseEntity.ok(new ProductResponse(product));
     }
 }

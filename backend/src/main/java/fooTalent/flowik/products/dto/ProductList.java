@@ -3,24 +3,32 @@ package fooTalent.flowik.products.dto;
 import fooTalent.flowik.products.entity.Product;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Set;
 
 public record ProductList(
 
         Long id,
-        String title,
-        BigDecimal price,
-        String description,
+        String name,
         String category,
-        String image
+        Integer amount,
+        BigDecimal sellPrice,
+        Double weigth,
+        LocalDate buyDate,
+        LocalDate expiration,
+        Set<String> supplierNames
 ) {
     public ProductList(Product p) {
         this(
                 p.getId(),
-                p.getTitle(),
-                p.getPrice(),
-                p.getDescription(),
+                p.getName(),
                 p.getCategory(),
-                p.getImage()
+                p.getAmount(),
+                p.getSellPrice(),
+                p.getWeigth(),
+                p.getBuyDate(),
+                p.getExpiration(),
+                p.getSupplierNames()
         );
     }
 }

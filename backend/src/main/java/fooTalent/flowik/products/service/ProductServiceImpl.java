@@ -1,5 +1,6 @@
 package fooTalent.flowik.products.service;
 
+import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 import fooTalent.flowik.products.entity.Product;
 
@@ -7,7 +8,7 @@ import java.util.List;
 
 public interface ProductServiceImpl {
 
-    Product createProduct(Product product);
+    Product createProduct(ProductRegister productRegister);
 
     List<Product> getAllProducts();
 
@@ -18,4 +19,6 @@ public interface ProductServiceImpl {
     Product updateProduct(Long id, ProductUpdated productUpdated);
 
     void deleteProductById(Long id);
+
+    Product desactivateProductById(Long id);
 }
