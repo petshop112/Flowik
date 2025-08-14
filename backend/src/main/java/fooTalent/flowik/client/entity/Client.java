@@ -1,15 +1,14 @@
-package fooTalent.misino.client.entity;
+package fooTalent.flowik.client.entity;
 
 
-import fooTalent.misino.client.dto.ClientRegister;
-import fooTalent.misino.client.dto.ClientUpdate;
+import fooTalent.flowik.client.dto.ClientRegister;
+import fooTalent.flowik.client.dto.ClientUpdate;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @NoArgsConstructor
 @AllArgsConstructor

@@ -1,6 +1,6 @@
-package fooTalent.misino.clientdedb.dto;
+package fooTalent.flowik.clientdedb.dto;
 
-import fooTalent.misino.clientdedb.entity.ClientDedb;
+import fooTalent.flowik.clientdedb.entity.ClientDedb;
 
 import java.math.BigDecimal;
 

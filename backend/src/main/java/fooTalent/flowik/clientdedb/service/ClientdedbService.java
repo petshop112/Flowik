@@ -1,8 +1,8 @@
-package fooTalent.misino.clientdedb.service;
+package fooTalent.flowik.clientdedb.service;
 
 
 
-import fooTalent.misino.clientdedb.entity.ClientDedb;
+import fooTalent.flowik.clientdedb.entity.ClientDedb;
 
 import java.util.List;
 

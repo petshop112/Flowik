@@ -1,8 +1,8 @@
-package fooTalent.misino.clientdedb.entity;
+package fooTalent.flowik.clientdedb.entity;
 
 
-import fooTalent.misino.clientdedb.dto.DedbUpdate;
-import fooTalent.misino.clientdedb.dto.Dedbregister;
+import fooTalent.flowik.clientdedb.dto.DedbUpdate;
+import fooTalent.flowik.clientdedb.dto.Dedbregister;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

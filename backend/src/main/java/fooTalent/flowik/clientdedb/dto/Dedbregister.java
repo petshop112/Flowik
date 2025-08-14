@@ -1,4 +1,4 @@
-package fooTalent.misino.clientdedb.dto;
+package fooTalent.flowik.clientdedb.dto;
 import jakarta.validation.constraints.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;

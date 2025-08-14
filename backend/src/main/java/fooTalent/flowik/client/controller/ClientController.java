@@ -1,18 +1,16 @@
-package fooTalent.misino.client.controller;
+package fooTalent.flowik.client.controller;
 
-import fooTalent.misino.client.dto.ClientList;
-import fooTalent.misino.client.dto.ClientRegister;
-import fooTalent.misino.client.dto.ClientResponse;
-import fooTalent.misino.client.dto.ClientUpdate;
-import fooTalent.misino.client.entity.Client;
-import fooTalent.misino.client.repositories.ClientRepository;
-import fooTalent.misino.client.service.ClientService;
-import fooTalent.misino.config.SecurityUtil;
-import fooTalent.misino.users.repositories.UserRepository;
+import fooTalent.flowik.client.dto.ClientList;
+import fooTalent.flowik.client.dto.ClientRegister;
+import fooTalent.flowik.client.dto.ClientResponse;
+import fooTalent.flowik.client.dto.ClientUpdate;
+import fooTalent.flowik.client.entity.Client;
+import fooTalent.flowik.client.service.ClientService;
+import fooTalent.flowik.config.SecurityUtil;
+import fooTalent.flowik.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -26,9 +24,9 @@ public class ClientController {
     private final UserRepository userRepository;
 
     public  ClientController (ClientService clientService,
-                              UserRepository userRepository){
-        this.clientService = clientService;
-        this.userRepository = userRepository;
+                            UserRepository userRepository){
+       this.clientService = clientService;
+       this.userRepository = userRepository;
     }
     @Operation(summary = "Registrar un nuevo Cliente")
     @PostMapping("/createclient")

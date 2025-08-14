@@ -1,4 +1,4 @@
-package fooTalent.misino.clientdedb.dto;
+package fooTalent.flowik.clientdedb.dto;
 
 import java.math.BigDecimal;
 
