@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { decodeJwt } from "../../utils/auth";
-import EyeIcon from "../../icons/eye.svg?react";
+import { useAppSelector, useAppDispatch } from "../../hooks/reduxHooks";
+import { loginUser, selectAuth } from "../../features/auth/authSlice";
 import EyeIconSlash from "../../icons/eye-slash.svg?react";
+import EyeIcon from "../../icons/eye.svg?react";
+import * as Yup from "yup";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -17,55 +18,26 @@ const validationSchema = Yup.object({
 });
 
 const LoginForm = () => {
-  const [submitError, setSubmitError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const { loading, error } = useAppSelector(selectAuth);
 
   const handleSubmit = async (
     values: { email: string; password: string },
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
-  ) => {
-    setLoading(true);
-    setSubmitError("");
+      ) => {
+        const result = await dispatch(loginUser(values));
 
-    try {
-      const response = await fetch(
-        "https://petshop-db4w.onrender.com/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+        if (loginUser.fulfilled.match(result)) {
+          console.log(result.payload);
+          console.log(result.payload.token);
+
+          navigate("/");
         }
-      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Error al iniciar sesión");
-      }
-
-      localStorage.setItem("token", data.token);
-      
-      const payload = decodeJwt(data.token);
-      console.log("Payload JWT:", payload);
-
-      if (payload && payload.userName) {
-        localStorage.setItem("username", payload.userName);
-      }
-
-      navigate("/");
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setSubmitError(err.message);
-      } else {
-        setSubmitError("Ocurrió un error inesperado");
-      }
-    } finally {
-      setLoading(false);
-      setSubmitting(false);
-    }
+        setSubmitting(false);
   };
 
   return (
@@ -139,8 +111,8 @@ const LoginForm = () => {
           />
         </div>
 
-        {submitError && (
-          <div className="text-red-500 text-sm text-center">{submitError}</div>
+        {error && (
+          <div className="text-red-500 text-sm text-center">{error}</div>
         )}
 
         <button
