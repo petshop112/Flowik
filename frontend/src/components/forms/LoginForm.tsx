@@ -130,7 +130,7 @@ const LoginForm = () => {
         <p className="text-[#5685FA] font-['Albert Sans'] text-[16px] font-normal leading-[120%] text-center">
           ¿Primera vez aquí?{" "}
           <a
-            href="#"
+            href="/register"
             className="ml-1 border-b border-[#5685FA] text-[#5685FA] font-['Albert Sans'] text-[16px] font-semibold leading-[120%] hover:border-b-2"
           >Regístrate</a>
         </p>
