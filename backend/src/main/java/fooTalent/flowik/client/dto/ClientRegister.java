@@ -1,4 +1,4 @@
-package fooTalent.misino.client.dto;
+package fooTalent.flowik.client.dto;
 
 import fooTalent.misino.validation.OnlyLettersAndSpaces;
 import jakarta.validation.constraints.*;

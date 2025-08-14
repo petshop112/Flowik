@@ -1,7 +1,7 @@
-package fooTalent.misino.clientdedb.repositories;
+package fooTalent.flowik.clientdedb.repositories;
 
 
-import fooTalent.misino.clientdedb.entity.ClientDedb;
+import fooTalent.flowik.clientdedb.entity.ClientDedb;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ClientDedbRepository extends JpaRepository<ClientDedb, Long> {

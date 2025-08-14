@@ -1,8 +1,8 @@
-package fooTalent.misino.client.service;
+package fooTalent.flowik.client.service;
 
-import fooTalent.misino.client.dto.ClientUpdate;
-import fooTalent.misino.client.entity.Client;
-import fooTalent.misino.client.repositories.ClientRepository;
+import fooTalent.flowik.client.dto.ClientUpdate;
+import fooTalent.flowik.client.entity.Client;
+import fooTalent.flowik.client.repositories.ClientRepository;
 
 
 import lombok.RequiredArgsConstructor;

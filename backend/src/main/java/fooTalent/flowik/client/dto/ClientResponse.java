@@ -1,6 +1,6 @@
-package fooTalent.misino.client.dto;
+package fooTalent.flowik.client.dto;
 
-import fooTalent.misino.client.entity.Client;
+import fooTalent.flowik.client.entity.Client;
 
 import java.time.LocalDate;
 

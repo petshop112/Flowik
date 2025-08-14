@@ -1,10 +1,9 @@
-package fooTalent.misino.clientdedb.service;
+package fooTalent.flowik.clientdedb.service;
 
-import fooTalent.misino.clientdedb.dto.DedbUpdate;
-import fooTalent.misino.clientdedb.entity.ClientDedb;
-import fooTalent.misino.clientdedb.repositories.ClientDedbRepository;
+import fooTalent.flowik.clientdedb.dto.DedbUpdate;
+import fooTalent.flowik.clientdedb.entity.ClientDedb;
+import fooTalent.flowik.clientdedb.repositories.ClientDedbRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

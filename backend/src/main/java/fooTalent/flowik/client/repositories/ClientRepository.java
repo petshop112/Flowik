@@ -1,6 +1,6 @@
-package fooTalent.misino.client.repositories;
+package fooTalent.flowik.client.repositories;
 
-import fooTalent.misino.client.entity.Client;
+import fooTalent.flowik.client.entity.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ClientRepository extends JpaRepository<Client, Long> {
