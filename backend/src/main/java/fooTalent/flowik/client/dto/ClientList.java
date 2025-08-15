@@ -2,6 +2,7 @@ package fooTalent.flowik.client.dto;
 
 import fooTalent.flowik.client.entity.Client;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ClientList(
@@ -11,7 +12,7 @@ public record ClientList(
         String telephone_client,
         String direction_client,
         String email_client,
-        int dedb_client,
+        BigDecimal debt_client,
         LocalDate ingress_date
 
 ) {
@@ -22,7 +23,7 @@ public record ClientList(
             cl.getTelephone_client(),
             cl.getDirection_client(),
             cl.getEmail_client(),
-            cl.getDedb_client(),
+            cl.getDebt_client(),
             cl.getIngress_date()
             );
     }

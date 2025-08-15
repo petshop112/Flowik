@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ProductRepositoryImpl extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Modifying
     @Query("UPDATE Product p SET p.isActive = NOT p.isActive WHERE p.id IN :ids")

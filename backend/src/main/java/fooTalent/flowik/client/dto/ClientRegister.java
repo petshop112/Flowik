@@ -4,6 +4,8 @@ import fooTalent.flowik.validation.OnlyLettersAndSpaces;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
+
 
 public record ClientRegister(
         @NotBlank(message = "El nombre del Client es obligatorio.")
@@ -34,7 +36,7 @@ public record ClientRegister(
         @DecimalMin(value = "0.01", inclusive = true, message = "El precio debe ser mayor o igual a 0.01.")
         @Digits(integer = 10,fraction = 2)
         @Schema(example = "100")
-        Integer dedb_client
+        BigDecimal debt_client
        )
 {
 }

@@ -1,5 +1,6 @@
 package fooTalent.flowik.products.entity;
 
+import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 
@@ -60,6 +61,11 @@ public class Product {
 
     @Column(nullable = false, updatable = false, length = 150)
     private String createdBy;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdBy = SecurityUtil.getAuthenticatedEmail();
+    }
 
     public Product(ProductRegister p, List<String> supplierNames) {
         this.buyDate = LocalDate.now();

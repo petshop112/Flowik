@@ -1,31 +1,24 @@
 package fooTalent.flowik.products.service;
 
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
-import fooTalent.flowik.products.dto.ProductIDs;
 import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 import fooTalent.flowik.products.entity.Product;
-import fooTalent.flowik.products.repositories.ProductRepositoryImpl;
+import fooTalent.flowik.products.repositories.ProductRepository;
 import fooTalent.flowik.provider.service.ProviderService;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
+@AllArgsConstructor
 public class ProductService implements ProductServiceImpl{
 
-    private final ProductRepositoryImpl productRepository;
+    private final ProductRepository productRepository;
     private final ProviderService providerService;
-
-    public ProductService(ProductRepositoryImpl productRepository,
-                          ProviderService providerService){
-        this.productRepository = productRepository;
-        this.providerService = providerService;
-    }
 
     @Override
     @Transactional
