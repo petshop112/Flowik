@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import {
   Search,
-  SlidersHorizontal,
   Plus,
   Edit,
   Bell,
@@ -186,7 +185,6 @@ function InventoryLegend() {
 const ProductsTable: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState<string>("");
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
     new Set()
   );
@@ -221,11 +219,10 @@ const ProductsTable: React.FC = () => {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        !filterCategory || product.category === filterCategory;
-      return matchesSearch && matchesCategory;
+
+      return matchesSearch;
     });
-  }, [products, searchTerm, filterCategory]);
+  }, [products, searchTerm]);
 
   // Verificar si hay productos seleccionados
   const hasSelectedProducts = selectedProductIds.size > 0;
@@ -318,23 +315,6 @@ const ProductsTable: React.FC = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 bg-white border border-dark-blue rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
-                />
-              </article>
-
-              {/* Filtrar */}
-              <article className="relative">
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="appearance-none text-electric-blue pl-10 pr-8 py-2 border border-electric-blue rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
-                >
-                  <option value="">Filtrar</option>
-                  <option value="Gato">Gato</option>
-                  <option value="Perro">Perro</option>
-                </select>
-                <SlidersHorizontal
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-electric-blue"
-                  size={18}
                 />
               </article>
 
