@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { createAuthService } from "../../api/authService";
 import type { RootState } from "../../app/store";
-import type { LoginCredentials, LoginResponse } from "../../types/auth";
+import type { LoginCredentials, LoginResponse, RegisterCredentials, RegisterResponse } from "../../types/auth";
 import { makeRequest } from "../../utils/makeRequest";
 
 const authService = createAuthService(makeRequest);
@@ -11,6 +11,21 @@ export const loginUser = createAsyncThunk<LoginResponse, LoginCredentials>(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials);
+      return response;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("Error al iniciar sesión");
+    }
+  }
+);
+
+export const registerUser = createAsyncThunk<RegisterResponse, RegisterCredentials>(
+  "auth/registerUser",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await authService.register(credentials);
       return response;
     } catch (error: unknown) {
       if (error instanceof Error) {

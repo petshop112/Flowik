@@ -14,6 +14,8 @@ import {
 import EyeIcon from "../../icons/eye.svg?react";
 import EyeIconSlash from "../../icons/eye-slash.svg?react";
 import * as Yup from "yup";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
+import { registerUser, selectAuth } from "../../features/auth/authSlice";
 
 const validationSchema = Yup.object({
     firstName: Yup.string()
@@ -56,13 +58,13 @@ const validationSchema = Yup.object({
 });
 
 const RegisterForm = () => {
-    const [submitError, setSubmitError] = useState('');
-    const [loading, setLoading] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
+    const { loading, error } = useAppSelector(selectAuth);
 
     const handleCloseModal = () => {
         setShowSuccessModal(false);
@@ -76,61 +78,17 @@ const RegisterForm = () => {
             email: string;
             password: string;
             confirmPassword: string;
+            role: "USER";
         },
         { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
     ) => {
-        setSubmitError('');
-        setLoading(true);
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                controller.abort();
-            }, 30000);
-
-            const response = await fetch('https://petshop-db4w.onrender.com/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(values),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            let data;
-            try {
-                data = await response.json();
-            } catch {
-                data = { message: `Error del servidor (${response.status}): ${response.statusText}` };
-            }
-
-            if (!response.ok) {
-                throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-            }
-
-            setShowSuccessModal(true);
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                if (err.name === 'AbortError') {
-                    setSubmitError('La petición tardó demasiado tiempo. Verifica tu conexión e intenta nuevamente.');
-                } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-                    setSubmitError('Error de conexión. Verifica tu internet y que el servidor esté disponible.');
-                } else if (err.message.includes('email') || err.message.toLowerCase().includes('correo')) {
-                    setSubmitError('Este email ya está registrado o no es válido. Intenta con otro email.');
-                } else if (err.message.includes('400')) {
-                    setSubmitError('Los datos ingresados no son válidos. Verifica la información.');
-                } else if (err.message.includes('500')) {
-                    setSubmitError('Error interno del servidor. Intenta nuevamente en unos minutos.');
-                } else {
-                    setSubmitError(err.message);
-                }
-            } else {
-                setSubmitError('Ocurrió un error inesperado');
-            }
-        } finally {
-            setLoading(false);
-            setSubmitting(false);
+        const result = await dispatch(registerUser(values));
+        
+        if (registerUser.fulfilled.match(result)) {        
+            navigate("/");
         }
+        
+        setSubmitting(false);
     };
 
     return (
@@ -142,6 +100,7 @@ const RegisterForm = () => {
                     email: '',
                     password: '',
                     confirmPassword: '',
+                    role: 'USER',
                 }}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
@@ -156,6 +115,7 @@ const RegisterForm = () => {
                             type="text"
                             data-test="username"
                             className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                            placeholder="Gonzalo"
                         />
                         <ErrorMessage name="firstName" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
@@ -169,6 +129,7 @@ const RegisterForm = () => {
                             type="text"
                             data-test="lastname"
                             className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                            placeholder="Ej.: López López"
                         />
                         <ErrorMessage name="lastName" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
@@ -182,6 +143,7 @@ const RegisterForm = () => {
                             type="email"
                             data-test="email"
                             className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                            placeholder="nombre@email.com"
                         />
                         <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
@@ -197,6 +159,7 @@ const RegisterForm = () => {
                                 id="password"
                                 data-test="password"
                                 className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                                placeholder="Contraseña"
                             />
                             <button
                                 type="button"
@@ -224,6 +187,7 @@ const RegisterForm = () => {
                                 id="confirmPassword"
                                 data-test="confirmPassword"
                                 className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                                placeholder="Confirma contraseña"
                             />
                             <button
                                 type="button"
@@ -240,7 +204,7 @@ const RegisterForm = () => {
                         <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
-                    {submitError && <div className="text-red-500 text-sm text-center">{submitError}</div>}
+                    {error && <div className="text-red-500 text-sm text-center">{error}</div>}
 
                     <button
                         type="submit"
