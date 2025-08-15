@@ -8,6 +8,7 @@ import fooTalent.flowik.client.entity.Client;
 import fooTalent.flowik.client.repositories.ClientRepository;
 import fooTalent.flowik.client.service.ClientService;
 import fooTalent.flowik.config.SecurityUtil;
+import fooTalent.flowik.exceptions.ResourceNotFoundException;
 import fooTalent.flowik.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -62,7 +63,7 @@ public class ClientController {
         String email = SecurityUtil.getAuthenticatedEmail();
 
        Client existingClient = clientRepository.findById(id_client)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+               .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", id_client));
 
         if (!existingClient.getCreatedBy().equals(email)) {
             throw new AccessDeniedException("No puedes modificar un cliente que no creaste.");
@@ -78,7 +79,7 @@ public class ClientController {
         String email = SecurityUtil.getAuthenticatedEmail();
 
         Client existingClient = clientRepository.findById(id_client)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", id_client));
 
         if (!existingClient.getCreatedBy().equals(email)) {
             throw new AccessDeniedException("No puedes eliminar un cliente que no creaste.");

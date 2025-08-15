@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @NoArgsConstructor
@@ -37,8 +38,8 @@ public class Client {
     @Column(nullable = false, length = 150)
     private String email_client;
 
-    @Column(nullable = false,name = "dedb") //, precision = 10, scale = 2
-    private Integer dedb_client;
+    @Column(nullable = false,name = "debt", precision = 10, scale = 2)
+    private BigDecimal debt_client;
 
     @Column(name = "ingress_date", updatable = false)
     @CreationTimestamp
@@ -63,7 +64,7 @@ public class Client {
             this.telephone_client = cr.telephone_client();
             this.direction_client = cr.direction_client();
             this.email_client = cr.email_client();
-            this.dedb_client = cr.dedb_client();
+            this.debt_client = cr.debt_client();
             this.isActive = true;
 
     }
@@ -84,8 +85,8 @@ public class Client {
         if(dto.email_client() != null) {
             this.email_client = dto.email_client();
         }
-        if (dto.dedb_client() != null) {
-            this.dedb_client = dto.dedb_client();
+        if (dto.debt_client() != null) {
+            this.debt_client = dto.debt_client();
         }
         }
     }
