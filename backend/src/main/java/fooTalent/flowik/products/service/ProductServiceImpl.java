@@ -22,4 +22,6 @@ public interface ProductServiceImpl {
     void deleteProductsByIds(List<Long> productIDs);
 
     void toggleProductsActiveState(List<Long> productIDs);
+
+    Integer getStockStatusById(Long id);
 }
