@@ -1,6 +1,7 @@
 package fooTalent.flowik.products.service;
 
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
+import fooTalent.flowik.products.dto.ProductIDs;
 import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 import fooTalent.flowik.products.entity.Product;
@@ -37,7 +38,7 @@ public class ProductService implements ProductServiceImpl{
             }
         });
 
-        Set<String> namesProvider = new HashSet<>();
+        List<String> namesProvider = new ArrayList<>();
         idProviders.forEach(p -> {
             String name = providerService.getProviderById(p).getName_provider();
             namesProvider.add(name);
@@ -73,44 +74,35 @@ public class ProductService implements ProductServiceImpl{
             throw new ResourceNotFoundException("Producto", "ID", id);
         }
 
-        Set<Long> idProviders = productUpdated.providerIds();
-        idProviders.forEach(p -> {
-            if(!providerService.existProvider(p)){
-                throw new RuntimeException("Proveedor no encontrado con ID: " + p);
+        List<Long> idProviders = productUpdated.providerIds();
+        idProviders.forEach(idProvider -> {
+            if(!providerService.existProvider(idProvider)){
+                throw new RuntimeException("Proveedor no encontrado con ID: " + idProvider);
             }
         });
 
-        Set<String> namesProvider = new HashSet<>();
-        idProviders.forEach(p -> {
-            String name = providerService.getProviderById(p).getName_provider();
+        List<String> namesProvider = new ArrayList<>();
+        idProviders.forEach(idProvider -> {
+            String name = providerService.getProviderById(idProvider).getName_provider();
             namesProvider.add(name);
         });
 
         Product product = getProductById(id);
         product.updateProduct(productUpdated, namesProvider);
-        System.out.println(productUpdated);
         return productRepository.save(product);
     }
 
     @Override
     @Transactional
-    public void deleteProductById(Long id) {
-        if(!this.existProduct(id)){
-            throw new ResourceNotFoundException("Producto", "ID", id);
-        }
-        productRepository.deleteById(id);
+    public void deleteProductsByIds(List<Long> productIDs) {
+
+        productRepository.deleteAllByIdInBatch(productIDs);
     }
 
     @Override
     @Transactional
-    public Product desactivateProductById(Long id) {
+    public void toggleProductsActiveState(List<Long> productIDs) {
 
-        if(!this.existProduct(id)){
-            throw new ResourceNotFoundException("Producto", "ID", id);
-        }
-
-        Product product = this.getProductById(id);
-        product.desactivate();
-        return productRepository.save(product);
+        productRepository.toggleProductsActiveState(productIDs);
     }
 }

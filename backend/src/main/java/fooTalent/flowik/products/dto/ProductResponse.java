@@ -4,7 +4,7 @@ import fooTalent.flowik.products.entity.Product;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 public record ProductResponse(
 
@@ -12,12 +12,12 @@ public record ProductResponse(
         String name,
         String description,
         String category,
-        Set<String> supplierNames,
+        List<String> supplierNames,
         Integer amount,
         Double weigth,
+        BigDecimal sellPrice,
         LocalDate buyDate,
-        LocalDate expiration,
-        BigDecimal sellPrice
+        LocalDate expiration
 ) {
     public ProductResponse(Product p) {
         this(
@@ -28,9 +28,9 @@ public record ProductResponse(
                 (p != null) ? p.getSupplierNames() : null,
                 (p != null) ? p.getAmount() : null,
                 (p != null) ? p.getWeigth() : null,
+                (p != null) ? p.getSellPrice() : null,
                 (p != null) ? p.getBuyDate() : null,
-                (p != null) ? p.getExpiration() : null,
-                (p != null) ? p.getSellPrice() : null
+                (p != null) ? p.getExpiration() : null
         );
     }
 }

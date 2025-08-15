@@ -1,5 +1,6 @@
 package fooTalent.flowik.products.service;
 
+import fooTalent.flowik.products.dto.ProductIDs;
 import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 import fooTalent.flowik.products.entity.Product;
@@ -18,7 +19,7 @@ public interface ProductServiceImpl {
 
     Product updateProduct(Long id, ProductUpdated productUpdated);
 
-    void deleteProductById(Long id);
+    void deleteProductsByIds(List<Long> productIDs);
 
-    Product desactivateProductById(Long id);
+    void toggleProductsActiveState(List<Long> productIDs);
 }

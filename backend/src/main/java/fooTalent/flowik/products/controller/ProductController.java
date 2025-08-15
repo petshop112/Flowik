@@ -1,17 +1,13 @@
 package fooTalent.flowik.products.controller;
 
 import fooTalent.flowik.config.SecurityUtil;
-import fooTalent.flowik.products.dto.ProductList;
-import fooTalent.flowik.products.dto.ProductRegister;
-import fooTalent.flowik.products.dto.ProductResponse;
-import fooTalent.flowik.products.dto.ProductUpdated;
+import fooTalent.flowik.products.dto.*;
 import fooTalent.flowik.products.entity.Product;
 import fooTalent.flowik.products.service.ProductServiceImpl;
 import fooTalent.flowik.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -85,19 +81,19 @@ public class ProductController {
         return ResponseEntity.ok(new ProductResponse(product));
     }
 
-    @Operation(summary = "Eliminar un producto por ID")
-    @DeleteMapping("/{id_product}")
-    public ResponseEntity deleteProductById(@PathVariable("id_product") Long idProduct){
+    @Operation(summary = "Eliminar múltiples productos de forma definitiva por IDs")
+    @DeleteMapping
+    public ResponseEntity<Void> deleteProductsByIds(@RequestBody ProductIDs productIDs){
 
-        productService.deleteProductById(idProduct);
+        productService.deleteProductsByIds(productIDs.IDs());
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Desactivar un producto por ID")
-    @PatchMapping("/{id_product}")
-    public ResponseEntity<ProductResponse> desactivateProductById(@PathVariable("id_product") Long idProduct){
+    @Operation(summary = "Desactivar múltiples productos (eliminado lógico) por IDs")
+    @PatchMapping
+    public ResponseEntity<Void> toggleProductsActiveState(@RequestBody ProductIDs productIDs){
 
-        Product product = productService.desactivateProductById(idProduct);
-        return ResponseEntity.ok(new ProductResponse(product));
+        productService.toggleProductsActiveState(productIDs.IDs());
+        return ResponseEntity.noContent().build();
     }
 }

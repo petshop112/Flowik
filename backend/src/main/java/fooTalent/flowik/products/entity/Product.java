@@ -11,9 +11,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,7 +28,7 @@ public class Product {
     @Column(nullable = false, name = "buy_date")
     private LocalDate buyDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDate expiration;
 
     @Column(nullable = false, length = 50)
@@ -57,9 +56,9 @@ public class Product {
     @CollectionTable(name = "products_supplier",
                      joinColumns = @JoinColumn(name = "id")
     )
-    private Set<String> supplierNames = new HashSet<>();
+    private List<String> supplierNames = new ArrayList<>();
 
-    public Product(ProductRegister p, Set<String> supplierNames) {
+    public Product(ProductRegister p, List<String> supplierNames) {
         this.buyDate = LocalDate.now();
         this.expiration = p.expiration();
         this.name = p.name();
@@ -72,7 +71,7 @@ public class Product {
         this.supplierNames = supplierNames;
     }
 
-    public void updateProduct(ProductUpdated p, Set<String> supplierNamesNew) {
+    public void updateProduct(ProductUpdated p, List<String> supplierNamesNew) {
         if(p.expiration() != null) this.expiration = p.expiration();
         if(p.name() != null) this.name = p.name();
         if(p.description() != null) this.description = p.description();
@@ -80,9 +79,5 @@ public class Product {
         if(p.amount() != null) this.amount = p.amount();
         if(p.sellPrice() != null) this.sellPrice = p.sellPrice();
         if(!supplierNamesNew.isEmpty()) this.supplierNames = supplierNamesNew;
-    }
-
-    public void desactivate() {
-        this.isActive = false;
     }
 }
