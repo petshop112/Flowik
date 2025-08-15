@@ -4,7 +4,7 @@ import fooTalent.flowik.products.entity.Product;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 public record ProductList(
 
@@ -16,7 +16,7 @@ public record ProductList(
         Double weigth,
         LocalDate buyDate,
         LocalDate expiration,
-        Set<String> supplierNames
+        List<String> supplierNames
 ) {
     public ProductList(Product p) {
         this(
