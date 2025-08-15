@@ -5,9 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
 
-import java.time.LocalDate;
-
-
 public record ClientRegister(
         @NotBlank(message = "El nombre del Client es obligatorio.")
         @Size(min = 2, max = 50, message = "El Nombre del Cliente debe tener entre 2 y 50 caracteres")
@@ -38,6 +35,6 @@ public record ClientRegister(
         @Digits(integer = 10,fraction = 2)
         @Schema(example = "100")
         Integer dedb_client
-        )
+       )
 {
 }
