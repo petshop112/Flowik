@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { Button } from "../ui/button";
+import { CheckCircle } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -10,8 +11,11 @@ import {
     DialogDescription,
     DialogFooter
 } from "../ui/dialog";
-import { Button } from "../ui/button";
-import { CheckCircle } from "lucide-react";
+import EyeIcon from "../../icons/eye.svg?react";
+import EyeIconSlash from "../../icons/eye-slash.svg?react";
+import * as Yup from "yup";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
+import { registerUser, selectAuth } from "../../features/auth/authSlice";
 
 const validationSchema = Yup.object({
     firstName: Yup.string()
@@ -43,8 +47,10 @@ const validationSchema = Yup.object({
         })
         .required('El correo es obligatorio'),
     password: Yup.string()
-        .min(8, 'La contraseña debe tener al menos 8 caracteres')
+        .min(8, 'Mínimo 8 caracteres')
         .max(16, 'La contraseña no debe superar los 16 caracteres')
+        .matches(/\d/, 'Contener 1 numeral')
+        .matches(/^[A-Z]/, 'Primera letra en mayúscula')
         .required('La contraseña es obligatoria'),
     confirmPassword: Yup.string()
         .oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')
@@ -52,11 +58,13 @@ const validationSchema = Yup.object({
 });
 
 const RegisterForm = () => {
-    const [submitError, setSubmitError] = useState('');
-    const [loading, setLoading] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
+    const { loading, error } = useAppSelector(selectAuth);
 
     const handleCloseModal = () => {
         setShowSuccessModal(false);
@@ -70,61 +78,17 @@ const RegisterForm = () => {
             email: string;
             password: string;
             confirmPassword: string;
+            role: "USER";
         },
         { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
     ) => {
-        setSubmitError('');
-        setLoading(true);
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                controller.abort();
-            }, 30000);
-
-            const response = await fetch('https://petshop-db4w.onrender.com/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(values),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            let data;
-            try {
-                data = await response.json();
-            } catch {
-                data = { message: `Error del servidor (${response.status}): ${response.statusText}` };
-            }
-
-            if (!response.ok) {
-                throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-            }
-
-            setShowSuccessModal(true);
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                if (err.name === 'AbortError') {
-                    setSubmitError('La petición tardó demasiado tiempo. Verifica tu conexión e intenta nuevamente.');
-                } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-                    setSubmitError('Error de conexión. Verifica tu internet y que el servidor esté disponible.');
-                } else if (err.message.includes('email') || err.message.toLowerCase().includes('correo')) {
-                    setSubmitError('Este email ya está registrado o no es válido. Intenta con otro email.');
-                } else if (err.message.includes('400')) {
-                    setSubmitError('Los datos ingresados no son válidos. Verifica la información.');
-                } else if (err.message.includes('500')) {
-                    setSubmitError('Error interno del servidor. Intenta nuevamente en unos minutos.');
-                } else {
-                    setSubmitError(err.message);
-                }
-            } else {
-                setSubmitError('Ocurrió un error inesperado');
-            }
-        } finally {
-            setLoading(false);
-            setSubmitting(false);
+        const result = await dispatch(registerUser(values));
+        
+        if (registerUser.fulfilled.match(result)) {        
+            navigate("/");
         }
+        
+        setSubmitting(false);
     };
 
     return (
@@ -136,89 +100,126 @@ const RegisterForm = () => {
                     email: '',
                     password: '',
                     confirmPassword: '',
+                    role: 'USER',
                 }}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
             >
-                <Form className="space-y-6">
+                <Form className="space-y-8">
                     <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="firstName" className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert">
                             Nombre
                         </label>
                         <Field
                             name="firstName"
                             type="text"
                             data-test="username"
-                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                            className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                            placeholder="Gonzalo"
                         />
                         <ErrorMessage name="firstName" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
                     <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="lastName" className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert">
                             Apellido
                         </label>
                         <Field
                             name="lastName"
                             type="text"
                             data-test="lastname"
-                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                            className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                            placeholder="Ej.: López López"
                         />
                         <ErrorMessage name="lastName" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                            Correo electrónico
+                        <label htmlFor="email" className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert">
+                            Email*
                         </label>
                         <Field
                             name="email"
                             type="email"
                             data-test="email"
-                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
+                            className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                            placeholder="nombre@email.com"
                         />
                         <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                            Contraseña
+                        <label htmlFor="password" className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert">
+                            Contraseña*
                         </label>
-                        <Field
-                            name="password"
-                            type="password"
-                            data-test="password"
-                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                        />
+                        <div className="relative">
+                            <Field
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                id="password"
+                                data-test="password"
+                                className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                                placeholder="Contraseña"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-3 flex items-center bg-transparent p-0 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                {showPassword ? (
+                                <EyeIconSlash className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                                ) : (
+                                <EyeIcon className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                                )}
+                            </button>
+                        </div>
                         <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
                     <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                            Confirmar contraseña
+                        <label htmlFor="confirmPassword" className="block text-[16px] font-semibold leading-[19.2px] text-[#042D95] font-albert">
+                            Confirmar contraseña*
                         </label>
-                        <Field
-                            name="confirmPassword"
-                            type="password"
-                            data-test="confirmpassword"
-                            className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-200 outline-none"
-                        />
+                        <div className="relative">
+                            <Field
+                                name="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                id="confirmPassword"
+                                data-test="confirmPassword"
+                                className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                                placeholder="Confirma contraseña"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute inset-y-0 right-3 flex items-center bg-transparent p-0 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                {showConfirmPassword ? (
+                                <EyeIconSlash className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                                ) : (
+                                <EyeIcon className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                                )}
+                            </button>
+                        </div>
                         <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
-                    {submitError && <div className="text-red-500 text-sm text-center">{submitError}</div>}
+                    {error && <div className="text-red-500 text-sm text-center">{error}</div>}
 
                     <button
                         type="submit"
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-xl transition duration-300"
+                        className="flex w-full h-12 px-6 py-3 justify-center items-center gap-2 
+                            rounded-[6px] 
+                            bg-[#5685FA] text-white font-normal text-[16px] leading-[120%] font-['Albert Sans'] 
+                            transition duration-300 hover:bg-[#4170e8] disabled:opacity-50 mt-12"
                         disabled={loading}
                         data-test="register-button"
                     >
                         {loading ? 'Registrando...' : 'Registrarse'}
                     </button>
 
-                    <p className="text-center text-sm text-gray-500">
-                        ¿Ya tienes una cuenta? <a href="/login" className="text-indigo-600 hover:underline">Inicia sesión</a>
+                    <p className="text-[#5685FA] font-['Albert Sans'] text-[16px] font-normal leading-[120%] text-center">
+                        ¿Ya usas Flowik? <a href="/login" className="ml-1 border-b border-[#5685FA] text-[#5685FA] font-['Albert Sans'] text-[16px] font-semibold leading-[120%] hover:border-b-2">Inicia sesión</a>
                     </p>
                 </Form>
             </Formik>
