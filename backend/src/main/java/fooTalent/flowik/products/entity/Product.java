@@ -58,6 +58,9 @@ public class Product {
     )
     private List<String> supplierNames = new ArrayList<>();
 
+    @Column(nullable = false, updatable = false, length = 150)
+    private String createdBy;
+
     public Product(ProductRegister p, List<String> supplierNames) {
         this.buyDate = LocalDate.now();
         this.expiration = p.expiration();

@@ -34,7 +34,6 @@ public class ProductController {
                                                          UriComponentsBuilder uriComponentsBuilder){
 
         SecurityUtil.validateUserAccess(userRepository, idUser);
-
         Product product = productService.createProduct(productRegister);
 
         URI url = uriComponentsBuilder.path("/api/products/{id_product}")
