@@ -3,10 +3,12 @@ package fooTalent.flowik.client.entity;
 
 import fooTalent.flowik.client.dto.ClientRegister;
 import fooTalent.flowik.client.dto.ClientUpdate;
+import fooTalent.flowik.config.SecurityUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 
@@ -27,52 +29,64 @@ public class Client {
     private String document_type;
 
     @Column(nullable = false, length = 20)
-    private long telephone_client;
+    private String telephone_client;
 
     @Column(nullable = false, length = 150)
     private String direction_client;
 
     @Column(nullable = false, length = 150)
-    private String emil_client;
+    private String email_client;
 
     @Column(nullable = false,name = "dedb") //, precision = 10, scale = 2
-    private int dedb_client;
+    private Integer dedb_client;
 
-    @Column(name = "ingress_date")
-    @Temporal(TemporalType.DATE)
+    @Column(name = "ingress_date", updatable = false)
+    @CreationTimestamp
     private LocalDate ingress_date;
 
-    @Column(name = "isactive")
-    private boolean isactive;
+    @Column(name = "isActive")
+    private boolean isActive;
+
+    @Column(nullable = false, updatable = false, length = 150)
+    private String createdBy;
+
+   public boolean getIsActive() {
+        return isActive;
+    }
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
 
     public Client(ClientRegister cr){
             this.name_client = cr.name_client();
             this.document_type = cr.document_type();
             this.telephone_client = cr.telephone_client();
-            this.direction_client = cr.direction_provider();
-            this.emil_client = cr.emil_client();
+            this.direction_client = cr.direction_client();
+            this.email_client = cr.email_client();
             this.dedb_client = cr.dedb_client();
-            this.isactive = cr.isactive();
+            this.isActive = true;
+
     }
 
     public void updateFromDto(ClientUpdate dto){
-        if(dto.name_client() != null){
+        if(dto.name_client() != null) {
             this.name_client = dto.name_client();
         }
-        if(dto.name_client() != null){
+        if(dto.document_type() != null) {
             this.document_type = dto.document_type();
         }
-        if(dto.name_client() != null){
+        if(dto.telephone_client() != null) {
             this.telephone_client = dto.telephone_client();
         }
-        if(dto.name_client() != null){
+        if(dto.direction_client() != null) {
             this.direction_client = dto.direction_client();
         }
-        if(dto.name_client() != null){
-            this.emil_client = dto.emil_client();
+        if(dto.email_client() != null) {
+            this.email_client = dto.email_client();
         }
-        if(dto.name_client() != null){
+        if (dto.dedb_client() != null) {
             this.dedb_client = dto.dedb_client();
         }
+        }
     }
-}
+

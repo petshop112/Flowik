@@ -8,12 +8,12 @@ public record ClientList(
         long id_client,
         String name_client,
         String document_type,
-        long telephone_client,
+        String telephone_client,
         String direction_client,
-        String emil_client,
+        String email_client,
         int dedb_client,
-        LocalDate ingress_date,
-        boolean isactive
+        LocalDate ingress_date
+
 ) {
     public ClientList(Client cl){this(
             cl.getId_client(),
@@ -21,10 +21,9 @@ public record ClientList(
             cl.getDocument_type(),
             cl.getTelephone_client(),
             cl.getDirection_client(),
-            cl.getEmil_client(),
+            cl.getEmail_client(),
             cl.getDedb_client(),
-            cl.getIngress_date(),
-            cl.isIsactive()
+            cl.getIngress_date()
             );
     }
 }

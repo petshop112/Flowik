@@ -1,6 +1,7 @@
 package fooTalent.flowik.client.dto;
 
 import fooTalent.flowik.validation.OnlyLettersAndSpaces;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
 
@@ -18,30 +19,25 @@ public record ClientRegister(
         @OnlyLettersAndSpaces
         String document_type,
 
-        //@Pattern(regexp = "^\\+?\\d[\\d\\s]{7,20}$",
-        //        message = "El número telefónico debe estar en formato internacional E.164, por ejemplo: +5491112345678")
-        Long telephone_client,
+        @Pattern(regexp = "^[0-9]{7,20}$",
+        message = "El número telefónico recibe solo numeros")
+        @Schema(example = "1122334455")
+        String telephone_client,
 
         @NotBlank(message = "La dirección del Cliente es obligatoria.")
         @Size(min = 10, max = 100, message = "La Direccion del Cliente debe tener entre 10 y 100 caracteres")
-        String direction_provider,
+        @Schema(example = "Calle Falsa 123")
+        String direction_client,
 
-        @Pattern(regexp = "^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$",message = "Correo de Cliente invalido")
+        @Pattern(regexp = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$", message = "Correo de Cliente invalido")
         @NotBlank(message = "La dirección del Correo Electronico del Cliente es obligatoria.")
-        String emil_client,
+        @Schema(example = "cliente@email.com")
+        String email_client,
 
-        //@NotBlank(message = "La Fecha de ingreso del Cliente obligatoria.")
-        //@Past
-        //@Date(pattern = "dd-MM-yyyy")
-
-        LocalDate ingress_date,
-
-        //@NotBlank(message = "La Deuda del Cliente es un campo obligatorio.")
-        //@DecimalMin(value = "0.01", inclusive = true, message = "El precio debe ser mayor o igual a 0.01.")
-       // @Digits(integer = 10,fraction = 2)
-        Integer dedb_client,
-
-        Boolean isactive
+        @DecimalMin(value = "0.01", inclusive = true, message = "El precio debe ser mayor o igual a 0.01.")
+        @Digits(integer = 10,fraction = 2)
+        @Schema(example = "100")
+        Integer dedb_client
         )
 {
 }

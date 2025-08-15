@@ -14,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
+
     @Override
     public Client createClient(Client client){return clientRepository.save(client);}
     @Override
@@ -39,22 +40,15 @@ public class ClientServiceImpl implements ClientService {
         Client existing = clientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
 
-        existing.setName_client(clientUpdate.name_client());
-        existing.setDirection_client(clientUpdate.direction_client());
-        existing.setDocument_type(clientUpdate.document_type());
-        existing.setTelephone_client(clientUpdate.telephone_client());
-        existing.setEmil_client(clientUpdate.emil_client());
-        existing.setIngress_date(clientUpdate.ingress_date());
+        existing.updateFromDto(clientUpdate);
         return clientRepository.save(existing);
     }
     @Override
     public void deletelogic(Long id) {
-        Client cl= new Client();
-        if (!clientRepository.existsById(id)) {
-            throw new RuntimeException("Cliente no encontrado para eliminar");
-        }
+        Client cl= clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado para eliminar"));
 
-        cl.setIsactive(false);
+        cl.setIsActive(false);
         clientRepository.save(cl);
     }
 
