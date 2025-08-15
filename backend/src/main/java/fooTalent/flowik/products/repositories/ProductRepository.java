@@ -15,4 +15,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
     @Query("UPDATE Product p SET p.isActive = NOT p.isActive WHERE p.id IN :ids")
     void toggleProductsActiveState(@Param("ids") List<Long> Ids);
+
+    @Query("SELECT p.amount FROM Product p WHERE p.id = :id")
+    Integer findAmountById(Long id);
 }

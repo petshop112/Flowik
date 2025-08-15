@@ -129,4 +129,12 @@ public class ProductController {
         productService.toggleProductsActiveState(productIDs.IDs());
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Obtener el estado de stock de producto por IDs")
+    @GetMapping("/stock/{id_product}")
+    public ResponseEntity<StockProduct> getStockStatusById(@PathVariable("id_product") Long idProduct){
+
+        Integer amountProduct = productService.getStockStatusById(idProduct);
+        return ResponseEntity.ok(new StockProduct(amountProduct));
+    }
 }

@@ -98,4 +98,10 @@ public class ProductService implements ProductServiceImpl{
 
         productRepository.toggleProductsActiveState(productIDs);
     }
+
+    @Override
+    public Integer getStockStatusById(Long id) {
+
+        return productRepository.findAmountById(id);
+    }
 }
