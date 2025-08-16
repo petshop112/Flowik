@@ -31,9 +31,6 @@ const LoginForm = () => {
         const result = await dispatch(loginUser(values));
 
         if (loginUser.fulfilled.match(result)) {
-          console.log(result.payload);
-          console.log(result.payload.token);
-
           navigate("/");
         }
 
@@ -77,7 +74,7 @@ const LoginForm = () => {
               Contraseña
             </label>
             <a
-              href="#"
+              href="/recoverPassword"
               className="text-[#5685FA] font-['Albert Sans'] text-[16px] font-normal leading-[120%]"
             >
               ¿Olvidaste tu contraseña?

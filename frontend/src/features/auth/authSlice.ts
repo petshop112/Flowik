@@ -1,7 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { createAuthService } from "../../api/authService";
 import type { RootState } from "../../app/store";
-import type { LoginCredentials, LoginResponse, RegisterCredentials, RegisterResponse } from "../../types/auth";
+import type { 
+  LoginCredentials, 
+  LoginResponse, 
+  RegisterCredentials, 
+  RegisterResponse, 
+  RecoverPasswordRequest, 
+  RecoverPasswordResponse,
+  NewPasswordRequest,
+  NewPasswordResponse
+ } from "../../types/auth";
 import { makeRequest } from "../../utils/makeRequest";
 
 const authService = createAuthService(makeRequest);
@@ -36,11 +45,42 @@ export const registerUser = createAsyncThunk<RegisterResponse, RegisterCredentia
   }
 );
 
+export const recoverPassword = createAsyncThunk<RecoverPasswordResponse, RecoverPasswordRequest>(
+  "auth/recoverPassword",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await authService.recoverPassword(credentials);
+      return response;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("Error al recuperar contraseña");
+    }
+  }
+);
+
+export const newPassword = createAsyncThunk<NewPasswordResponse, NewPasswordRequest>(
+  "auth/recoverPassword",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await authService.newPassword(credentials);
+      return response;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("Error al cambiar contraseña");
+    }
+  }
+);
+
 interface AuthState {
   token: string | null;
   username: string | null;
   loading: boolean;
   error: string | null;
+  recoveryMessage: string | null;
 }
 
 const initialState: AuthState = {
@@ -48,6 +88,7 @@ const initialState: AuthState = {
   username: null,
   loading: false,
   error: null,
+  recoveryMessage: null,
 };
 
 const authSlice = createSlice({
@@ -85,7 +126,22 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      });
+      })
+
+      //Recover password
+      .addCase(recoverPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.recoveryMessage = null;
+      })
+      .addCase(recoverPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.recoveryMessage = action.payload.message; // 👈 guardamos mensaje backend
+      })
+      .addCase(recoverPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
   },
 });
 
