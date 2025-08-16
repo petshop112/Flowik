@@ -158,7 +158,7 @@ public class AuthService {
         verificationToken.setExpiryDate(LocalDateTime.now().plusHours(1));
         verificationTokenRepository.save(verificationToken);
 
-        String link = frontUrl + "/reset_password?token=" + token;
+        String link = /*frontUrl*/"http://localhost:5173" + "/newPassword?token=" + token;
         emailService.sendEmail(user.getEmail(), "Recuperar contraseña",
                 "<p>Hola " + user.getUserName() + ",</p>" +
                         "<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>" +
