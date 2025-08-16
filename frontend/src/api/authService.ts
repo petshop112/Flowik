@@ -1,5 +1,14 @@
 import type { MakeRequestFunction } from "../types/api";
-import type { LoginCredentials, LoginResponse, RegisterCredentials, RegisterResponse } from "../types/auth";
+import type { 
+  LoginCredentials, 
+  LoginResponse, 
+  RegisterCredentials, 
+  RegisterResponse, 
+  RecoverPasswordRequest, 
+  RecoverPasswordResponse,
+  NewPasswordRequest,
+  NewPasswordResponse
+} from "../types/auth";
 
 export const API_AUTH_URL = import.meta.env.VITE_API_URL;
 
@@ -28,6 +37,40 @@ export class AuthService {
       },
       body: JSON.stringify(credentials),
     });
+  }
+
+  async recoverPassword(credentials: RecoverPasswordRequest): Promise<RecoverPasswordResponse> {
+    const response = await fetch(`${API_AUTH_URL}auth/forgot_password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error en la solicitud de recuperación");
+    }
+
+    const message = await response.text();
+    return { message }; // Lo normalizamos a un objeto
+  }
+
+  async newPassword(credentials: NewPasswordRequest): Promise<NewPasswordResponse> {
+    const response = await fetch(`${API_AUTH_URL}auth/reset_password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error en cambio de contraseña");
+    }
+
+    const data: NewPasswordResponse = await response.json();
+    return data;
   }
 }
 

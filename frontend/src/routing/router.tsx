@@ -7,6 +7,10 @@ import NotFoundPage from "../pages/NotFoundPage";
 import Dashboard from "../pages/Dashboard";
 import { PrivateRoute } from "../components/features/PrivateRoute";
 import Products from "../pages/products/Products";
+import RecoverPassword from "../pages/auth/RecoverPassword";
+import VerifyEmail from "../pages/auth/VerifyEmail";
+import NewPassword from "../pages/auth/NewPassword";
+import PasswordReset from "../pages/auth/PasswordReset";
 
 const router = createBrowserRouter([
   {
@@ -16,6 +20,10 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
+      { path: "recoverPassword", element: <RecoverPassword /> },
+      { path: "verifyEmail", element: <VerifyEmail /> },
+      { path: "newPassword", element: <NewPassword /> },
+      { path: "passwordReset", element: <PasswordReset /> },
       { path: "products", element: <Products /> },
       {
         element: <PrivateRoute />,
