@@ -12,7 +12,6 @@ public record ClientList(
         String telephone_client,
         String direction_client,
         String email_client,
-        BigDecimal debt_client,
         LocalDate ingress_date
 
 ) {
@@ -23,7 +22,6 @@ public record ClientList(
             cl.getTelephone_client(),
             cl.getDirection_client(),
             cl.getEmail_client(),
-            cl.getDebt_client(),
             cl.getIngress_date()
             );
     }

@@ -1,18 +1,18 @@
 package fooTalent.flowik.products.dto;
 
 import fooTalent.flowik.products.entity.Product;
+import fooTalent.flowik.provider.entity.Provider;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 public record ProductResponse(
-
         Long id,
         String name,
         String description,
         String category,
-        List<String> supplierNames,
+        List<String> providers,
         Integer amount,
         Double weigth,
         BigDecimal sellPrice,
@@ -25,7 +25,10 @@ public record ProductResponse(
                 (p != null) ? p.getName() : null,
                 (p != null) ? p.getDescription() : null,
                 (p != null) ? p.getCategory() : null,
-                (p != null) ? p.getSupplierNames() : null,
+                (p != null) ? p.getProviders()
+                        .stream()
+                        .map(Provider::getName_provider)
+                        .toList() : null,
                 (p != null) ? p.getAmount() : null,
                 (p != null) ? p.getWeigth() : null,
                 (p != null) ? p.getSellPrice() : null,

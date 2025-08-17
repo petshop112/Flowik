@@ -36,7 +36,6 @@ public class ClientController {
             UriComponentsBuilder uriBuilder
     ) {
         Client client = new Client(clientRegister);
-        client.setCreatedBy(SecurityUtil.getAuthenticatedEmail());
         Client saved = clientService.createClient(client);
 
         URI location = uriBuilder.path("/api/client/{id_client}")
@@ -44,14 +43,28 @@ public class ClientController {
                 .toUri();
         return ResponseEntity.created(location).body(new ClientResponse(saved));
     }
+    @Operation(summary = "Obtener un cliente por su ID")
+    @GetMapping("/details/{id_client}")
+    public ResponseEntity<ClientResponse> getClientById(@PathVariable("id_client") Long id_client) {
+
+        Client client = clientService.getClientbyId(id_client);
+        String authenticatedUserEmail = SecurityUtil.getAuthenticatedEmail();
+
+        if (!client.getCreatedBy().equals(authenticatedUserEmail)) {
+            throw new AccessDeniedException("No tienes permiso para acceder a este cliente.");
+        }
+
+        return ResponseEntity.ok(new ClientResponse(client));
+    }
+
     @Operation(summary = "Lista todos los Clientes",
     description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
     @GetMapping("/{id_user}")
-    public ResponseEntity<List<ClientList>> getAllProviders(@PathVariable("id_user") Long id_user){
+    public ResponseEntity<List<ClientResponse>> getAllProviders(@PathVariable("id_user") Long id_user){
         SecurityUtil.validateUserAccess(userRepository, id_user);
         return ResponseEntity.ok(
                 clientService.getAllClient().stream()
-                        .map(ClientList::new)
+                        .map(ClientResponse::new)
                         .toList()
         );
     }

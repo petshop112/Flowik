@@ -1,10 +1,9 @@
 package fooTalent.flowik.client.dto;
 
 import fooTalent.flowik.validation.OnlyLettersAndSpaces;
+import fooTalent.flowik.validation.ValidAddress;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-
-import java.math.BigDecimal;
 
 public record ClientUpdate(
         @Size(min = 2, max = 50, message = "El Nombre del Cliente debe tener entre 2 y 50 caracteres")
@@ -21,6 +20,7 @@ public record ClientUpdate(
 
         @Size(min = 10, max = 100, message = "La Direccion del Cliente debe tener entre 10 y 100 caracteres")
         @Schema(example = "Calle Falsa 123")
+        @ValidAddress
         String direction_client,
 
         @Pattern(
@@ -28,10 +28,5 @@ public record ClientUpdate(
                 message = "Correo de Cliente invalido"
         )
         @Schema(example = "cliente@email.com")
-        String email_client,
-
-        @DecimalMin(value = "0.01", inclusive = true, message = "El precio debe ser mayor o igual a 0.01.")
-        @Digits(integer = 10,fraction = 2)
-        @Schema(example = "100")
-        BigDecimal debt_client
+        String email_client
 ) {}

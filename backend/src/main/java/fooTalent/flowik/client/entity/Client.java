@@ -4,6 +4,7 @@ package fooTalent.flowik.client.entity;
 import fooTalent.flowik.client.dto.ClientRegister;
 import fooTalent.flowik.client.dto.ClientUpdate;
 import fooTalent.flowik.config.SecurityUtil;
+import fooTalent.flowik.debt.entity.Debt;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +13,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,9 +41,6 @@ public class Client {
     @Column(nullable = false, length = 150)
     private String email_client;
 
-    @Column(nullable = false,name = "debt", precision = 10, scale = 2)
-    private BigDecimal debt_client;
-
     @Column(name = "ingress_date", updatable = false)
     @CreationTimestamp
     private LocalDate ingress_date;
@@ -51,11 +51,18 @@ public class Client {
     @Column(nullable = false, updatable = false, length = 150)
     private String createdBy;
 
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Debt> debts = new ArrayList<>();
+
    public boolean getIsActive() {
         return isActive;
     }
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+    @PrePersist
+    public void prePersist() {
+        this.createdBy = SecurityUtil.getAuthenticatedEmail();
     }
 
     public Client(ClientRegister cr){
@@ -64,7 +71,6 @@ public class Client {
             this.telephone_client = cr.telephone_client();
             this.direction_client = cr.direction_client();
             this.email_client = cr.email_client();
-            this.debt_client = cr.debt_client();
             this.isActive = true;
 
     }
@@ -84,9 +90,6 @@ public class Client {
         }
         if(dto.email_client() != null) {
             this.email_client = dto.email_client();
-        }
-        if (dto.debt_client() != null) {
-            this.debt_client = dto.debt_client();
         }
         }
     }
