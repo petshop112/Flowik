@@ -29,3 +29,15 @@ export interface DeleteProductConfirmationModalProps {
   closeDeleteModal: () => void;
   handleDelete: () => Promise<boolean>;
 }
+
+export interface Product {
+  id: number;
+  name: string;
+  category: string;
+  amount: number;
+  sellPrice: number;
+  weigth: number;
+  buyDate: string;
+  expiration: string;
+  providers: string[];
+}
