@@ -1,15 +1,9 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { productService } from "../api/productService";
-import { useSelector } from "react-redux";
-import { selectAuth } from "../features/auth/authSlice";
-
-const useGetToken = () => {
-  const { token } = useSelector(selectAuth);
-  return token || sessionStorage.getItem("token");
-};
+import { getUserTokenFromStorage } from "../utils/storage";
 
 export const useGetAllProducts = () => {
-  const token = useGetToken();
+  const token = getUserTokenFromStorage();
 
   return useQuery({
     queryKey: ["products"],
@@ -24,7 +18,7 @@ export const useGetAllProducts = () => {
 };
 
 export const useGetProductById = (id: number) => {
-  const token = useGetToken();
+  const token = getUserTokenFromStorage();
 
   return useQuery({
     queryKey: ["product", id],
@@ -40,7 +34,7 @@ export const useGetProductById = (id: number) => {
 };
 
 export const useCreateProduct = () => {
-  const token = useGetToken();
+  const token = getUserTokenFromStorage();
 
   return useMutation({
     mutationFn: (formData: FormData) => {
@@ -51,7 +45,7 @@ export const useCreateProduct = () => {
 };
 
 export const useUpdateProduct = () => {
-  const token = useGetToken();
+  const token = getUserTokenFromStorage();
 
   return useMutation({
     mutationFn: ({ id, formData }: { id?: number; formData: FormData }) => {
@@ -62,7 +56,7 @@ export const useUpdateProduct = () => {
 };
 
 export const useDeleteProduct = () => {
-  const token = useGetToken();
+  const token = getUserTokenFromStorage();
 
   return useMutation({
     mutationFn: (id: number) => {
