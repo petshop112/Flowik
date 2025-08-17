@@ -110,4 +110,10 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error inesperado.", null));
     }
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(RuntimeException ex) {
+        return ResponseEntity
+                .badRequest()
+                .body(buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null));
+    }
 }

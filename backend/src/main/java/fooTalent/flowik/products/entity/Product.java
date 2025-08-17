@@ -4,6 +4,7 @@ import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 
+import fooTalent.flowik.provider.entity.Provider;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter @Setter
 @Entity
-@Table(name = "products")
+@Table(name = "product")
 public class Product {
 
     @Id
@@ -53,11 +54,13 @@ public class Product {
     @Column(nullable = false, name = "is_active")
     private boolean isActive;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "products_supplier",
-                     joinColumns = @JoinColumn(name = "id")
+    @ManyToMany
+    @JoinTable(
+            name = "product_provider",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "provider_id")
     )
-    private List<String> supplierNames = new ArrayList<>();
+    private List<Provider> providers = new ArrayList<>();
 
     @Column(nullable = false, updatable = false, length = 150)
     private String createdBy;
@@ -77,16 +80,16 @@ public class Product {
         this.sellPrice = p.sellPrice();
         this.category = p.category();
         this.isActive = true;
-        this.supplierNames = supplierNames;
+        this.providers = providers;
     }
 
-    public void updateProduct(ProductUpdated p, List<String> supplierNamesNew) {
+    public void updateProduct(ProductUpdated p, List<Provider> providersNew) {
         if(p.expiration() != null) this.expiration = p.expiration();
         if(p.name() != null) this.name = p.name();
         if(p.description() != null) this.description = p.description();
         if(p.weight() != null) this.weigth = p.weight();
         if(p.amount() != null) this.amount = p.amount();
         if(p.sellPrice() != null) this.sellPrice = p.sellPrice();
-        if(!supplierNamesNew.isEmpty()) this.supplierNames = supplierNamesNew;
+        if(providersNew != null && !providersNew.isEmpty()) this.providers = providersNew;
     }
 }

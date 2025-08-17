@@ -1,13 +1,13 @@
 package fooTalent.flowik.products.dto;
 
 import fooTalent.flowik.products.entity.Product;
+import fooTalent.flowik.provider.entity.Provider;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 public record ProductList(
-
         Long id,
         String name,
         String category,
@@ -16,7 +16,7 @@ public record ProductList(
         Double weigth,
         LocalDate buyDate,
         LocalDate expiration,
-        List<String> supplierNames
+        List<String> providers
 ) {
     public ProductList(Product p) {
         this(
@@ -28,7 +28,10 @@ public record ProductList(
                 p.getWeigth(),
                 p.getBuyDate(),
                 p.getExpiration(),
-                p.getSupplierNames()
+                p.getProviders()
+                        .stream()
+                        .map(Provider::getName_provider)
+                        .toList()
         );
     }
 }

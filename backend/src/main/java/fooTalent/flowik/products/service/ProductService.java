@@ -5,6 +5,7 @@ import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 import fooTalent.flowik.products.entity.Product;
 import fooTalent.flowik.products.repositories.ProductRepository;
+import fooTalent.flowik.provider.entity.Provider;
 import fooTalent.flowik.provider.service.ProviderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,20 +69,18 @@ public class ProductService implements ProductServiceImpl{
         }
 
         List<Long> idProviders = productUpdated.providerIds();
-        idProviders.forEach(idProvider -> {
-            if(!providerService.existProvider(idProvider)){
+        List<Provider> providers = new ArrayList<>();
+
+        for(Long idProvider : idProviders) {
+            Provider provider = providerService.getProviderById(idProvider);
+            if(provider == null){
                 throw new RuntimeException("Proveedor no encontrado con ID: " + idProvider);
             }
-        });
-
-        List<String> namesProvider = new ArrayList<>();
-        idProviders.forEach(idProvider -> {
-            String name = providerService.getProviderById(idProvider).getName_provider();
-            namesProvider.add(name);
-        });
+            providers.add(provider);
+        }
 
         Product product = getProductById(id);
-        product.updateProduct(productUpdated, namesProvider);
+        product.updateProduct(productUpdated, providers);
         return productRepository.save(product);
     }
 

@@ -17,6 +17,9 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client createClient(Client client){return clientRepository.save(client);}
+    public List<Client> getAllClientByUser(String email) {
+        return clientRepository.findByCreatedBy(email);
+    }
     @Override
     public List<Client> getAllClient(){return clientRepository.findAll();}
     @Override

@@ -27,9 +27,6 @@ public record RegisterRequest(
 
         @NotBlank(message = "El campo contraseña no puede estar vacío")
         @Size(min = 8, max = 16)
-        String confirmPassword,
-
-        @NotNull(message = "El rol es obligatorio")
-        Role role
+        String confirmPassword
 ){
 }

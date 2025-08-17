@@ -29,7 +29,7 @@ public class ProductController {
 
 
     @Operation(summary = "Registrar un nuevo producto")
-    @PostMapping("/{id_user}")
+    @PostMapping("/")
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Valid ProductRegister productRegister,
                                                          UriComponentsBuilder uriComponentsBuilder) {
 

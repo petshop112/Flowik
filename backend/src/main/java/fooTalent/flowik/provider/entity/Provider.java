@@ -1,8 +1,12 @@
 package fooTalent.flowik.provider.entity;
+import fooTalent.flowik.products.entity.Product;
 import fooTalent.flowik.provider.dto.ProviderRegister;
 import fooTalent.flowik.provider.dto.ProviderUpdated;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +29,9 @@ public class Provider {
 
     @Column(nullable = false, length = 300)
     private String provider_description;
+
+    @ManyToMany(mappedBy = "providers")
+    private List<Product> products = new ArrayList<>();
 
     public Provider(ProviderRegister pr){
         this.name_provider = pr.name_provider();

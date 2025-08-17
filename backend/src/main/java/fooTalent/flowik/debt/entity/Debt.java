@@ -1,13 +1,18 @@
 package fooTalent.flowik.debt.entity;
 
 
+import fooTalent.flowik.client.entity.Client;
+import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.debt.enums.StatusDebt;
+import fooTalent.flowik.payments.entity.Payment;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,8 +31,8 @@ public class Debt {
     @Column(precision = 10, scale = 2)
     private BigDecimal mount = BigDecimal.ZERO;
 
-    @Column()
-    private BigDecimal payment = BigDecimal.ZERO;
+    @OneToMany(mappedBy = "debt", cascade = CascadeType.ALL)
+    private List<Payment> payments = new ArrayList<>();
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -36,10 +41,21 @@ public class Debt {
     @Column(name = "isActive")
     private boolean isActive;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", nullable = false)
+    private Client client;
+
+    @Column(nullable = false, updatable = false, length = 150)
+    private String createdBy;
+
     public boolean getIsActive() {
         return isActive;
     }
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+    @PrePersist
+    public void prePersist() {
+        this.createdBy = SecurityUtil.getAuthenticatedEmail();
     }
 }

@@ -1,6 +1,7 @@
 package fooTalent.flowik.provider.dto;
 
 import fooTalent.flowik.validation.OnlyLettersAndSpaces;
+import fooTalent.flowik.validation.ValidAddress;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -14,7 +15,7 @@ public record ProviderRegister(
 
         @NotBlank(message = "La dirección del proveedor es obligatoria.")
         @Size(min = 10, max = 100, message = "La Direccion del Proveedor debe tener entre 10 y 100 caracteres")
-        @OnlyLettersAndSpaces
+        @ValidAddress
         String direction_provider,
 
         @Pattern(regexp = "^\\+?\\d[\\d\\s]{7,20}$",

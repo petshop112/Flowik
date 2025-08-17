@@ -1,9 +1,10 @@
 package fooTalent.flowik.client.dto;
 
 import fooTalent.flowik.client.entity.Client;
+import fooTalent.flowik.debt.dto.DebtResponse;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 
 public record ClientResponse(
@@ -13,19 +14,21 @@ public record ClientResponse(
         String telephone_client,
         String direction_client,
         String email_client,
-        BigDecimal debt_client,
-        LocalDate ingress_date
+        LocalDate ingress_date,
+        List<DebtResponse> debts
 ) {
-    public ClientResponse(Client cl) {
+    public ClientResponse(Client client) {
         this(
-                cl != null ? cl.getId_client() : null,
-                cl != null ? cl.getName_client() : null,
-                cl != null ? cl.getDocument_type() : null,
-                cl != null ? cl.getTelephone_client() : null,
-                cl != null ? cl.getDirection_client() : null,
-                cl != null ? cl.getEmail_client() : null,
-                cl != null ? cl.getDebt_client() : null,
-                cl != null ? cl.getIngress_date() : null
+                client.getId_client(),
+                client.getName_client(),
+                client.getDocument_type(),
+                client.getTelephone_client(),
+                client.getDirection_client(),
+                client.getEmail_client(),
+                client.getIngress_date(),
+                client.getDebts().stream()
+                        .map(DebtResponse::new)
+                        .toList()
         );
     }
-}
+    }
