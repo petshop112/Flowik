@@ -36,7 +36,7 @@ const NewPasswordForm = () => {
         const result = await dispatch(newPassword(values));
     
         if (newPassword.fulfilled.match(result)) {
-            navigate("/passwordReset");
+            navigate("/password-reset");
         }
     
         setSubmitting(false);

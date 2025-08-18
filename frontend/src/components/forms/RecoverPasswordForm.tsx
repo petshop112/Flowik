@@ -23,7 +23,7 @@ const RecoverPasswordForm = () => {
         const result = await dispatch(recoverPassword(values));
     
         if (recoverPassword.fulfilled.match(result)) {
-            navigate("/verifyEmail", { state: { email: values.email } });
+            navigate("/verify-email", { state: { email: values.email } });
         }
     
         setSubmitting(false);

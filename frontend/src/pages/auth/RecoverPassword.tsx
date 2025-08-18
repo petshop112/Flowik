@@ -3,7 +3,7 @@ import RecoverPasswordForm from '../../components/forms/RecoverPasswordForm';
 const RecoverPassword = () => {
     return (
         <div className="flex h-screen">
-            {/* Columna izquierda */}
+            
             <div className="flex flex-col justify-center items-center w-1/2 bg-[#FAFBFC] px-12 gap-y-3">
                 <h1 className="text-[53px] text-[#333333] text-center font-semibold leading-[63.6px] font-['Albert_Sans']">
                     Recuperar

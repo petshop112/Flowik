@@ -3,7 +3,6 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import Home from "../pages/home/home";
 import NotFoundPage from "../pages/NotFoundPage";
-// import Layout from "../components/Layout";
 import Dashboard from "../pages/Dashboard";
 import { PrivateRoute } from "../components/features/PrivateRoute";
 import Products from "../pages/products/Products";
@@ -15,20 +14,21 @@ import PasswordReset from "../pages/auth/PasswordReset";
 const router = createBrowserRouter([
   {
     path: "/",
-    // element: <Layout />,
     children: [
-      { index: true, element: <Home /> },
-      { path: "login", element: <Login /> },
-      { path: "register", element: <Register /> },
-      { path: "recoverPassword", element: <RecoverPassword /> },
-      { path: "verifyEmail", element: <VerifyEmail /> },
-      { path: "newPassword", element: <NewPassword /> },
-      { path: "passwordReset", element: <PasswordReset /> },
-      { path: "products", element: <Products /> },
       {
         element: <PrivateRoute />,
-        children: [{ path: "dashboard", element: <Dashboard /> }],
+        children: [
+          { path: "/", element: <Home /> },
+          { path: "dashboard", element: <Dashboard /> },
+          { path: "products", element: <Products /> }
+        ],
       },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
+      { path: "recover-password", element: <RecoverPassword /> },
+      { path: "verify-email", element: <VerifyEmail /> },
+      { path: "new-password", element: <NewPassword /> },
+      { path: "password-reset", element: <PasswordReset /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

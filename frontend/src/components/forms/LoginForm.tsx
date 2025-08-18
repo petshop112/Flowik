@@ -55,6 +55,7 @@ const LoginForm = () => {
             name="email"
             type="email"
             id="email"
+            placeholder="example@gmail.com"
             data-test="email"
             className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
           />
@@ -86,7 +87,7 @@ const LoginForm = () => {
               type={showPassword ? "text" : "password"}
               id="password"
               data-test="password"
-              placeholder="Placeholder"
+              placeholder="*********"
               className="mt-1 mb-2 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
             />
             <button

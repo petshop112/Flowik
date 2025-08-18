@@ -53,7 +53,7 @@ export class AuthService {
     }
 
     const message = await response.text();
-    return { message }; // Lo normalizamos a un objeto
+    return { message }; 
   }
 
   async newPassword(credentials: NewPasswordRequest): Promise<NewPasswordResponse> {
