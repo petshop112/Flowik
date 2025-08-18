@@ -93,7 +93,8 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "https://misinomascotas.netlify.app",
                 "http://localhost:8080",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://localhost:5174"
         ));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
