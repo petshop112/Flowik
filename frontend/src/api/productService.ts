@@ -50,7 +50,7 @@ const getProductById = async (id: number, token: string) => {
 
 const createProduct = async (newProduct: FormData, token: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}products`, newProduct, {
+    const response = await axios.post(`${API_BASE_URL}products/`, newProduct, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
@@ -78,7 +78,7 @@ const updateProduct = async (
       updatedProduct,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       }
