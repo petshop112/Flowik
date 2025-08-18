@@ -136,7 +136,7 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      //Recover password
+      
       .addCase(recoverPassword.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -144,7 +144,7 @@ const authSlice = createSlice({
       })
       .addCase(recoverPassword.fulfilled, (state, action) => {
         state.loading = false;
-        state.recoveryMessage = action.payload.message; // 👈 guardamos mensaje backend
+  state.recoveryMessage = action.payload.message;
       })
       .addCase(recoverPassword.rejected, (state, action) => {
         state.loading = false;
