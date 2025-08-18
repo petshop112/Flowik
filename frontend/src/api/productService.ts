@@ -1,49 +1,121 @@
-import type { MakeRequestFunction } from "../types/api";
-import type { ProductProps, FormDataProps } from "../types/product";
+import axios, { AxiosError } from "axios";
+import { getUserIdFromStorage } from "../utils/storage";
 
-export const API_BASE_URL = "https://petshop-db4w.onrender.com/api/products";
+export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-export class ProductService {
-  private makeRequest: MakeRequestFunction;
+const getAllProducts = async (token: string) => {
+  const id = getUserIdFromStorage();
 
-  constructor(makeRequest: MakeRequestFunction) {
-    this.makeRequest = makeRequest;
+  if (!id) {
+    throw new Error("User ID not found in storage");
   }
 
-  async getAllProducts() {
-    return this.makeRequest<ProductProps[]>(API_BASE_URL);
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}products/getProducts/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "[getAllProducts] Error fetching data:",
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
   }
+};
 
-  async createProduct(productData: FormDataProps) {
-    const formattedData = {
-      ...productData,
-      price: parseFloat(productData.price),
-    };
-
-    return this.makeRequest<ProductProps>(API_BASE_URL, {
-      method: "POST",
-      body: JSON.stringify(formattedData),
+const getProductById = async (id: number, token: string) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}products/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "[getProductById] Error fetching data:",
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
   }
+};
 
-  async updateProduct(productId: number, productData: FormDataProps) {
-    const formattedData = {
-      ...productData,
-      price: parseFloat(productData.price),
-    };
-
-    return this.makeRequest<ProductProps>(`${API_BASE_URL}/${productId}`, {
-      method: "PUT",
-      body: JSON.stringify(formattedData),
+const createProduct = async (newProduct: FormData, token: string) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}products/`, newProduct, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
     });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "[createProduct] Error fetching data:",
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
   }
+};
 
-  async deleteProduct(productId: number) {
-    return this.makeRequest<void>(`${API_BASE_URL}/${productId}`, {
-      method: "DELETE",
+const updateProduct = async (
+  id: number,
+  updatedProduct: FormData,
+  token: string
+) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}products/${id}`,
+      updatedProduct,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "[updateProduct] Error fetching data:",
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
+  }
+};
+
+const deleteProduct = async (id: number, token: string) => {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}products/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "[deleteProduct] Error fetching data:",
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
   }
-}
+};
 
-export const createProductService = (makeRequest: MakeRequestFunction) =>
-  new ProductService(makeRequest);
+export const productService = {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+};

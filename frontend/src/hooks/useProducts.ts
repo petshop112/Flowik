@@ -1,154 +1,67 @@
-import { useState, useEffect } from "react";
-import { useAuthQuery } from "./useAuthQuery";
-import { useAuthApi } from "./useAuthApi";
-import { API_BASE_URL, createProductService } from "../api/productService";
-import type { ProductProps, FormDataProps } from "../types/product";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { productService } from "../api/productService";
+import { getUserTokenFromStorage } from "../utils/storage";
 
-export const useProducts = (token: string | null) => {
-  const [productList, setProductList] = useState<ProductProps[]>([]);
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [editingProduct, setEditingProduct] = useState<ProductProps | null>(
-    null
-  );
-  const [formData, setFormData] = useState<FormDataProps>({
-    title: "",
-    price: "",
-    description: "",
-    category: "",
-    image: "",
+export const useGetAllProducts = () => {
+  const token = getUserTokenFromStorage();
+
+  return useQuery({
+    queryKey: ["products"],
+    queryFn: () => {
+      if (!token) throw new Error("No hay token, no se puede acceder");
+      return productService.getAllProducts(token);
+    },
+    staleTime: 1000 * 60 * 2,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
-  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-  const [productToDelete, setProductToDelete] = useState<number | null>(null);
-  const {
-    data: products,
-    loading: fetchLoading,
-    error: fetchError,
-  } = useAuthQuery<ProductProps[]>(API_BASE_URL, token);
-  const {
-    makeRequest,
-    loading: actionLoading,
-    error: actionError,
-  } = useAuthApi(token);
+};
 
-  const productService = createProductService(makeRequest);
+export const useGetProductById = (id: number) => {
+  const token = getUserTokenFromStorage();
 
-  useEffect(() => {
-    if (products) {
-      setProductList(products);
-    }
-  }, [products]);
+  return useQuery({
+    queryKey: ["product", id],
+    queryFn: () => {
+      if (!token) throw new Error("No hay token de autenticación");
+      return productService.getProductById(id as number, token);
+    },
+    enabled: !!id && !!token,
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
 
-  const openModal = (product: ProductProps | null = null) => {
-    if (product) {
-      setEditingProduct(product);
-      setFormData({
-        title: product.title,
-        price: product.price.toString(),
-        description: product.description,
-        category: product.category,
-        image: product.image,
-      });
-    } else {
-      setEditingProduct(null);
-      setFormData({
-        title: "",
-        price: "",
-        description: "",
-        category: "",
-        image: "",
-      });
-    }
-    setShowModal(true);
-  };
+export const useCreateProduct = () => {
+  const token = getUserTokenFromStorage();
 
-  const closeModal = () => {
-    setShowModal(false);
-    setEditingProduct(null);
-    setFormData({
-      title: "",
-      price: "",
-      description: "",
-      category: "",
-      image: "",
-    });
-  };
+  return useMutation({
+    mutationFn: (formData: FormData) => {
+      if (!token) throw new Error("No hay token de autenticación");
+      return productService.createProduct(formData, token);
+    },
+  });
+};
 
-  const handleSubmit = async (): Promise<boolean> => {
-    try {
-      if (editingProduct) {
-        const updatedProduct = await productService.updateProduct(
-          editingProduct.id,
-          formData
-        );
-        setProductList((prev) =>
-          prev.map((p) => (p.id === editingProduct.id ? updatedProduct : p))
-        );
-      } else {
-        const newProduct = await productService.createProduct(formData);
-        setProductList((prev) => [...prev, newProduct]);
-      }
+export const useUpdateProduct = () => {
+  const token = getUserTokenFromStorage();
 
-      closeModal();
-      return true;
-    } catch (error) {
-      console.error("Error al guardar producto:", error);
-      return false;
-    }
-  };
+  return useMutation({
+    mutationFn: ({ id, data }: { id?: number; data: any }) => {
+      if (!token) throw new Error("No hay token de autenticación");
+      return productService.updateProduct(id ?? 0, data, token);
+    },
+  });
+};
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+export const useDeleteProduct = () => {
+  const token = getUserTokenFromStorage();
 
-  const openDeleteModal = (productId: number) => {
-    setProductToDelete(productId);
-    setShowDeleteModal(true);
-  };
-
-  const closeDeleteModal = () => {
-    setProductToDelete(null);
-    setShowDeleteModal(false);
-  };
-
-  const handleDelete = async (): Promise<boolean> => {
-    if (!productToDelete) {
-      return false;
-    }
-
-    try {
-      await productService.deleteProduct(productToDelete);
-      setProductList((prev) => prev.filter((p) => p.id !== productToDelete));
-      closeDeleteModal();
-      return true;
-    } catch (error) {
-      console.error("Error al eliminar producto:", error);
-      return false;
-    }
-  };
-
-  return {
-    productList,
-    showModal,
-    editingProduct,
-    formData,
-    fetchLoading,
-    fetchError,
-    actionLoading,
-    actionError,
-    openModal,
-    closeModal,
-    handleSubmit,
-    handleInputChange,
-    showDeleteModal,
-    productToDelete,
-    openDeleteModal,
-    closeDeleteModal,
-    handleDelete,
-  };
+  return useMutation({
+    mutationFn: (id: number) => {
+      if (!token) throw new Error("No hay token de autenticación");
+      return productService.deleteProduct(id, token);
+    },
+  });
 };

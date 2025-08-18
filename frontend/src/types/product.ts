@@ -1,3 +1,5 @@
+import type { ProviderFormData } from "./provider";
+
 export interface ProductProps {
   id: number;
   title: string;
@@ -28,4 +30,38 @@ export interface DeleteProductConfirmationModalProps {
   actionLoading: boolean;
   closeDeleteModal: () => void;
   handleDelete: () => Promise<boolean>;
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  category: string;
+  amount: number;
+  sellPrice: number;
+  weigth: number;
+  buyDate: string;
+  expiration: string;
+  providers: string[];
+}
+
+export interface ProductUpdateFormData extends Omit<Product, "providers"> {
+  description: string;
+  providers?: string[];
+  providerIds?: string[];
+}
+
+export type ProductWithOptionalId = Omit<ProductUpdateFormData, "id"> & {
+  id?: number;
+  description: string;
+  providerIds?: string[];
+};
+
+export interface ProductFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (product: ProductWithOptionalId) => void;
+  product?: ProductWithOptionalId | null;
+  isLoading?: boolean;
+  providers: ProviderFormData[] | undefined;
+  categories: string[];
 }
