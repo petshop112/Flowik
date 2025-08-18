@@ -63,4 +63,8 @@ public class ProviderServiceImpl implements ProviderService {
         }
         providerRepository.deleteById(id);
     }
+
+    public List<Provider> getProvidersByIds(List<Long> providerIds) {
+        return providerRepository.findAllById(providerIds);
+    }
 }

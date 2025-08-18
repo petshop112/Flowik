@@ -25,8 +25,7 @@ public record ProductResponse(
                 (p != null) ? p.getName() : null,
                 (p != null) ? p.getDescription() : null,
                 (p != null) ? p.getCategory() : null,
-                (p != null) ? p.getProviders()
-                        .stream()
+                (p != null) ? p.getProviders().stream()
                         .map(Provider::getName_provider)
                         .toList() : null,
                 (p != null) ? p.getAmount() : null,

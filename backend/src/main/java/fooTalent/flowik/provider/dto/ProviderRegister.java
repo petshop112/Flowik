@@ -10,7 +10,7 @@ public record ProviderRegister(
 
         @NotBlank(message = "El nombre del proveedor es obligatorio.")
         @Size(min = 2, max = 50, message = "El Nombre del Proveedor debe tener entre 2 y 50 caracteres")
-        @OnlyLettersAndSpaces
+//        @OnlyLettersAndSpaces
         String name_provider,
 
         @NotBlank(message = "La dirección del proveedor es obligatoria.")
@@ -24,7 +24,7 @@ public record ProviderRegister(
 
         @NotBlank(message = "La descripción del proveedor es obligatoria.")
         @Size(min = 10, max = 300, message = "El Nombre del Proveedor debe tener entre 10 y 300 caracteres")
-        @OnlyLettersAndSpaces
+//        @OnlyLettersAndSpaces
         String provider_description
 ){
 }

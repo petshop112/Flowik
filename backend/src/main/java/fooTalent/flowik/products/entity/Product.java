@@ -70,7 +70,7 @@ public class Product {
         this.createdBy = SecurityUtil.getAuthenticatedEmail();
     }
 
-    public Product(ProductRegister p, List<String> supplierNames) {
+    public Product(ProductRegister p, List<Provider> providers) {
         this.buyDate = LocalDate.now();
         this.expiration = p.expiration();
         this.name = p.name();

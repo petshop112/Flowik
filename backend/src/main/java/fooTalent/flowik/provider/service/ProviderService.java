@@ -20,4 +20,6 @@ public interface ProviderService {
     Provider updateProvider(Long id, ProviderUpdated providerUpdated);
 
     void deleteProviderById(Long id);
+
+    List<Provider> getProvidersByIds(List<Long> providerIds);
 }
