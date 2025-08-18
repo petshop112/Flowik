@@ -131,7 +131,14 @@ public class ProductController {
 
     @Operation(summary = "Obtener el número de stock de un producto por IDs")
     @GetMapping("/stock/{id_product}")
-    public ResponseEntity<StockProduct> getStockStatusById(@PathVariable("id_product") Long idProduct){
+    public ResponseEntity<StockProduct> getStockStatusById(@PathVariable("id_product") Long idProduct) {
+        String email = SecurityUtil.getAuthenticatedEmail();
+        Product existingProduct = productRepository.findById(idProduct)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto", "ID", idProduct));
+
+        if (!existingProduct.getCreatedBy().equals(email)) {
+            throw new AccessDeniedException("No puedes ver un producto que no creaste.");
+        }
 
         Integer amountProduct = productService.getStockStatusById(idProduct);
         return ResponseEntity.ok(new StockProduct(amountProduct));
