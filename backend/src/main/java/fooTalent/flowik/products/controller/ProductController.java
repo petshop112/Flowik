@@ -33,8 +33,7 @@ public class ProductController {
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Valid ProductRegister productRegister,
                                                          UriComponentsBuilder uriComponentsBuilder) {
 
-        Product product = new Product();
-        product = productService.createProduct(productRegister);
+        Product product = productService.createProduct(productRegister);
 
         URI url = uriComponentsBuilder.path("/api/products/{id_product}")
                 .buildAndExpand(product.getId())
@@ -130,7 +129,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Obtener el estado de stock de producto por IDs")
+    @Operation(summary = "Obtener el número de stock de un producto por IDs")
     @GetMapping("/stock/{id_product}")
     public ResponseEntity<StockProduct> getStockStatusById(@PathVariable("id_product") Long idProduct){
 
