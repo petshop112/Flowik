@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Search,
@@ -15,23 +15,14 @@ import {
 import {
   useCreateProduct,
   useGetAllProducts,
+  useGetProductById,
   useUpdateProduct,
 } from "../../hooks/useProducts";
 import ProductFormModal from "../modal/ProductFormModal";
 import { InventoryLegend } from "./InventoryLegend";
 import { getStockStatus, getStockColor } from "../../utils/product";
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  amount: number;
-  sellPrice: number;
-  weigth: number; // weight está mal escrito, viene así de la base de datos
-  buyDate: string;
-  expiration: string;
-  supplierNames: string[];
-}
+import { useGetAllProviders } from "../../hooks/useProviders";
+import type { Product, ProductWithOptionalId } from "../../types/product";
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,8 +30,14 @@ const ProductsTable: React.FC = () => {
     new Set()
   );
   const { data: products, isLoading, error } = useGetAllProducts();
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const { data: productToEdit, isLoading: isLoadingProductToEdit } =
+    useGetProductById(editingProductId || 0);
+  const { data: providers } = useGetAllProviders();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] =
+    useState<ProductWithOptionalId | null>(null);
 
   const queryClient = useQueryClient();
   const createProductMutation = useCreateProduct();
@@ -48,7 +45,12 @@ const ProductsTable: React.FC = () => {
 
   const hasSelectedProducts = selectedProductIds.size > 0;
 
-  // Seleccionar/deseleccionar producto
+  useEffect(() => {
+    if (productToEdit) {
+      setEditingProduct(productToEdit);
+    }
+  }, [productToEdit]);
+
   const toggleProductSelection = (id: number) => {
     setSelectedProductIds((prevIds) => {
       const newIds = new Set(prevIds);
@@ -61,72 +63,63 @@ const ProductsTable: React.FC = () => {
     });
   };
 
-  // Abrir modal para crear nuevo producto
   const handleNewProduct = () => {
     setEditingProduct(null);
+    setEditingProductId(null);
     setIsModalOpen(true);
   };
 
-  // Abrir modal para editar producto
   const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
+    setEditingProductId(product.id);
     setIsModalOpen(true);
   };
 
-  // Cerrar modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setEditingProductId(null);
     setEditingProduct(null);
   };
 
-  // Convertir Product a FormData
-  const convertProductToFormData = (
-    product: Omit<Product, "id"> | Product
-  ): FormData => {
-    const formData = new FormData();
-
-    formData.append("name", product.name);
-    formData.append("category", product.category);
-    formData.append("amount", product.amount.toString());
-    formData.append("sellPrice", product.sellPrice.toString());
-    formData.append("weigth", product.weigth.toString()); // Mantener el typo de la BD
-    formData.append("buyDate", product.buyDate);
-    formData.append("expiration", product.expiration);
-
-    // Si hay proveedores, agregarlos
-    if (product.supplierNames && product.supplierNames.length > 0) {
-      formData.append("supplierNames", JSON.stringify(product.supplierNames));
-    }
-
-    return formData;
-  };
-
-  // Guardar producto (crear o actualizar)
-  const handleSaveProduct = async (product: Omit<Product, "id"> | Product) => {
+  const handleSaveProduct = async (productData: ProductWithOptionalId) => {
     try {
-      const formData = convertProductToFormData(product);
+      if (editingProductId !== null) {
+        const updatedProduct = {
+          ...productData,
+          providerIds: productData.providerIds
+            ? productData.providerIds.map(String)
+            : [],
+        };
 
-      if (editingProduct) {
-        // Actualizar producto existente
         await updateProductMutation.mutateAsync({
-          id: editingProduct.id,
-          formData,
+          id: editingProductId,
+          data: updatedProduct,
         });
-        console.log("Producto actualizado:", product);
       } else {
-        // Crear nuevo producto
+        const formData = new FormData();
+        formData.append("name", productData.name);
+        formData.append("description", productData.description);
+        formData.append("category", productData.category);
+        formData.append("amount", String(productData.amount));
+        formData.append("weight", String(productData.weigth));
+        formData.append("sellPrice", String(productData.sellPrice));
+        formData.append("expiration", productData.expiration);
+
+        if (productData.providerIds && productData.providerIds.length > 0) {
+          formData.append(
+            "providerIds",
+            JSON.stringify(productData.providerIds.map(String))
+          );
+        }
+
         await createProductMutation.mutateAsync(formData);
-        console.log("Nuevo producto creado:", product);
+
+        console.log("Nuevo producto creado:", productData);
       }
 
-      // Refrescar la lista de productos
       queryClient.invalidateQueries({ queryKey: ["products"] });
-
-      // Cerrar modal
       handleCloseModal();
     } catch (error) {
       console.error("Error al guardar producto:", error);
-      // Aquí podrías mostrar un mensaje de error al usuario
     }
   };
 
@@ -318,7 +311,6 @@ const ProductsTable: React.FC = () => {
             </nav>
           </article>
 
-          {/* Leyenda de stock */}
           <InventoryLegend />
         </article>
       </section>
@@ -327,7 +319,8 @@ const ProductsTable: React.FC = () => {
         onClose={handleCloseModal}
         onSave={handleSaveProduct}
         product={editingProduct}
-        suppliers={["Julian Madrid", "Distribuidora Mascotin S.A."]}
+        isLoading={isLoadingProductToEdit}
+        providers={providers}
         categories={["Gato", "Perro", "Alimento"]}
       />
     </>
