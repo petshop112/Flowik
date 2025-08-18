@@ -24,7 +24,7 @@ export const useGetProductById = (id: number) => {
     queryKey: ["product", id],
     queryFn: () => {
       if (!token) throw new Error("No hay token de autenticación");
-      return productService.getProductById(id, token);
+      return productService.getProductById(id as number, token);
     },
     enabled: !!id && !!token,
     staleTime: 1000 * 60 * 5,
@@ -48,9 +48,9 @@ export const useUpdateProduct = () => {
   const token = getUserTokenFromStorage();
 
   return useMutation({
-    mutationFn: ({ id, formData }: { id?: number; formData: FormData }) => {
+    mutationFn: ({ id, data }: { id?: number; data: any }) => {
       if (!token) throw new Error("No hay token de autenticación");
-      return productService.updateProduct(id ?? 0, formData, token);
+      return productService.updateProduct(id ?? 0, data, token);
     },
   });
 };
