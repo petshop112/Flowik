@@ -4,6 +4,8 @@ import fooTalent.flowik.Auth.dto.*;
 import fooTalent.flowik.Auth.repositories.VerificationTokenRepository;
 import fooTalent.flowik.Auth.util.UserValidation;
 import fooTalent.flowik.Auth.util.VerificationToken;
+import fooTalent.flowik.exceptions.BadRequestException;
+import fooTalent.flowik.exceptions.ResourceNotFoundException;
 import fooTalent.flowik.users.entity.User;
 import fooTalent.flowik.users.repositories.UserRepository;
 import fooTalent.flowik.Auth.util.EmailService;
@@ -92,6 +94,12 @@ public class AuthService {
         if (optionalUser.isEmpty()) {
             return new AuthResponse(null, "Usuario no encontrado.", false);
         }
+        User user = optionalUser.get();
+
+        if (user.getVerificationToken() != null) {
+            return new AuthResponse(null, "No se realizó la validación del correo.", false);
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -103,7 +111,6 @@ public class AuthService {
             return new AuthResponse(null, "Contraseña incorrecta.", false);
         }
 
-        User user = optionalUser.get();
         String jwt = jwtService.generateToken(user);
 
         return new AuthResponse(jwt, "Usuario autenticado exitosamente.", true);
@@ -143,7 +150,7 @@ public class AuthService {
     public String forgotPassword(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isEmpty()) {
-            throw new RuntimeException("No existe una cuenta con ese email.");
+            throw new ResourceNotFoundException("una cuenta vinculada a el email");
         }
 
         User user = optionalUser.get();
@@ -158,7 +165,7 @@ public class AuthService {
         verificationToken.setExpiryDate(LocalDateTime.now().plusHours(1));
         verificationTokenRepository.save(verificationToken);
 
-        String link = frontUrl + "/newPassword?token=" + token;
+        String link = frontUrl + "/new-Password?token=" + token;
         emailService.sendEmail(user.getEmail(), "Recuperar contraseña",
                 "<p>Hola " + user.getUserName() + ",</p>" +
                         "<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>" +

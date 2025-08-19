@@ -19,4 +19,5 @@ public interface ClientService {
     Client updateClient(Long id, ClientUpdate clientUpdate);
 
     void deletelogic(Long id);
+
 }

@@ -1,6 +1,7 @@
 package fooTalent.flowik.provider.controller;
 
 import fooTalent.flowik.config.SecurityUtil;
+import fooTalent.flowik.products.dto.ProductList;
 import fooTalent.flowik.provider.dto.ProviderList;
 import fooTalent.flowik.provider.dto.ProviderRegister;
 import fooTalent.flowik.provider.dto.ProviderResponse;
@@ -47,17 +48,18 @@ public class ProviderController {
         return ResponseEntity.created(location).body(new ProviderResponse(provider));
     }
 
-    @Operation(summary = "Listar todos los proveedores")
-    @GetMapping("/{id_user}")
-    public ResponseEntity<List<ProviderList>> getAllProviders(@PathVariable("id_user") Long idUser) {
+    @Operation(summary = "Listar todos los proveedores del usuario autenticado")
+    @GetMapping("")
+    public ResponseEntity<List<ProviderList>> getAllProviders() {
 
-        SecurityUtil.validateUserAccess(userRepository, idUser);
+        String email = SecurityUtil.getAuthenticatedEmail();
 
-        return ResponseEntity.ok(
-                providerService.getAllProvider().stream()
+        List<ProviderList> providerList = providerService.getAllProvider().stream()
+
+                .filter(provider -> provider.getCreatedBy().equals(email))
                 .map(ProviderList::new)
-                .toList()
-        );
+                .toList();
+        return ResponseEntity.ok(providerList);
     }
 
     @Operation(summary = "Modificar un proveedor por ID")

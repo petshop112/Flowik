@@ -8,5 +8,7 @@ public record ChangePasswordRequest(
         @NotBlank
         String oldPassword,
         @NotBlank
-        String newPassword
+        String newPassword,
+        @NotBlank
+        String confirmPassword
 ) {}

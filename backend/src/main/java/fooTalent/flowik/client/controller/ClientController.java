@@ -8,6 +8,7 @@ import fooTalent.flowik.client.entity.Client;
 import fooTalent.flowik.client.repositories.ClientRepository;
 import fooTalent.flowik.client.service.ClientService;
 import fooTalent.flowik.config.SecurityUtil;
+import fooTalent.flowik.exceptions.BadRequestException;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
 import fooTalent.flowik.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;

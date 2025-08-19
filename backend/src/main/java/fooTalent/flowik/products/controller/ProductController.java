@@ -41,18 +41,19 @@ public class ProductController {
         return ResponseEntity.created(url).body(new ProductResponse(product));
     }
 
-    @Operation(summary = "Listar todos los productos",
-            description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
-    @GetMapping("/getProducts/{id_user}")
-    public ResponseEntity<List<ProductList>> getAllProducts(@PathVariable("id_user") Long idUser) {
+    @Operation(summary = "Listar todos los productos del usuario autenticado")
+    @GetMapping("/getProducts")
+    public ResponseEntity<List<ProductList>> getAllProducts() {
+        String email = SecurityUtil.getAuthenticatedEmail();
 
-        SecurityUtil.validateUserAccess(userRepository, idUser);
 
-        return ResponseEntity.ok(
-                productService.getAllProducts().stream()
-                        .map(ProductList::new)
-                        .toList()
-        );
+        List<ProductList> products = productService.getAllProducts().stream()
+
+                .filter(product -> product.getCreatedBy().equals(email))
+                .map(ProductList::new)
+                .toList();
+
+        return ResponseEntity.ok(products);
     }
 
     @Operation(summary = "Traer un producto por ID")
