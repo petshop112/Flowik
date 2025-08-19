@@ -11,6 +11,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
+  X,
+  CheckIcon,
 } from "lucide-react";
 import {
   useCreateProduct,
@@ -23,6 +25,46 @@ import { InventoryLegend } from "./InventoryLegend";
 import { getStockStatus, getStockColor } from "../../utils/product";
 import { useGetAllProviders } from "../../hooks/useProviders";
 import type { Product, ProductWithOptionalId } from "../../types/product";
+
+const ProductSavedModal = ({
+  description,
+  isOpen,
+  onClose,
+}: {
+  description: string;
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
+  const handleClose = () => {
+    onClose();
+  };
+
+  return (
+    <article
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-50 p-4 ${
+        isOpen ? "" : "hidden"
+      }`}
+    >
+      <article className="relative flex items-center bg-white rounded-lg w-full shadow-2xl max-w-96 h-60 overflow-y-auto border border-dark-emerald">
+        <button
+          onClick={handleClose}
+          className="absolute top-3 right-3 text-gray-900 hover:text-gray-500 transition-colors cursor-pointer"
+        >
+          <X size={24} />
+        </button>
+        <main className="text-center w-full">
+          <article className="flex items-center justify-center w-6 h-6 mx-auto bg-dark-emerald rounded-full mb-2">
+            <CheckIcon size={18} className="text-white" />
+          </article>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Producto Guardado
+          </h2>
+          <p className="text-gray-500">{description}</p>
+        </main>
+      </article>
+    </article>
+  );
+};
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,6 +84,7 @@ const ProductsTable: React.FC = () => {
   const queryClient = useQueryClient();
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
+  const [isProductSavedModalOpen, setIsProductSavedModalOpen] = useState(false);
 
   const hasSelectedProducts = selectedProductIds.size > 0;
 
@@ -89,30 +132,64 @@ const ProductsTable: React.FC = () => {
             ? productData.providerIds.map(String)
             : [],
         };
+        console.log("Datos que se van a enviar:", updatedProduct);
 
         await updateProductMutation.mutateAsync({
           id: editingProductId,
           data: updatedProduct,
         });
+
+        // Opcional: actualizar el cache manualmente
+        queryClient.setQueryData(["product", editingProductId], updatedProduct);
+        setIsProductSavedModalOpen(true);
+        console.log("Producto actualizado en el cache:", updatedProduct);
       } else {
-        const formData = new FormData();
-        formData.append("name", productData.name);
-        formData.append("description", productData.description);
-        formData.append("category", productData.category);
-        formData.append("amount", String(productData.amount));
-        formData.append("weight", String(productData.weigth));
-        formData.append("sellPrice", String(productData.sellPrice));
-        formData.append("expiration", productData.expiration);
+        const newProduct = {
+          name: productData.name,
+          description: productData.description,
+          category: productData.category,
+          amount: Number(productData.amount),
+          weight: Number(productData.weigth),
+          sellPrice: Number(productData.sellPrice),
+          buyDate: productData.buyDate,
+          expiration: productData.expiration,
+          providerIds:
+            productData.providerIds && productData.providerIds.length > 0
+              ? productData.providerIds.map(String)
+              : [],
+        };
 
-        if (productData.providerIds && productData.providerIds.length > 0) {
-          formData.append(
-            "providerIds",
-            JSON.stringify(productData.providerIds.map(String))
+        console.log("Datos que se van a enviar:", newProduct);
+        const createdProduct = await createProductMutation.mutateAsync(
+          newProduct
+        );
+
+        // Agregar temporalmente la información del proveedor al producto creado
+        if (
+          productData.providerIds &&
+          productData.providerIds.length > 0 &&
+          providers
+        ) {
+          const selectedProvider = providers.find(
+            (p) => p.id_provider.toString() === productData.providerIds?.[0]
           );
+
+          if (selectedProvider) {
+            // Actualizar el producto en el cache con la info del proveedor
+            const updatedCreatedProduct = {
+              ...createdProduct,
+              providerIds: productData.providerIds,
+              providers: [selectedProvider.name_provider],
+            };
+
+            // Opcional: actualizar el cache manualmente
+            queryClient.setQueryData(
+              ["product", createdProduct.id],
+              updatedCreatedProduct
+            );
+          }
         }
-
-        await createProductMutation.mutateAsync(formData);
-
+        setIsProductSavedModalOpen(true);
         console.log("Nuevo producto creado:", productData);
       }
 
@@ -322,6 +399,15 @@ const ProductsTable: React.FC = () => {
         isLoading={isLoadingProductToEdit}
         providers={providers}
         categories={["Gato", "Perro", "Alimento"]}
+      />
+      <ProductSavedModal
+        description={
+          !isLoadingProductToEdit
+            ? "El producto se ha actualizado con éxito."
+            : "El producto se ha guardado con éxito."
+        }
+        isOpen={isProductSavedModalOpen}
+        onClose={() => setIsProductSavedModalOpen(false)}
       />
     </>
   );
