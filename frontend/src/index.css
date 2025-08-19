@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@600&display=swap");
-@import "tailwindcss";
-@import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@600&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @theme {
   --color-custom-mist: #f2f6f8;

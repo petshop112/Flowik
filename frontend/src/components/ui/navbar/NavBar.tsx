@@ -1,21 +1,21 @@
-import Logout from "../../features/Logout";
+import Logout from '../../features/Logout';
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from "../../ui/navigation-menu";
+} from '../../ui/navigation-menu';
 
-import { Link } from "react-router-dom";
-import useAuthToken from "../../../hooks/useAuthToken";
-import { CircleUserRound } from "lucide-react";
+import { Link } from 'react-router-dom';
+import useAuthToken from '../../../hooks/useAuthToken';
+import { CircleUserRound } from 'lucide-react';
 
 const NavBar = () => {
   const token = useAuthToken();
-  const userName = sessionStorage.getItem("username");
+  const userName = sessionStorage.getItem('username');
 
   return (
-    <nav className="flex bg-slate-900 text-white justify-between rounded-2xl p-2 text-2xl">
+    <nav className="flex justify-between rounded-2xl bg-slate-900 p-2 text-2xl text-white">
       {/*Home link */}
       <NavigationMenu className="">
         <NavigationMenuList>
@@ -29,7 +29,7 @@ const NavBar = () => {
 
       {token ? (
         <div className="flex items-center gap-2">
-          <div className="flex ">
+          <div className="flex">
             <span>
               <CircleUserRound />
             </span>

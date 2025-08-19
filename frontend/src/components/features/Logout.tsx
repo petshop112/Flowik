@@ -1,17 +1,18 @@
-import { Button } from "../ui/button"
-import { useNavigate } from "react-router-dom"
+import { Button } from '../ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Logout = () => {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate()
+  const handleLogout = () => {
+    sessionStorage.removeItem('token');
+    navigate('/login');
+  };
+  return (
+    <Button className="bg-transparent" onClick={handleLogout}>
+      Logout
+    </Button>
+  );
+};
 
-    const handleLogout = () => {
-        sessionStorage.removeItem("token")
-        navigate("/login");
-    }
-    return (
-        <Button className="bg-transparent" onClick={handleLogout}>Logout</Button>
-    )
-}
-
-export default Logout
+export default Logout;

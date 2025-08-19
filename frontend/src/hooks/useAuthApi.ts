@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 export function useAuthApi(token: string | null) {
   const [loading, setLoading] = useState(false);
@@ -6,10 +6,10 @@ export function useAuthApi(token: string | null) {
 
   const makeRequest = async <T = unknown>(
     url: string,
-    options: RequestInit = {}
+    options: globalThis.RequestInit = {}
   ): Promise<T> => {
     if (!token) {
-      throw new Error("No hay token de autenticación");
+      throw new Error('No hay token de autenticación');
     }
 
     setLoading(true);
@@ -19,7 +19,7 @@ export function useAuthApi(token: string | null) {
       const res = await fetch(url, {
         ...options,
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
           ...options.headers,
         },
@@ -38,7 +38,7 @@ export function useAuthApi(token: string | null) {
         throw new Error(errorMessage);
       }
 
-      if (options.method === "DELETE") {
+      if (options.method === 'DELETE') {
         const text = await res.text();
         return (text ? JSON.parse(text) : {}) as T;
       }
@@ -49,7 +49,7 @@ export function useAuthApi(token: string | null) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Error desconocido");
+        setError('Error desconocido');
       }
       throw err;
     } finally {

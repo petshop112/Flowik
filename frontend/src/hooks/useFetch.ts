@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export function useFetch<T = unknown>(url: string) {
   const [data, setData] = useState<T | null>(null);
@@ -11,7 +10,7 @@ export function useFetch<T = unknown>(url: string) {
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error a la petición');
-        const json =await res.json();
+        const json = await res.json();
         setData(json);
       } catch (err: any) {
         setError(err.message || 'Error desconocido');
@@ -22,5 +21,5 @@ export function useFetch<T = unknown>(url: string) {
 
     fetchData();
   }, [url]);
-  return { data, loading, error }
+  return { data, loading, error };
 }
