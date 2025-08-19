@@ -37,9 +37,9 @@ export const useCreateProduct = () => {
   const token = getUserTokenFromStorage();
 
   return useMutation({
-    mutationFn: (formData: FormData) => {
+    mutationFn: (data: any) => {
       if (!token) throw new Error("No hay token de autenticación");
-      return productService.createProduct(formData, token);
+      return productService.createProduct(data, token);
     },
   });
 };
