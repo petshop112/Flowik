@@ -1,10 +1,9 @@
 // ...existing code...
-import Products from "../products/Products";
+import Products from '../products/Products';
 
 const Home = () => {
   return (
     <>
-      
       <Products></Products>
     </>
   );

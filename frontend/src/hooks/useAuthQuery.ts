@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export function useAuthQuery<T = unknown>(url: string, token?: string | null) {
   const [data, setData] = useState<T | null>(null);
@@ -8,7 +8,7 @@ export function useAuthQuery<T = unknown>(url: string, token?: string | null) {
   useEffect(() => {
     if (!token) {
       setLoading(false);
-      setError("No hay token de autenticación");
+      setError('No hay token de autenticación');
       return;
     }
 
@@ -18,9 +18,9 @@ export function useAuthQuery<T = unknown>(url: string, token?: string | null) {
         setError(null);
 
         const res = await fetch(url, {
-          method: "GET",
+          method: 'GET',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         });
@@ -35,7 +35,7 @@ export function useAuthQuery<T = unknown>(url: string, token?: string | null) {
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError("Error desconocido");
+          setError('Error desconocido');
         }
       } finally {
         setLoading(false);

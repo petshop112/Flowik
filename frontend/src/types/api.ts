@@ -1,4 +1,4 @@
 export type MakeRequestFunction = <T = unknown>(
   url: string,
-  options?: RequestInit
+  options?: globalThis.RequestInit
 ) => Promise<T>;

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   Plus,
@@ -11,33 +11,31 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   useCreateProduct,
   useGetAllProducts,
   useGetProductById,
   useUpdateProduct,
-} from "../../hooks/useProducts";
-import ProductFormModal from "../modal/ProductFormModal";
-import { InventoryLegend } from "./InventoryLegend";
-import { getStockStatus, getStockColor } from "../../utils/product";
-import { useGetAllProviders } from "../../hooks/useProviders";
-import type { Product, ProductWithOptionalId } from "../../types/product";
+} from '../../hooks/useProducts';
+import ProductFormModal from '../modal/ProductFormModal';
+import { InventoryLegend } from './InventoryLegend';
+import { getStockStatus, getStockColor } from '../../utils/product';
+import { useGetAllProviders } from '../../hooks/useProviders';
+import type { Product, ProductWithOptionalId } from '../../types/product';
 
 const ProductsTable: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
-    new Set()
-  );
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const { data: products, isLoading, error } = useGetAllProducts();
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
-  const { data: productToEdit, isLoading: isLoadingProductToEdit } =
-    useGetProductById(editingProductId || 0);
+  const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
+    editingProductId || 0
+  );
   const { data: providers } = useGetAllProviders();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] =
-    useState<ProductWithOptionalId | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
 
   const queryClient = useQueryClient();
   const createProductMutation = useCreateProduct();
@@ -85,9 +83,7 @@ const ProductsTable: React.FC = () => {
       if (editingProductId !== null) {
         const updatedProduct = {
           ...productData,
-          providerIds: productData.providerIds
-            ? productData.providerIds.map(String)
-            : [],
+          providerIds: productData.providerIds ? productData.providerIds.map(String) : [],
         };
 
         await updateProductMutation.mutateAsync({
@@ -96,30 +92,27 @@ const ProductsTable: React.FC = () => {
         });
       } else {
         const formData = new FormData();
-        formData.append("name", productData.name);
-        formData.append("description", productData.description);
-        formData.append("category", productData.category);
-        formData.append("amount", String(productData.amount));
-        formData.append("weight", String(productData.weigth));
-        formData.append("sellPrice", String(productData.sellPrice));
-        formData.append("expiration", productData.expiration);
+        formData.append('name', productData.name);
+        formData.append('description', productData.description);
+        formData.append('category', productData.category);
+        formData.append('amount', String(productData.amount));
+        formData.append('weight', String(productData.weigth));
+        formData.append('sellPrice', String(productData.sellPrice));
+        formData.append('expiration', productData.expiration);
 
         if (productData.providerIds && productData.providerIds.length > 0) {
-          formData.append(
-            "providerIds",
-            JSON.stringify(productData.providerIds.map(String))
-          );
+          formData.append('providerIds', JSON.stringify(productData.providerIds.map(String)));
         }
 
         await createProductMutation.mutateAsync(formData);
 
-        console.log("Nuevo producto creado:", productData);
+        console.log('Nuevo producto creado:', productData);
       }
 
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       handleCloseModal();
     } catch (error) {
-      console.error("Error al guardar producto:", error);
+      console.error('Error al guardar producto:', error);
     }
   };
 
@@ -129,63 +122,49 @@ const ProductsTable: React.FC = () => {
 
   return (
     <>
-      <section className="w-full p-6 bg-custom-mist">
+      <section className="bg-custom-mist w-full p-6">
         <article className="mx-auto">
           {/* Header */}
           <header className="mb-6">
-            <h1 className="text-2xl font-semibold text-dark-blue mb-4">
-              Productos
-            </h1>
+            <h1 className="text-dark-blue mb-4 text-2xl font-semibold">Productos</h1>
 
             {/* Barra de acciones */}
-            <article className="flex flex-wrap gap-3 items-center justify-between">
+            <article className="flex flex-wrap items-center justify-between gap-3">
               <article
                 className={`flex items-center gap-2 [&>button]:font-semibold ${
-                  hasSelectedProducts ? "[&>button]:cursor-pointer" : ""
+                  hasSelectedProducts ? '[&>button]:cursor-pointer' : ''
                 } `}
               >
                 <button
                   disabled={!hasSelectedProducts}
                   className={`${
-                    hasSelectedProducts
-                      ? "text-deep-teal hover:bg-cyan-50"
-                      : "text-gray-400"
-                  } flex items-center gap-2 px-3 py-2 rounded-md transition-colors`}
+                    hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                  } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
                 >
                   <ToggleRight
                     size={18}
-                    className={`${
-                      hasSelectedProducts
-                        ? "text-tropical-cyan"
-                        : "text-gray-400"
-                    }`}
+                    className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
                   />
                   Desactivar
                 </button>
                 <button
                   className={`${
-                    hasSelectedProducts
-                      ? "text-deep-teal hover:bg-cyan-50"
-                      : "text-gray-400"
-                  } flex items-center gap-2 px-3 py-2 rounded-md transition-colors`}
+                    hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                  } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
                 >
                   <Trash2
                     size={18}
-                    className={`${
-                      hasSelectedProducts
-                        ? "text-tropical-cyan"
-                        : "text-gray-400"
-                    }`}
+                    className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
                   />
                   Eliminar
                 </button>
               </article>
 
-              <aside className="flex gap-3 items-center">
+              <aside className="flex items-center gap-3">
                 {/* Búsqueda */}
                 <article className="relative">
                   <Search
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-electric-blue"
+                    className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
                     size={18}
                   />
                   <input
@@ -193,21 +172,21 @@ const ProductsTable: React.FC = () => {
                     placeholder="Buscar"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 bg-white border border-dark-blue rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+                    className="border-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </article>
 
                 {/* Nuevo producto */}
                 <button
                   onClick={handleNewProduct}
-                  className="flex items-center gap-2 px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+                  className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
                 >
                   <Plus size={18} />
                   Nuevo producto
                 </button>
 
                 {/* Cambiar Precio */}
-                <button className="flex items-center gap-2 px-4 py-2 text-white bg-deep-teal hover:bg-teal-700 rounded-md transition-colors cursor-pointer ">
+                <button className="bg-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-teal-700">
                   <Calculator size={18} />
                   Cambiar Precio
                 </button>
@@ -216,11 +195,11 @@ const ProductsTable: React.FC = () => {
           </header>
 
           {/* Tabla */}
-          <main className="bg-white rounded-xl shadow-sm overflow-hidden border border-[#9cb7fc]">
+          <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
             <article className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-polar-mist">
-                  <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal [&>th]:border-l-2 [&>th]:border-white">
+                  <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
                     <th className="w-12 px-4 py-3">
                       <Check />
                     </th>
@@ -235,7 +214,7 @@ const ProductsTable: React.FC = () => {
                     <th className="w-8">Editar</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {products.map((product: Product) => {
                     const stockStatus = getStockStatus(product.amount);
                     const stockColor = getStockColor(stockStatus);
@@ -244,40 +223,36 @@ const ProductsTable: React.FC = () => {
                     return (
                       <tr
                         key={product.id}
-                        className="hover:bg-gray-50 transition-colors border-b-2 border-gray-200 last:border-none"
+                        className="border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50"
                       >
                         <td className="px-5 py-3">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleProductSelection(product.id)}
-                            className="w-4 h-4 cursor-pointer rounded focus:ring-blue-500 text-blue-600"
+                            className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                           />
                         </td>
-                        <td className="px-4 text-sm text-gray-900 border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm text-gray-900">
                           {product.id}
                         </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
-                          {product.name}
-                        </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">{product.name}</td>
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">
                           {product.category}
                         </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">
                           {product.amount}
                         </td>
                         <td>
-                          <div
-                            className={`w-4 h-4 rounded-full mx-auto ${stockColor}`}
-                          ></div>
+                          <div className={`mx-auto h-4 w-4 rounded-full ${stockColor}`}></div>
                         </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">
                           $ {product.sellPrice}
                         </td>
-                        <td className="text-center border-l-2 border-gray-200 w-fit">
+                        <td className="w-fit border-l-2 border-gray-200 text-center">
                           <button
                             onClick={() => handleEditProduct(product)}
-                            className="py-3 text-glacial-blue hover:text-blue-500 transition-colors cursor-pointer"
+                            className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
                           >
                             <Edit size={24} />
                           </button>
@@ -293,7 +268,7 @@ const ProductsTable: React.FC = () => {
           {/* Paginación */}
           <article className="flex justify-center py-3">
             <nav className="flex items-center justify-between">
-              <ul className="flex items-center gap-2 text-dark-blue">
+              <ul className="text-dark-blue flex items-center gap-2">
                 <li>
                   <button className="py-2">
                     <ChevronLeft size={32} />
@@ -321,7 +296,7 @@ const ProductsTable: React.FC = () => {
         product={editingProduct}
         isLoading={isLoadingProductToEdit}
         providers={providers}
-        categories={["Gato", "Perro", "Alimento"]}
+        categories={['Gato', 'Perro', 'Alimento']}
       />
     </>
   );
