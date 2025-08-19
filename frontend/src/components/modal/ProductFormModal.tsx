@@ -46,7 +46,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       if (product) {
         let providerIds: string[] = [];
         if (product.providerIds && Array.isArray(product.providerIds)) {
-          providerIds = product.providerIds;
+          // providerIds = product.providerIds;
+          providerIds = product.providerIds.map((id) => String(id));
         } else if (product.providers && Array.isArray(product.providers)) {
           providerIds = product.providers
             .map((providerName) => {
@@ -57,6 +58,9 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             })
             .filter((id) => id !== "");
         }
+
+        console.log("Product data received:", product);
+        console.log("Provider IDs extracted:", providerIds);
 
         setFormData({
           name: product.name || "",
