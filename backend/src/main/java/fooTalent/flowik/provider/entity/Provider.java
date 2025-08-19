@@ -1,4 +1,5 @@
 package fooTalent.flowik.provider.entity;
+import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.products.entity.Product;
 import fooTalent.flowik.provider.dto.ProviderRegister;
 import fooTalent.flowik.provider.dto.ProviderUpdated;
@@ -33,6 +34,14 @@ public class Provider {
     @ManyToMany(mappedBy = "providers")
     private List<Product> products = new ArrayList<>();
 
+    @Column(nullable = false, updatable = false, length = 150)
+    private String createdBy;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdBy = SecurityUtil.getAuthenticatedEmail();
+    }
+
     public Provider(ProviderRegister pr){
         this.name_provider = pr.name_provider();
         this.direction_provider = pr.direction_provider();
@@ -54,6 +63,7 @@ public class Provider {
             this.provider_description = dto.provider_description();
         }
     }
+
 
 
 }
