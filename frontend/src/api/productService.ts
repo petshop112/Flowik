@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { getUserIdFromStorage } from "../utils/storage";
+import type { ProductUpdateFormData } from "../types/product";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -48,7 +49,10 @@ const getProductById = async (id: number, token: string) => {
   }
 };
 
-const createProduct = async (newProduct: any, token: string) => {
+const createProduct = async (
+  newProduct: ProductUpdateFormData,
+  token: string
+) => {
   console.log("=== CREATE PRODUCT DEBUG ===");
   console.log("URL:", `${API_BASE_URL}products/`);
   console.log("Data being sent:", JSON.stringify(newProduct, null, 2));
@@ -80,7 +84,7 @@ const createProduct = async (newProduct: any, token: string) => {
 
 const updateProduct = async (
   id: number,
-  updatedProduct: FormData,
+  updatedProduct: FormData | ProductUpdateFormData,
   token: string
 ) => {
   try {
