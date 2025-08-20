@@ -74,6 +74,17 @@ const NavBar = () => {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
+          <span>|</span>
+          {/*Recover password link*/}
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/recover-password">Recuperar contraseña</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
       )}
     </nav>
