@@ -40,7 +40,7 @@ export const registerUser = createAsyncThunk<RegisterResponse, RegisterCredentia
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Error al iniciar sesión');
+      return rejectWithValue('Error al registrar usuario');
     }
   }
 );
@@ -108,6 +108,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // ---- LOGIN ----
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -136,6 +137,24 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
 
+      // ---- REGISTER ----
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.token ?? null;
+        if (action.payload.token) {
+          sessionStorage.setItem('token', action.payload.token);
+        }
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // ---- RECOVER PASSWORD ----
       .addCase(recoverPassword.pending, (state) => {
         state.loading = true;
         state.error = null;

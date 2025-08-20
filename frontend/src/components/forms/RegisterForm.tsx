@@ -11,12 +11,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from '../ui/dialog';
+import { useAppDispatch, useAppSelector } from '../../hooks/reduxHooks';
+import { registerUser, selectAuth } from '../../features/auth/authSlice';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import EyeIcon from '../../icons/eye.svg?react';
 import EyeIconSlash from '../../icons/eye-slash.svg?react';
 import * as Yup from 'yup';
-import { useAppDispatch, useAppSelector } from '../../hooks/reduxHooks';
-import { registerUser, selectAuth } from '../../features/auth/authSlice';
-import type { FormikHelpers } from 'formik';
 
 const validationSchema = Yup.object({
   firstName: Yup.string()
@@ -56,6 +56,7 @@ const validationSchema = Yup.object({
           'aol.com',
           'yandex.com',
           'mail.com',
+          'unal.edu.co',
         ];
 
         return validDomains.includes(domain.toLowerCase());
@@ -87,33 +88,19 @@ const RegisterForm = () => {
     navigate('/');
   };
 
-  const handleSubmit = async (
-    values: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      password: string;
-      confirmPassword: string;
-      role: 'USER';
-    },
-    {
-      setSubmitting,
-    }: FormikHelpers<{
-      firstName: string;
-      lastName: string;
-      email: string;
-      password: string;
-      confirmPassword: string;
-      role: 'USER';
-    }>
-  ) => {
+  const handleSubmit = async (values: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    role: 'USER';
+  }) => {
     const result = await dispatch(registerUser(values));
 
     if (registerUser.fulfilled.match(result)) {
-      navigate('/');
+      setShowSuccessModal(true);
     }
-
-    setSubmitting(false);
   };
 
   return (
@@ -130,162 +117,231 @@ const RegisterForm = () => {
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        <Form className="space-y-8">
-          <div>
-            <label
-              htmlFor="firstName"
-              className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
-            >
-              Nombre
-            </label>
-            <Field
-              name="firstName"
-              type="text"
-              data-test="username"
-              className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-              placeholder="Gonzalo"
-            />
-            <ErrorMessage name="firstName" component="div" className="mt-1 text-sm text-red-500" />
-          </div>
-
-          <div>
-            <label
-              htmlFor="lastName"
-              className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
-            >
-              Apellido
-            </label>
-            <Field
-              name="lastName"
-              type="text"
-              data-test="lastname"
-              className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-              placeholder="Ej.: López López"
-            />
-            <ErrorMessage name="lastName" component="div" className="mt-1 text-sm text-red-500" />
-          </div>
-
-          <div>
-            <label
-              htmlFor="email"
-              className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
-            >
-              Email*
-            </label>
-            <Field
-              name="email"
-              type="email"
-              data-test="email"
-              className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-              placeholder="nombre@email.com"
-            />
-            <ErrorMessage name="email" component="div" className="mt-1 text-sm text-red-500" />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
-            >
-              Contraseña*
-            </label>
-            <div className="relative">
+        {({ errors, touched }) => (
+          <Form className="space-y-8">
+            <div>
+              <label
+                htmlFor="firstName"
+                className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
+              >
+                Nombre*
+              </label>
               <Field
+                name="firstName"
+                type="text"
+                data-test="username"
+                placeholder="Gonzalo"
+                className={`mt-1 block w-full rounded-[6px] border px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none ${
+                  errors.firstName && touched.firstName
+                    ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                    : 'border-[#CBD5E1] bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'
+                }`}
+              />
+              <ErrorMessage
+                name="firstName"
+                render={(msg) => (
+                  <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
+                    <ExclamationCircleIcon className="h-4.5 w-4.5" strokeWidth={2.5} />
+                    <span>{msg}</span>
+                  </div>
+                )}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="lastName"
+                className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
+              >
+                Apellido*
+              </label>
+              <Field
+                name="lastName"
+                type="text"
+                data-test="lastname"
+                placeholder="Ej.: López López"
+                className={`mt-1 block w-full rounded-[6px] border px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none ${
+                  errors.lastName && touched.lastName
+                    ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                    : 'border-[#CBD5E1] bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'
+                }`}
+              />
+              <ErrorMessage
+                name="lastName"
+                render={(msg) => (
+                  <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
+                    <ExclamationCircleIcon className="h-4.5 w-4.5" strokeWidth={2.5} />
+                    <span>{msg}</span>
+                  </div>
+                )}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="email"
+                className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
+              >
+                Email*
+              </label>
+              <Field
+                name="email"
+                type="email"
+                data-test="email"
+                placeholder="nombre@email.com"
+                className={`mt-1 block w-full rounded-[6px] border px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none ${
+                  errors.email && touched.email
+                    ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                    : 'border-[#CBD5E1] bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'
+                }`}
+              />
+              <ErrorMessage
+                name="email"
+                render={(msg) => (
+                  <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
+                    <ExclamationCircleIcon className="h-4.5 w-4.5" strokeWidth={2.5} />
+                    <span>{msg}</span>
+                  </div>
+                )}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
+              >
+                Contraseña*
+              </label>
+              <div className="relative">
+                <Field
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  data-test="password"
+                  placeholder="Contraseña"
+                  className={`mt-1 block w-full rounded-[6px] border px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none ${
+                    errors.password && touched.password
+                      ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                      : 'border-[#CBD5E1] bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center bg-transparent p-0 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeIconSlash className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
+              <ErrorMessage
                 name="password"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                data-test="password"
-                className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                placeholder="Contraseña"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-3 flex items-center bg-transparent p-0 text-gray-400 hover:text-gray-600 focus:outline-none"
-              >
-                {showPassword ? (
-                  <EyeIconSlash className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
-                ) : (
-                  <EyeIcon className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                render={(msg) => (
+                  <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
+                    <ExclamationCircleIcon className="h-4.5 w-4.5" strokeWidth={2.5} />
+                    <span>{msg}</span>
+                  </div>
                 )}
-              </button>
+              />
             </div>
-            <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-500" />
-          </div>
 
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
-            >
-              Confirmar contraseña*
-            </label>
-            <div className="relative">
-              <Field
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="font-albert block text-[16px] leading-[19.2px] font-semibold text-[#042D95]"
+              >
+                Confirmar contraseña*
+              </label>
+              <div className="relative">
+                <Field
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  data-test="confirmPassword"
+                  placeholder="Confirma contraseña"
+                  className={`mt-1 block w-full rounded-[6px] border px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none ${
+                    errors.confirmPassword && touched.confirmPassword
+                      ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                      : 'border-[#CBD5E1] bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center bg-transparent p-0 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showConfirmPassword ? (
+                    <EyeIconSlash className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
+              <ErrorMessage
                 name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                data-test="confirmPassword"
-                className="mt-1 block w-full rounded-[6px] border border-[#CBD5E1] bg-white px-4 py-2 shadow-[0_2px_2px_0_rgba(0,0,0,0.04)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                placeholder="Confirma contraseña"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-3 flex items-center bg-transparent p-0 text-gray-400 hover:text-gray-600 focus:outline-none"
-              >
-                {showConfirmPassword ? (
-                  <EyeIconSlash className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
-                ) : (
-                  <EyeIcon className="h-5 w-5 stroke-current text-gray-400 hover:text-gray-600" />
+                render={(msg) => (
+                  <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
+                    <ExclamationCircleIcon className="h-4.5 w-4.5" strokeWidth={2.5} />
+                    <span>{msg}</span>
+                  </div>
                 )}
-              </button>
+              />
             </div>
-            <ErrorMessage
-              name="confirmPassword"
-              component="div"
-              className="mt-1 text-sm text-red-500"
-            />
-          </div>
 
-          {error && <div className="text-center text-sm text-red-500">{error}</div>}
+            {error && (
+              <div className="mt-2 flex items-center justify-center gap-1 text-sm text-red-500">
+                <ExclamationCircleIcon className="h-4.5 w-4.5" strokeWidth={2.5} />
+                {error}
+              </div>
+            )}
 
-          <button
-            type="submit"
-            className="font-['Albert Sans'] mt-12 flex h-12 w-full items-center justify-center gap-2 rounded-[6px] bg-[#5685FA] px-6 py-3 text-[16px] leading-[120%] font-normal text-white transition duration-300 hover:bg-[#4170e8] disabled:opacity-50"
-            disabled={loading}
-            data-test="register-button"
-          >
-            {loading ? 'Registrando...' : 'Registrarse'}
-          </button>
-
-          <p className="font-['Albert Sans'] text-center text-[16px] leading-[120%] font-normal text-[#5685FA]">
-            ¿Ya usas Flowik?{' '}
-            <a
-              href="/login"
-              className="font-['Albert Sans'] ml-1 border-b border-[#5685FA] text-[16px] leading-[120%] font-semibold text-[#5685FA] hover:border-b-2"
+            <button
+              type="submit"
+              className="font-['Albert Sans'] mt-12 flex h-12 w-full items-center justify-center gap-2 rounded-[6px] bg-[#5685FA] px-6 py-3 text-[16px] leading-[120%] font-normal text-white transition duration-300 hover:bg-[#4170e8] disabled:opacity-50"
+              disabled={loading}
+              data-test="register-button"
             >
-              Inicia sesión
-            </a>
-          </p>
-        </Form>
+              {loading ? 'Registrando...' : 'Registrarse'}
+            </button>
+
+            <p className="font-['Albert Sans'] text-center text-[16px] leading-[120%] font-normal text-[#5685FA]">
+              ¿Ya usas Flowik?{' '}
+              <a
+                href="/login"
+                className="font-['Albert Sans'] ml-1 border-b border-[#5685FA] text-[16px] leading-[120%] font-semibold text-[#5685FA] hover:border-b-2"
+              >
+                Inicia sesión
+              </a>
+            </p>
+          </Form>
+        )}
       </Formik>
 
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="sm:max-w-md" showCloseButton={false}>
+        <DialogContent
+          className="rounded-2xl border border-gray-200 bg-white shadow-xl sm:max-w-md"
+          showCloseButton={false}
+        >
           <DialogHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <DialogTitle className="text-2xl font-bold text-gray-900">
+            <DialogTitle className="font-['Albert Sans'] mb-5 text-center text-2xl font-bold text-gray-900">
               ¡Registro Exitoso!
             </DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogDescription className="font-['Albert Sans'] text-base text-gray-700">
               Tu cuenta ha sido creada correctamente. Ahora puedes iniciar sesión.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center">
-            <Button onClick={handleCloseModal} className="w-full bg-green-600 hover:bg-green-700">
+            <Button
+              onClick={handleCloseModal}
+              className="font-['Albert Sans'] mt-12 flex h-12 w-full items-center justify-center gap-2 rounded-[6px] bg-[#5685FA] px-6 py-3 text-[16px] leading-[120%] font-normal text-white transition duration-300 hover:bg-[#4170e8] disabled:opacity-50"
+            >
               Continuar
             </Button>
           </DialogFooter>
