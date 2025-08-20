@@ -161,6 +161,7 @@ const ProductsTable: React.FC = () => {
 
         console.log("Datos que se van a enviar:", newProduct);
         const createdProduct = await createProductMutation.mutateAsync(
+          // @ts-expect-error - The type of product receives weight or weigth
           newProduct
         );
 
@@ -304,7 +305,7 @@ const ProductsTable: React.FC = () => {
                     <th>ID</th>
                     <th>Nombre producto</th>
                     <th>Categoría</th>
-                    <th>Stock</th>
+                    <th>Stock unitario</th>
                     <th className="border-none">
                       <Bell size={18} className="mx-auto" />
                     </th>
