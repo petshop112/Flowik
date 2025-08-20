@@ -6,6 +6,17 @@ import type {
   ProductWithOptionalId,
 } from "../../types/product";
 
+interface ValidationErrors {
+  name?: string;
+  description?: string;
+  category?: string;
+  sellPrice?: string;
+  weigth?: string;
+  expiration?: string;
+}
+
+type ValidatableFields = keyof ValidationErrors;
+
 const ProductFormModal: React.FC<ProductFormModalProps> = ({
   isOpen,
   onClose,
@@ -15,6 +26,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   providers = [],
   categories = [],
 }) => {
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [formData, setFormData] = useState<
     Omit<ProductUpdateFormData, "id" | "providers"> & { providerIds?: string[] }
   >({
@@ -46,7 +58,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       if (product) {
         let providerIds: string[] = [];
         if (product.providerIds && Array.isArray(product.providerIds)) {
-          // providerIds = product.providerIds;
           providerIds = product.providerIds.map((id) => String(id));
         } else if (product.providers && Array.isArray(product.providers)) {
           providerIds = product.providers
@@ -89,6 +100,85 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     }
   }, [isOpen, product, providers]);
 
+  const validateField = (
+    fieldName: ValidatableFields,
+    value: string | number
+  ): boolean => {
+    const newErrors = { ...errors };
+    const stringValue = String(value || "");
+
+    switch (fieldName) {
+      case "name":
+        if (!stringValue.trim()) {
+          newErrors.name = "El nombre del producto es obligatorio.";
+        } else if (
+          stringValue.trim().length < 2 ||
+          stringValue.trim().length > 50
+        ) {
+          newErrors.name =
+            "El nombre del producto debe tener entre 2 y 50 caracteres.";
+        } else {
+          delete newErrors.name;
+        }
+        break;
+
+      case "description":
+        if (
+          stringValue.trim() &&
+          (stringValue.trim().length < 10 || stringValue.trim().length > 255)
+        ) {
+          newErrors.description =
+            "La descripción del producto debe tener entre 10 y 255 caracteres.";
+        } else {
+          delete newErrors.description;
+        }
+        break;
+
+      case "category":
+        if (!stringValue.trim()) {
+          newErrors.category = "La categoría del producto es obligatoria.";
+        } else if (
+          stringValue.trim().length < 3 ||
+          stringValue.trim().length > 50
+        ) {
+          newErrors.category =
+            "La categoría del producto debe tener entre 3 y 50 caracteres.";
+        } else {
+          delete newErrors.category;
+        }
+        break;
+
+      case "sellPrice":
+        {
+          const price = parseFloat(stringValue) || 0;
+          if (price < 0.01) {
+            newErrors.sellPrice = "El precio debe ser mayor o igual a 0.01.";
+          } else {
+            delete newErrors.sellPrice;
+          }
+        }
+        break;
+
+      case "weigth":
+        {
+          const weight = parseFloat(stringValue) || 0;
+          if (weight < 0.01) {
+            newErrors.weigth =
+              "El peso del producto debe ser mayor o igual a 0.01.";
+          } else {
+            delete newErrors.weigth;
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return !newErrors[fieldName];
+  };
+
   const handleInputChange = (
     field: keyof typeof formData,
     value: string | number
@@ -97,21 +187,51 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       ...prev,
       [field]: value,
     }));
+
+    if (
+      ["name", "description", "category", "sellPrice", "weigth"].includes(field)
+    ) {
+      setTimeout(() => {
+        validateField(field as ValidatableFields, value);
+      }, 100);
+    }
   };
 
+  // Función para validar todo el formulario
+  const validateForm = (): boolean => {
+    const fields: ValidatableFields[] = [
+      "name",
+      "description",
+      "category",
+      "sellPrice",
+      "weigth",
+    ];
+    let isValid = true;
+
+    fields.forEach((field) => {
+      const fieldValue = formData[field];
+      const fieldValid = validateField(field, fieldValue || "");
+      if (!fieldValid) isValid = false;
+    });
+
+    return isValid;
+  };
+
+  // Verificar si hay errores activos
+  const hasErrors = Object.keys(errors).length > 0;
+
+  // Verificar si los campos obligatorios están llenos
+  const hasRequiredFields =
+    formData.name.trim() &&
+    formData.category.trim() &&
+    formData.sellPrice > 0 &&
+    formData.weigth > 0;
+
+  // El botón se desactiva si hay errores O si faltan campos obligatorios
+  const isFormInvalid = hasErrors || !hasRequiredFields;
+
   const handleSave = () => {
-    if (!formData.name.trim()) {
-      alert("El nombre del producto es requerido");
-      return;
-    }
-
-    if (!formData.category.trim()) {
-      alert("La categoría es requerida");
-      return;
-    }
-
-    if (formData.sellPrice <= 0) {
-      alert("El precio de venta debe ser mayor a 0");
+    if (!validateForm()) {
       return;
     }
 
@@ -145,7 +265,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <article className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center p-4 z-50">
       {isLoading ? (
         <article className="flex flex-col justify-center items-center bg-white rounded-lg shadow-xl w-full max-w-4xl h-[88vh] overflow-y-auto">
           <article className="relative">
@@ -155,59 +275,53 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           <p className="w-full text-center">Cargando producto...</p>
         </article>
       ) : (
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <header
-            className={`${
-              isEditMode ? "flex-col-reverse items-end" : ""
-            } flex items-center justify-between pt-6 px-6`}
-          >
-            <div
-              className={`${
-                isEditMode ? "flex justify-between w-full mt-1" : ""
-              }`}
-            >
-              <h2 className="text-xl font-semibold text-gray-900">
-                {isEditMode ? `ID Producto - ${product?.id}` : "Nuevo Producto"}
-              </h2>
-              {isEditMode && (
-                <article className="font-semibold text-sm flex items-center gap-2">
-                  <p className="text-blue-600">Última actualización:</p>
-                  <p className="text-gray-500">
-                    {new Date().toLocaleDateString("es-ES")}
-                  </p>
-                </article>
-              )}
-            </div>
+          <header className="flex items-center justify-between pt-12 px-8">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {isEditMode ? `ID Producto - ${product?.id}` : "Alta de Producto"}
+            </h2>
+            <article className="font-semibold text-sm flex items-center gap-1">
+              <p className="text-dark-blue">Última actualización:</p>
+              <p className="text-gray-500">
+                {new Date().toLocaleDateString("es-ES")}
+              </p>
+            </article>
+
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-4 right-4 text-blue-ocean hover:text-gray-600 transition-colors"
             >
-              <X size={24} />
+              <X size={22} />
             </button>
           </header>
 
           {/* Content */}
-          <main className="py-4 px-6 space-y-4">
+          <main className="py-4 px-8 space-y-4">
             {/* Nombre del Producto */}
             <div>
-              <label className="block text-sm font-medium text-blue-600 mb-2">
+              <label className="block text-sm font-medium text-dark-blue mb-2">
                 Nombre Producto*
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
+                onBlur={() => validateField("name", formData.name)}
                 placeholder={isEditMode ? formData.name : "Nombre producto"}
                 className={`${
                   isEditMode ? "text-gray-500" : ""
                 } w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none`}
+                maxLength={50}
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
             </div>
 
             {/* Descripción */}
             <div>
-              <label className="block text-sm font-medium text-blue-600 mb-2">
+              <label className="block text-sm font-medium text-dark-blue mb-2">
                 Descripción
               </label>
               <textarea
@@ -216,32 +330,40 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("description", e.target.value)
                 }
+                onBlur={() =>
+                  validateField("description", formData.description)
+                }
                 placeholder={
                   isEditMode ? formData.description : "Especificaciones"
                 }
                 className={`${
                   isEditMode ? "text-gray-500" : ""
                 } w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none`}
+                maxLength={255}
               />
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description}
+                </p>
+              )}
             </div>
 
             {/* Categoría y Proveedor */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-blue-600 mb-2">
-                  Categoría*
+                <label className="block text-sm font-medium text-dark-blue mb-2">
+                  Categoría
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) =>
                     handleInputChange("category", e.target.value)
                   }
+                  onBlur={() => validateField("category", formData.category)}
                   className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">
-                    {isEditMode
-                      ? formData.category || "Selecciona categoría"
-                      : "Selecciona categoría"}
+                    {isEditMode ? formData.category : "Categoría"}
                   </option>
                   {categories.map((category) => (
                     <option key={category} value={category}>
@@ -249,10 +371,13 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     </option>
                   ))}
                 </select>
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-blue-600 mb-2">
+                <label className="block text-sm font-medium text-dark-blue mb-2">
                   Proveedor
                 </label>
                 <select
@@ -270,7 +395,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   }}
                   className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
-                  <option value="">Selecciona un proveedor</option>
+                  <option value="">Selecciona proveedor</option>
                   {providers.map((provider) => (
                     <option
                       key={provider.id_provider}
@@ -286,7 +411,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             {/* Stock, Peso y Precio */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-blue-600 mb-2">
+                <label className="block text-sm font-medium text-dark-blue mb-2">
                   Uds. en stock
                 </label>
                 <input
@@ -296,7 +421,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   onChange={(e) =>
                     handleInputChange("amount", parseInt(e.target.value) || 0)
                   }
-                  placeholder={isEditMode ? formData.amount.toString() : "0"}
+                  placeholder={isEditMode ? formData.amount.toString() : "Uds."}
                   className={`${
                     isEditMode ? "text-gray-500" : ""
                   } w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none`}
@@ -304,7 +429,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-blue-600 mb-2">
+                <label className="block text-sm font-medium text-dark-blue mb-2">
                   Peso (kg)
                 </label>
                 <input
@@ -315,16 +440,20 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   onChange={(e) =>
                     handleInputChange("weigth", parseFloat(e.target.value) || 0)
                   }
-                  placeholder={isEditMode ? formData.weigth.toString() : "0.01"}
+                  onBlur={() => validateField("weigth", formData.weigth)}
+                  placeholder={isEditMode ? formData.weigth.toString() : "Kg"}
                   className={`${
                     isEditMode ? "text-gray-500" : ""
                   } w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none`}
                 />
+                {errors.weigth && (
+                  <p className="text-red-500 text-sm mt-1">{errors.weigth}</p>
+                )}
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-blue-600 mb-2">
-                  Precio de venta*
+                <label className="block text-sm font-medium text-dark-blue mb-2">
+                  Precio de venta
                 </label>
                 <input
                   type="number"
@@ -337,35 +466,46 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       parseFloat(e.target.value) || 0
                     )
                   }
+                  onBlur={() => validateField("sellPrice", formData.sellPrice)}
                   placeholder={
-                    isEditMode ? formData.sellPrice.toString() : "0.00"
+                    isEditMode ? formData.sellPrice.toString() : "000.000"
                   }
                   className={`${
                     isEditMode ? "text-gray-500" : ""
                   } w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none`}
                 />
+                {errors.sellPrice && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.sellPrice}
+                  </p>
+                )}
               </div>
             </div>
           </main>
 
           {/* Footer */}
-          <footer className="text-sm flex justify-center gap-4 pb-6 px-6">
+          <footer className="text-sm flex justify-center gap-4 pb-6 px-8 [&>button]:px-12 [&>button]:py-[6px] [&>button]:transition-colors">
             <button
               onClick={handleCancel}
-              className="px-12 py-[6px] text-blue-600 bg-white border border-blue-600 rounded-sm hover:bg-gray-50 transition-colors"
+              className="text-electric-blue bg-white border border-electric-blue rounded-sm hover:bg-gray-50 cursor-pointer"
             >
               Cancelar
             </button>
             <button
               onClick={handleSave}
-              className="px-12 py-[6px] text-white bg-blue-600 rounded-sm hover:bg-blue-700 transition-colors"
+              disabled={isFormInvalid}
+              className={`text-white rounded-sm ${
+                isFormInvalid
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-electric-blue hover:bg-blue-500 cursor-pointer"
+              }`}
             >
               Guardar
             </button>
           </footer>
         </div>
       )}
-    </div>
+    </article>
   );
 };
 
