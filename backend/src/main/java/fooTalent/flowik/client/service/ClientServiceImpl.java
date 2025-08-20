@@ -5,6 +5,7 @@ import fooTalent.flowik.client.entity.Client;
 import fooTalent.flowik.client.repositories.ClientRepository;
 
 
+import fooTalent.flowik.exceptions.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client updateClient(Client client) {
         if (!clientRepository.existsById(client.getId_client())) {
-            throw new RuntimeException("Cliente no encontrado para actualizar");
+            throw new BadRequestException("Cliente no encontrado para actualizar");
         }
         return clientRepository.save(client);
     }
