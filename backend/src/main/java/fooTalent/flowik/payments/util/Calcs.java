@@ -3,6 +3,7 @@ package fooTalent.flowik.payments.util;
 import fooTalent.flowik.client.entity.Client;
 import fooTalent.flowik.debt.entity.Debt;
 import fooTalent.flowik.debt.enums.StatusDebt;
+import fooTalent.flowik.debt.repositories.DebtRepository;
 import fooTalent.flowik.payments.Repository.PaymentRepository;
 import fooTalent.flowik.payments.entity.Payment;
 
@@ -13,12 +14,17 @@ import java.util.List;
 
 public class Calcs {
 
-    public static List<Payment> applyPayment(Client client, BigDecimal payment, PaymentRepository paymentRepository) {
-
+    public static List<Payment> applyPayment(Client client, BigDecimal payment,
+                                             PaymentRepository paymentRepository,
+                                             DebtRepository debtRepository) {
         BigDecimal totalDebt = client.getDebts().stream()
                 .filter(Debt::getIsActive)
                 .map(d -> d.getMount().subtract(getTotalPayments(d)))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (!debtRepository.existsActiveDebtByClientId(client.getId_client())) {
+            throw new IllegalArgumentException("Deuda inexistente");
+        }
 
         if (payment.compareTo(totalDebt) > 0) {
             throw new IllegalArgumentException("El pago no puede ser mayor al total de la deuda pendiente: " + totalDebt);

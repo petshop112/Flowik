@@ -49,9 +49,11 @@ public class ProviderServiceImpl implements ProviderService {
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
 
         existing.setName_provider(providerUpdated.name_provider());
+        existing.setCuit_provider(providerUpdated.cuit_provider());
         existing.setDirection_provider(providerUpdated.direction_provider());
         existing.setTelephone_provider(providerUpdated.telephone_provider());
-        existing.setProvider_description(providerUpdated.provider_description());
+        existing.setEmail_provider(providerUpdated.email_provider());
+        existing.setCategory_provider(providerUpdated.category_provider());
 
         return providerRepository.save(existing);
     }

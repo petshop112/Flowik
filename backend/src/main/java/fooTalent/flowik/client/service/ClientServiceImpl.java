@@ -21,7 +21,6 @@ public class ClientServiceImpl implements ClientService {
         return clientRepository.save(client);
         }
 
-
     public List<Client> getAllClientByUser(String email) {
         return clientRepository.findByCreatedBy(email);
     }

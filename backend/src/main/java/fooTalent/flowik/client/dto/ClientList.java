@@ -2,7 +2,7 @@ package fooTalent.flowik.client.dto;
 
 import fooTalent.flowik.client.entity.Client;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 
 public record ClientList(

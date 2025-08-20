@@ -52,7 +52,9 @@ public class ProductController {
                 .filter(product -> product.getCreatedBy().equals(email))
                 .map(ProductList::new)
                 .toList();
-
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("Productos", "Usuario", email);
+            }
         return ResponseEntity.ok(products);
     }
 

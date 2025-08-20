@@ -9,8 +9,8 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Entity
 @Table(name = "provider")
@@ -22,14 +22,20 @@ public class Provider {
     @Column(nullable = false, length = 50)
     private String name_provider;
 
+    @Column(nullable = false, length = 25)
+    private String cuit_provider;
+
     @Column(nullable = false, length = 100)
     private String direction_provider;
 
     @Column(nullable = false, length = 20)
     private String telephone_provider;
 
+    @Column(nullable = false)
+    private String email_provider;
+
     @Column(nullable = false, length = 300)
-    private String provider_description;
+    private String category_provider;
 
     @ManyToMany(mappedBy = "providers")
     private List<Product> products = new ArrayList<>();
@@ -37,21 +43,27 @@ public class Provider {
     @Column(nullable = false, updatable = false, length = 150)
     private String createdBy;
 
+
     @PrePersist
     public void prePersist() {
         this.createdBy = SecurityUtil.getAuthenticatedEmail();
     }
 
-    public Provider(ProviderRegister pr){
-        this.name_provider = pr.name_provider();
-        this.direction_provider = pr.direction_provider();
-        this.telephone_provider = pr.telephone_provider();
-        this.provider_description = pr.provider_description();
+    public Provider(ProviderRegister dto) {
+        this.name_provider = dto.name_provider();
+        this.cuit_provider = dto.cuit_provider();
+        this.direction_provider = dto.direction_provider();
+        this.telephone_provider = dto.telephone_provider();
+        this.email_provider = dto.email_provider();
+        this.category_provider = dto.category_provider();
     }
 
-    public void updateFromDto(ProviderUpdated dto) {
+     public void updateFromDto(ProviderUpdated dto) {
         if (dto.name_provider() != null) {
             this.name_provider = dto.name_provider();
+        }
+        if (dto.cuit_provider() != null){
+            this.cuit_provider = dto.cuit_provider();
         }
         if (dto.direction_provider() != null) {
             this.direction_provider = dto.direction_provider();
@@ -59,8 +71,11 @@ public class Provider {
         if (dto.telephone_provider() != null) {
             this.telephone_provider = dto.telephone_provider();
         }
-        if (dto.provider_description() != null) {
-            this.provider_description = dto.provider_description();
+        if (dto.email_provider() != null){
+            this.email_provider = dto.email_provider();
+        }
+        if (dto.category_provider() != null) {
+            this.category_provider = dto.category_provider();
         }
     }
 

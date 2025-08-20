@@ -6,17 +6,21 @@ public record ProviderList(
 
         Long id_provider,
         String name_provider,
+        String cuit_provider,
         String direction_provider,
         String telephone_provider,
-        String provider_description
+        String email_provider,
+        String category_provider
 ){
     public ProviderList(Provider pr){
         this(
                 pr.getId_provider(),
                 pr.getName_provider(),
+                pr.getCuit_provider(),
                 pr.getDirection_provider(),
                 pr.getTelephone_provider(),
-                pr.getProvider_description()
+                pr.getEmail_provider(),
+                pr.getCategory_provider()
         );
     }
 }
