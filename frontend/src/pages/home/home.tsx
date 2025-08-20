@@ -1,10 +1,9 @@
-// ...existing code...
-import Products from '../products/Products';
+import Dashboard from '../Dashboard';
 
 const Home = () => {
   return (
     <>
-      <Products></Products>
+      <Dashboard></Dashboard>
     </>
   );
 };

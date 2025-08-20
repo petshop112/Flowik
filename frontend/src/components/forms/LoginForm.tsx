@@ -70,8 +70,8 @@ const LoginForm = () => {
               Contraseña
             </label>
             <a
-              href="/recoverPassword"
-              className="font-['Albert Sans'] text-[16px] leading-[120%] font-normal text-[#5685FA]"
+              href="/recover-password"
+              className="text-[#5685FA] font-['Albert Sans'] text-[16px] font-normal leading-[120%]"
             >
               ¿Olvidaste tu contraseña?
             </a>
