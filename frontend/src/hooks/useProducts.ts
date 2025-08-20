@@ -1,6 +1,12 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { productService } from "../api/productService";
 import { getUserTokenFromStorage } from "../utils/storage";
+import type { Product } from "../types/product";
+
+export interface ProductUpdateData extends Omit<Product, "id" | "providers"> {
+  description: string;
+  providersIds?: string[];
+}
 
 export const useGetAllProducts = () => {
   const token = getUserTokenFromStorage();
@@ -37,7 +43,7 @@ export const useCreateProduct = () => {
   const token = getUserTokenFromStorage();
 
   return useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: (data: ProductUpdateData) => {
       if (!token) throw new Error("No hay token de autenticación");
       return productService.createProduct(data, token);
     },
@@ -48,7 +54,7 @@ export const useUpdateProduct = () => {
   const token = getUserTokenFromStorage();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id?: number; data: any }) => {
+    mutationFn: ({ id, data }: { id?: number; data: ProductUpdateData }) => {
       if (!token) throw new Error("No hay token de autenticación");
       return productService.updateProduct(id ?? 0, data, token);
     },
