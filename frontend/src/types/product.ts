@@ -38,7 +38,7 @@ export interface Product {
   category: string;
   amount: number;
   sellPrice: number;
-  weigth: number;
+  weigth: number; // Delete when backend deletes it
   buyDate: string;
   expiration: string;
   providers: string[];
@@ -66,4 +66,5 @@ export interface ProductFormModalProps {
   isLoading?: boolean;
   providers: ProviderFormData[] | undefined;
   categories: string[];
+  isSaving: boolean;
 }
