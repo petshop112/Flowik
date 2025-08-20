@@ -44,7 +44,9 @@ export interface Product {
   providers: string[];
 }
 
-export interface ProductUpdateFormData extends Omit<Product, "providers"> {
+export interface ProductUpdateFormData
+  extends Omit<Product, "id" | "providers"> {
+  id?: number;
   description: string;
   providers?: string[];
   providerIds?: string[];
