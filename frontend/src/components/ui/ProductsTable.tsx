@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Search,
@@ -26,15 +26,17 @@ import { getStockStatus, getStockColor } from "../../utils/product";
 import { useGetAllProviders } from "../../hooks/useProviders";
 import type { Product, ProductWithOptionalId } from "../../types/product";
 
+interface ProductSavedModalProps {
+  description: string;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 const ProductSavedModal = ({
   description,
   isOpen,
   onClose,
-}: {
-  description: string;
-  isOpen: boolean;
-  onClose: () => void;
-}) => {
+}: ProductSavedModalProps) => {
   const handleClose = () => {
     onClose();
   };
@@ -85,8 +87,29 @@ const ProductsTable: React.FC = () => {
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
   const [isProductSavedModalOpen, setIsProductSavedModalOpen] = useState(false);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
 
   const hasSelectedProducts = selectedProductIds.size > 0;
+
+  const categories = useMemo((): string[] => {
+    if (!products?.length) {
+      return ["Gato", "Perro", "Alimento"];
+    }
+
+    const categorySet = new Set<string>();
+
+    products.forEach((product: Product) => {
+      if (product.category) {
+        categorySet.add(product.category);
+      }
+    });
+
+    if (categorySet.size === 0) {
+      return ["Gato", "Perro", "Alimento"];
+    }
+
+    return Array.from(categorySet).sort();
+  }, [products]);
 
   useEffect(() => {
     if (productToEdit) {
@@ -124,6 +147,7 @@ const ProductsTable: React.FC = () => {
   };
 
   const handleSaveProduct = async (productData: ProductWithOptionalId) => {
+    setIsSavingProduct(true);
     try {
       if (editingProductId !== null) {
         const updatedProduct = {
@@ -139,8 +163,9 @@ const ProductsTable: React.FC = () => {
           data: updatedProduct,
         });
 
-        // Opcional: actualizar el cache manualmente
         queryClient.setQueryData(["product", editingProductId], updatedProduct);
+        setIsSavingProduct(false);
+        handleCloseModal();
         setIsProductSavedModalOpen(true);
         console.log("Producto actualizado en el cache:", updatedProduct);
       } else {
@@ -149,7 +174,7 @@ const ProductsTable: React.FC = () => {
           description: productData.description,
           category: productData.category,
           amount: Number(productData.amount),
-          weight: Number(productData.weigth),
+          weight: Number(productData.weigth), // Delete when backend deletes it
           sellPrice: Number(productData.sellPrice),
           buyDate: productData.buyDate,
           expiration: productData.expiration,
@@ -161,11 +186,10 @@ const ProductsTable: React.FC = () => {
 
         console.log("Datos que se van a enviar:", newProduct);
         const createdProduct = await createProductMutation.mutateAsync(
-          // @ts-expect-error - The type of product receives weight or weigth
+          // @ts-expect-error - The type of product receives weight or weigth. Delete when backend deletes it
           newProduct
         );
 
-        // Agregar temporalmente la información del proveedor al producto creado
         if (
           productData.providerIds &&
           productData.providerIds.length > 0 &&
@@ -176,20 +200,20 @@ const ProductsTable: React.FC = () => {
           );
 
           if (selectedProvider) {
-            // Actualizar el producto en el cache con la info del proveedor
             const updatedCreatedProduct = {
               ...createdProduct,
               providerIds: productData.providerIds,
               providers: [selectedProvider.name_provider],
             };
 
-            // Opcional: actualizar el cache manualmente
             queryClient.setQueryData(
               ["product", createdProduct.id],
               updatedCreatedProduct
             );
           }
         }
+        setIsSavingProduct(false);
+        handleCloseModal();
         setIsProductSavedModalOpen(true);
         console.log("Nuevo producto creado:", productData);
       }
@@ -197,9 +221,22 @@ const ProductsTable: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       handleCloseModal();
     } catch (error) {
+      setIsSavingProduct(false);
       console.error("Error al guardar producto:", error);
     }
   };
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+
+    if (!searchTerm.trim()) return products;
+
+    return products.filter((product: Product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.id.toString().includes(searchTerm)
+    );
+  }, [products, searchTerm]);
 
   if (isLoading) return <p>Cargando productos...</p>;
 
@@ -314,7 +351,7 @@ const ProductsTable: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product: Product) => {
+                  {filteredProducts.map((product: Product) => {
                     const stockStatus = getStockStatus(product.amount);
                     const stockColor = getStockColor(stockStatus);
                     const isSelected = selectedProductIds.has(product.id);
@@ -366,6 +403,12 @@ const ProductsTable: React.FC = () => {
                 </tbody>
               </table>
             </article>
+
+            {filteredProducts.length === 0 && searchTerm && (
+              <div className="text-center py-8 text-gray-500">
+                No se encontraron productos que coincidan con "{searchTerm}"
+              </div>
+            )}
           </main>
 
           {/* Paginación */}
@@ -399,11 +442,12 @@ const ProductsTable: React.FC = () => {
         product={editingProduct}
         isLoading={isLoadingProductToEdit}
         providers={providers}
-        categories={["Gato", "Perro", "Alimento"]}
+        categories={categories}
+        isSaving={isSavingProduct}
       />
       <ProductSavedModal
         description={
-          !isLoadingProductToEdit
+          editingProductId !== null
             ? "El producto se ha actualizado con éxito."
             : "El producto se ha guardado con éxito."
         }
