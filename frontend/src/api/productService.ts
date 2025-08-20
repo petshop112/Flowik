@@ -1,19 +1,12 @@
 import axios, { AxiosError } from "axios";
-import { getUserIdFromStorage } from "../utils/storage";
 import type { ProductUpdateFormData } from "../types/product";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const getAllProducts = async (token: string) => {
-  const id = getUserIdFromStorage();
-
-  if (!id) {
-    throw new Error("User ID not found in storage");
-  }
-
   try {
     const response = await axios.get(
-      `${API_BASE_URL}products/getProducts/${id}`,
+      `${API_BASE_URL}products/getProducts`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
