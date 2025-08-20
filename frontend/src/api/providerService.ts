@@ -1,18 +1,11 @@
 import axios, { AxiosError } from 'axios';
-import { getUserIdFromStorage } from '../utils/storage';
 import type { ProvidersResponse } from '../types/provider';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const getAllProviders = async (token: string): Promise<ProvidersResponse> => {
-  const id = getUserIdFromStorage();
-
-  if (!id) {
-    throw new Error('User ID not found in storage');
-  }
-
   try {
-    const response = await axios.get<ProvidersResponse>(`${API_BASE_URL}providers/${id}`, {
+    const response = await axios.get<ProvidersResponse>(`${API_BASE_URL}providers`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
