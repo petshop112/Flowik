@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@600&display=swap');
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@600&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @theme {
   --color-custom-mist: #f2f6f8;
@@ -9,9 +9,11 @@
   --color-electric-blue: #5685fa;
   --color-glacial-blue: #6a93fb;
   --color-polar-mist: #f1f5ff;
+  --color-dark-emerald: #03634b;
   --color-amount-critical: #f82254;
   --color-amount-low: #fe9b38;
   --color-amount-medium: #f2f47d;
   --color-amount-supplied: #06c696;
   --color-dark-blue: #042b95;
+  --color-blue-ocean: #0679c6;
 }

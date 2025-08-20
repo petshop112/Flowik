@@ -1,5 +1,4 @@
-import type { ProviderFormData } from './provider';
-import type * as React from 'react';
+import type { ProviderFormData } from "./provider";
 
 export interface ProductProps {
   id: number;
@@ -10,7 +9,7 @@ export interface ProductProps {
   image: string;
 }
 
-export type FormDataProps = Omit<ProductProps, 'id' | 'price'> & {
+export type FormDataProps = Omit<ProductProps, "id" | "price"> & {
   price: string;
 };
 
@@ -21,7 +20,9 @@ export interface ProductModalProps {
   actionLoading: boolean;
   closeModal: () => void;
   handleSubmit: () => Promise<boolean>;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
 }
 
 export interface DeleteProductConfirmationModalProps {
@@ -37,19 +38,21 @@ export interface Product {
   category: string;
   amount: number;
   sellPrice: number;
-  weigth: number;
+  weigth: number; // Delete when backend deletes it
   buyDate: string;
   expiration: string;
   providers: string[];
 }
 
-export interface ProductUpdateFormData extends Omit<Product, 'providers'> {
+export interface ProductUpdateFormData
+  extends Omit<Product, "id" | "providers"> {
+  id?: number;
   description: string;
   providers?: string[];
   providerIds?: string[];
 }
 
-export type ProductWithOptionalId = Omit<ProductUpdateFormData, 'id'> & {
+export type ProductWithOptionalId = Omit<ProductUpdateFormData, "id"> & {
   id?: number;
   description: string;
   providerIds?: string[];
@@ -63,4 +66,5 @@ export interface ProductFormModalProps {
   isLoading?: boolean;
   providers: ProviderFormData[] | undefined;
   categories: string[];
+  isSaving: boolean;
 }
