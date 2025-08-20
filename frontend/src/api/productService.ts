@@ -46,11 +46,6 @@ const createProduct = async (
   newProduct: ProductUpdateFormData,
   token: string
 ) => {
-  console.log("=== CREATE PRODUCT DEBUG ===");
-  console.log("URL:", `${API_BASE_URL}products/`);
-  console.log("Data being sent:", JSON.stringify(newProduct, null, 2));
-  console.log("Token (first 20 chars):", token.substring(0, 20) + "...");
-
   try {
     const response = await axios.post(`${API_BASE_URL}products/`, newProduct, {
       headers: {
@@ -59,18 +54,13 @@ const createProduct = async (
       },
     });
 
-    console.log("✅ Success response:", response.data);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
-    console.error("❌ [createProduct] Full error details:");
-    console.error("Status:", axiosError.response?.status);
-    console.error("Response data:", axiosError.response?.data);
-    console.error("Request config:", axiosError.config);
-    // console.error(
-    //   "[createProduct] Error fetching data:",
-    //   axiosError.response?.data ?? axiosError.message
-    // );
+    console.error(
+      "[createProduct] Error fetching data:",
+      axiosError.response?.data ?? axiosError.message
+    );
     throw error;
   }
 };
