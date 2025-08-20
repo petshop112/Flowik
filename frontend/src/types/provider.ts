@@ -10,5 +10,5 @@ export type ProvidersResponse = Provider[];
 
 export type ProviderFormData = Omit<
   Provider,
-  "direction_provider" | "telephone_provider" | "provider_description"
+  'direction_provider' | 'telephone_provider' | 'provider_description'
 >;

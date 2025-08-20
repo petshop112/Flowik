@@ -1,5 +1,5 @@
 const maskEmail = (email: string): string => {
-  const [username, domain] = email.split("@");
+  const [username, domain] = email.split('@');
 
   if (!username || !domain) return email;
 
@@ -9,7 +9,7 @@ const maskEmail = (email: string): string => {
 
   const firstChar = username[0];
   const lastChar = username[username.length - 1];
-  const hiddenPart = "*".repeat(username.length - 2);
+  const hiddenPart = '*'.repeat(username.length - 2);
 
   return `${firstChar}${hiddenPart}${lastChar}@${domain}`;
 };
