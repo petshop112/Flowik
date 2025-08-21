@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   Plus,
@@ -13,18 +13,18 @@ import {
   Check,
   X,
   CheckIcon,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   useCreateProduct,
   useGetAllProducts,
   useGetProductById,
   useUpdateProduct,
-} from "../../hooks/useProducts";
-import ProductFormModal from "../modal/ProductFormModal";
-import { InventoryLegend } from "./InventoryLegend";
-import { getStockStatus, getStockColor } from "../../utils/product";
-import { useGetAllProviders } from "../../hooks/useProviders";
-import type { Product, ProductWithOptionalId } from "../../types/product";
+} from '../../hooks/useProducts';
+import ProductFormModal from '../modal/ProductFormModal';
+import { InventoryLegend } from './InventoryLegend';
+import { getStockStatus, getStockColor } from '../../utils/product';
+import { useGetAllProviders } from '../../hooks/useProviders';
+import type { Product, ProductWithOptionalId } from '../../types/product';
 
 interface ProductSavedModalProps {
   description: string;
@@ -32,35 +32,29 @@ interface ProductSavedModalProps {
   onClose: () => void;
 }
 
-const ProductSavedModal = ({
-  description,
-  isOpen,
-  onClose,
-}: ProductSavedModalProps) => {
+const ProductSavedModal = ({ description, isOpen, onClose }: ProductSavedModalProps) => {
   const handleClose = () => {
     onClose();
   };
 
   return (
     <article
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-50 p-4 ${
-        isOpen ? "" : "hidden"
+      className={`bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 ${
+        isOpen ? '' : 'hidden'
       }`}
     >
-      <article className="relative flex items-center bg-white rounded-lg w-full shadow-2xl max-w-96 h-60 overflow-y-auto border border-dark-emerald">
+      <article className="border-dark-emerald relative flex h-60 w-full max-w-96 items-center overflow-y-auto rounded-lg border bg-white shadow-2xl">
         <button
           onClick={handleClose}
-          className="absolute top-3 right-3 text-gray-900 hover:text-gray-500 transition-colors cursor-pointer"
+          className="absolute top-3 right-3 cursor-pointer text-gray-900 transition-colors hover:text-gray-500"
         >
           <X size={24} />
         </button>
-        <main className="text-center w-full">
-          <article className="flex items-center justify-center w-6 h-6 mx-auto bg-dark-emerald rounded-full mb-2">
+        <main className="w-full text-center">
+          <article className="bg-dark-emerald mx-auto mb-2 flex h-6 w-6 items-center justify-center rounded-full">
             <CheckIcon size={18} className="text-white" />
           </article>
-          <h2 className="text-lg font-semibold text-gray-900">
-            Producto Guardado
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">Producto Guardado</h2>
           <p className="text-gray-500">{description}</p>
         </main>
       </article>
@@ -69,7 +63,7 @@ const ProductSavedModal = ({
 };
 
 const ProductsTable: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
     new Set()
   );
@@ -93,7 +87,7 @@ const ProductsTable: React.FC = () => {
 
   const categories = useMemo((): string[] => {
     if (!products?.length) {
-      return ["Gato", "Perro", "Alimento"];
+      return ['Gato', 'Perro', 'Alimento'];
     }
 
     const categorySet = new Set<string>();
@@ -105,7 +99,7 @@ const ProductsTable: React.FC = () => {
     });
 
     if (categorySet.size === 0) {
-      return ["Gato", "Perro", "Alimento"];
+      return ['Gato', 'Perro', 'Alimento'];
     }
 
     return Array.from(categorySet).sort();
@@ -152,22 +146,20 @@ const ProductsTable: React.FC = () => {
       if (editingProductId !== null) {
         const updatedProduct = {
           ...productData,
-          providerIds: productData.providerIds
-            ? productData.providerIds.map(String)
-            : [],
+          providerIds: productData.providerIds ? productData.providerIds.map(String) : [],
         };
-        console.log("Datos que se van a enviar:", updatedProduct);
+        console.log('Datos que se van a enviar:', updatedProduct);
 
         await updateProductMutation.mutateAsync({
           id: editingProductId,
           data: updatedProduct,
         });
 
-        queryClient.setQueryData(["product", editingProductId], updatedProduct);
+        queryClient.setQueryData(['product', editingProductId], updatedProduct);
         setIsSavingProduct(false);
         handleCloseModal();
         setIsProductSavedModalOpen(true);
-        console.log("Producto actualizado en el cache:", updatedProduct);
+        console.log('Producto actualizado en el cache:', updatedProduct);
       } else {
         const newProduct = {
           name: productData.name,
@@ -184,17 +176,13 @@ const ProductsTable: React.FC = () => {
               : [],
         };
 
-        console.log("Datos que se van a enviar:", newProduct);
+        console.log('Datos que se van a enviar:', newProduct);
         const createdProduct = await createProductMutation.mutateAsync(
           // @ts-expect-error - The type of product receives weight or weigth. Delete when backend deletes it
           newProduct
         );
 
-        if (
-          productData.providerIds &&
-          productData.providerIds.length > 0 &&
-          providers
-        ) {
+        if (productData.providerIds && productData.providerIds.length > 0 && providers) {
           const selectedProvider = providers.find(
             (p) => p.id_provider.toString() === productData.providerIds?.[0]
           );
@@ -206,23 +194,20 @@ const ProductsTable: React.FC = () => {
               providers: [selectedProvider.name_provider],
             };
 
-            queryClient.setQueryData(
-              ["product", createdProduct.id],
-              updatedCreatedProduct
-            );
+            queryClient.setQueryData(['product', createdProduct.id], updatedCreatedProduct);
           }
         }
         setIsSavingProduct(false);
         handleCloseModal();
         setIsProductSavedModalOpen(true);
-        console.log("Nuevo producto creado:", productData);
+        console.log('Nuevo producto creado:', productData);
       }
 
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       handleCloseModal();
     } catch (error) {
       setIsSavingProduct(false);
-      console.error("Error al guardar producto:", error);
+      console.error('Error al guardar producto:', error);
     }
   };
 
@@ -244,28 +229,24 @@ const ProductsTable: React.FC = () => {
 
   return (
     <>
-      <section className="w-full p-6 bg-custom-mist">
+      <section className="bg-custom-mist w-full p-6">
         <article className="mx-auto">
           {/* Header */}
           <header className="mb-6">
-            <h1 className="text-2xl font-semibold text-dark-blue mb-4">
-              Productos
-            </h1>
+            <h1 className="dark-blue mb-4 text-2xl font-semibold">Productos</h1>
 
             {/* Barra de acciones */}
-            <article className="flex flex-wrap gap-3 items-center justify-between">
+            <article className="flex flex-wrap items-center justify-between gap-3">
               <article
                 className={`flex items-center gap-2 [&>button]:font-semibold ${
-                  hasSelectedProducts ? "[&>button]:cursor-pointer" : ""
+                  hasSelectedProducts ? '[&>button]:cursor-pointer' : ''
                 } `}
               >
                 <button
                   disabled={!hasSelectedProducts}
                   className={`${
-                    hasSelectedProducts
-                      ? "text-deep-teal hover:bg-cyan-50"
-                      : "text-gray-400"
-                  } flex items-center gap-2 px-3 py-2 rounded-md transition-colors`}
+                    hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                  } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
                 >
                   <ToggleRight
                     size={18}
@@ -405,7 +386,7 @@ const ProductsTable: React.FC = () => {
             </article>
 
             {filteredProducts.length === 0 && searchTerm && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="py-8 text-center text-gray-500">
                 No se encontraron productos que coincidan con "{searchTerm}"
               </div>
             )}
@@ -414,7 +395,7 @@ const ProductsTable: React.FC = () => {
           {/* Paginación */}
           <article className="flex justify-center py-3">
             <nav className="flex items-center justify-between">
-              <ul className="flex items-center gap-2 text-dark-blue">
+              <ul className="text-dark-blue flex items-center gap-2">
                 <li>
                   <button className="py-2">
                     <ChevronLeft size={32} />
@@ -448,8 +429,8 @@ const ProductsTable: React.FC = () => {
       <ProductSavedModal
         description={
           editingProductId !== null
-            ? "El producto se ha actualizado con éxito."
-            : "El producto se ha guardado con éxito."
+            ? 'El producto se ha actualizado con éxito.'
+            : 'El producto se ha guardado con éxito.'
         }
         isOpen={isProductSavedModalOpen}
         onClose={() => setIsProductSavedModalOpen(false)}

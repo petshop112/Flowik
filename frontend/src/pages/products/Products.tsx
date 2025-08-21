@@ -1,15 +1,9 @@
 import ProductsTable from '../../components/ui/ProductsTable';
 
-function Products() {
+export default function Products() {
   return (
-    <section className="h-full w-full">
-      <nav className="h-18">Navbar</nav>
-      <main className="flex justify-between">
-        <aside className="w-64">Sidebar</aside>
-        <ProductsTable />
-      </main>
+    <section className="w-full">
+      <ProductsTable />
     </section>
   );
 }
-
-export default Products;

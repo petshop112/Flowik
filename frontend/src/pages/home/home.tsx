@@ -1,9 +1,7 @@
-import Dashboard from '../Dashboard';
-
 const Home = () => {
   return (
     <>
-      <Dashboard></Dashboard>
+      <p>Dashboard / Panel Principal</p>
     </>
   );
 };
