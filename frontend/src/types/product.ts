@@ -37,7 +37,6 @@ export interface Product {
   category: string;
   amount: number;
   sellPrice: number;
-  weigth: number; // Delete when backend deletes it
   buyDate: string;
   expiration: string;
   providers: string[];
@@ -65,4 +64,10 @@ export interface ProductFormModalProps {
   providers: ProviderFormData[] | undefined;
   categories: string[];
   isSaving: boolean;
+}
+
+export interface ProductSavedModalProps {
+  description: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
