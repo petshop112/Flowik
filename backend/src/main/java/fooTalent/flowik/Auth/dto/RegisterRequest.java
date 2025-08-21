@@ -1,9 +1,7 @@
 package fooTalent.flowik.Auth.dto;
 
-import fooTalent.flowik.Auth.enums.Role;
 import fooTalent.flowik.validation.OnlyLettersAndSpaces;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
