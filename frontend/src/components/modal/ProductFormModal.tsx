@@ -72,9 +72,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             .filter((id) => id !== '');
         }
 
-        console.log('Product data received:', product);
-        console.log('Provider IDs extracted:', providerIds);
-
         setFormData({
           name: product.name || '',
           category: product.category || '',
@@ -98,7 +95,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         });
       }
     }
-  }, [isOpen, product, providers]);
+  }, []);
 
   const validateField = (fieldName: ValidatableFields, value: string | number): boolean => {
     const newErrors = { ...errors };
