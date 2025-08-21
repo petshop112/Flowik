@@ -2,6 +2,7 @@ package fooTalent.flowik.payments.service;
 
 import fooTalent.flowik.client.entity.Client;
 import fooTalent.flowik.client.repositories.ClientRepository;
+import fooTalent.flowik.debt.repositories.DebtRepository;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
 import fooTalent.flowik.payments.Repository.PaymentRepository;
 import fooTalent.flowik.payments.dto.PaymentRequest;
@@ -21,13 +22,14 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ClientRepository clientRepository;
+    private final DebtRepository debtRepository;
 
     @Transactional
     public PaymentResponse createPayment(Long id_client, PaymentRequest request) {
         Client client = clientRepository.findById(id_client)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id_client));
+                .orElseThrow(() -> new ResourceNotFoundException("cliente id: " + id_client));
 
-        List<Payment> newPayments = Calcs.applyPayment(client, request.paymentMount(), paymentRepository);
+        List<Payment> newPayments = Calcs.applyPayment(client, request.paymentMount(), paymentRepository, debtRepository);
 
         if (newPayments.isEmpty()) {
             throw new ResourceNotFoundException("No se generó ningún pago. Verifique el monto o las deudas del cliente.");
