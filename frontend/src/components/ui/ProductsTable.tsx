@@ -11,8 +11,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
-  X,
-  CheckIcon,
 } from 'lucide-react';
 import {
   useCreateProduct,
@@ -25,42 +23,7 @@ import { InventoryLegend } from './InventoryLegend';
 import { getStockStatus, getStockColor } from '../../utils/product';
 import { useGetAllProviders } from '../../hooks/useProviders';
 import type { Product, ProductWithOptionalId } from '../../types/product';
-
-interface ProductSavedModalProps {
-  description: string;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const ProductSavedModal = ({ description, isOpen, onClose }: ProductSavedModalProps) => {
-  const handleClose = () => {
-    onClose();
-  };
-
-  return (
-    <article
-      className={`bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 ${
-        isOpen ? '' : 'hidden'
-      }`}
-    >
-      <article className="border-dark-emerald relative flex h-60 w-full max-w-96 items-center overflow-y-auto rounded-lg border bg-white shadow-2xl">
-        <button
-          onClick={handleClose}
-          className="absolute top-3 right-3 cursor-pointer text-gray-900 transition-colors hover:text-gray-500"
-        >
-          <X size={24} />
-        </button>
-        <main className="w-full text-center">
-          <article className="bg-dark-emerald mx-auto mb-2 flex h-6 w-6 items-center justify-center rounded-full">
-            <CheckIcon size={18} className="text-white" />
-          </article>
-          <h2 className="text-lg font-semibold text-gray-900">Producto Guardado</h2>
-          <p className="text-gray-500">{description}</p>
-        </main>
-      </article>
-    </article>
-  );
-};
+import ProductSavedModal from '../modal/ProductSavedModal';
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -164,7 +127,6 @@ const ProductsTable: React.FC = () => {
           description: productData.description,
           category: productData.category,
           amount: Number(productData.amount),
-          weight: Number(productData.weigth), // Delete when backend deletes it
           sellPrice: Number(productData.sellPrice),
           buyDate: productData.buyDate,
           expiration: productData.expiration,
@@ -175,10 +137,7 @@ const ProductsTable: React.FC = () => {
         };
 
         console.log('Datos que se van a enviar:', newProduct);
-        const createdProduct = await createProductMutation.mutateAsync(
-          // @ts-expect-error - The type of product receives weight or weigth. Delete when backend deletes it
-          newProduct
-        );
+        const createdProduct = await createProductMutation.mutateAsync(newProduct);
 
         if (productData.providerIds && productData.providerIds.length > 0 && providers) {
           const selectedProvider = providers.find(
@@ -214,11 +173,15 @@ const ProductsTable: React.FC = () => {
 
     if (!searchTerm.trim()) return products;
 
+    if (searchTerm.trim().length < 3) return products;
+
     return products.filter(
       (product: Product) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.id.toString().includes(searchTerm)
+        product.providers.some((provider) =>
+          provider.toLowerCase().includes(searchTerm.toLowerCase())
+        )
     );
   }, [products, searchTerm]);
 
@@ -275,7 +238,7 @@ const ProductsTable: React.FC = () => {
                   />
                   <input
                     type="text"
-                    placeholder="Buscar"
+                    placeholder="Buscar por nombre o categoría"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="border-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
