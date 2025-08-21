@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/change_password").authenticated()
                         .requestMatchers("/api/auth/**","/v3/api-docs", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/").permitAll()
                         .anyRequest().authenticated()
                 )

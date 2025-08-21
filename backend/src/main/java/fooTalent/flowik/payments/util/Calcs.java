@@ -26,7 +26,7 @@ public class Calcs {
             throw new IllegalArgumentException("Deuda inexistente");
         }
 
-        if (payment.compareTo(totalDebt) > 0) {
+         if (payment.compareTo(totalDebt) > 0) {
             throw new IllegalArgumentException("El pago no puede ser mayor al total de la deuda pendiente: " + totalDebt);
         }
 

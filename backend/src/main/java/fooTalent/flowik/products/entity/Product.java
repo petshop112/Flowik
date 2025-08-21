@@ -76,10 +76,23 @@ public class Product {
     }
 
     public void updateProduct(ProductUpdated p, List<Provider> providersNew) {
-        if(p.name() != null) this.name = p.name();
-        if(p.description() != null) this.description = p.description();
-        if(p.amount() != null) this.amount = p.amount();
-        if(p.sellPrice() != null) this.sellPrice = p.sellPrice();
-        if(providersNew != null && !providersNew.isEmpty()) this.providers = providersNew;
+        if (p.name() != null && !p.name().isBlank()) {
+            this.name = p.name();
+        }
+        if (p.description() != null && !p.description().isBlank()) {
+            this.description = p.description();
+        }
+        if (p.category() != null && !p.category().isBlank()) {
+            this.category = p.category();
+        }
+        if (p.amount() != null && p.amount() > 0) {
+            this.amount = p.amount();
+        }
+        if (p.sellPrice() != null && p.sellPrice().compareTo(BigDecimal.ZERO) > 0) {
+            this.sellPrice = p.sellPrice();
+        }
+        if (providersNew != null && !providersNew.isEmpty()) {
+            this.providers = providersNew;
+        }
     }
 }

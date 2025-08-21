@@ -2,6 +2,7 @@ package fooTalent.flowik.products.service;
 
 import fooTalent.flowik.exceptions.BadRequestException;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
+import fooTalent.flowik.exceptions.util.FieldValidationError;
 import fooTalent.flowik.products.dto.ProducEditPrice;
 import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
@@ -10,7 +11,9 @@ import fooTalent.flowik.products.enums.AdjustType;
 import fooTalent.flowik.products.enums.AdjustValue;
 import fooTalent.flowik.products.repositories.ProductRepository;
 import fooTalent.flowik.provider.entity.Provider;
+import fooTalent.flowik.provider.repositories.ProviderRepository;
 import fooTalent.flowik.provider.service.ProviderService;
+import jakarta.validation.ValidationException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +29,7 @@ public class ProductService implements ProductServiceImpl{
 
     private final ProductRepository productRepository;
     private final ProviderService providerService;
+    private final ProviderRepository providerRepository;
 
     @Override
     @Transactional
@@ -58,28 +62,65 @@ public class ProductService implements ProductServiceImpl{
     public boolean existProduct(Long id) {
         return productRepository.existsById(id);
     }
-
     @Override
     @Transactional
     public Product updateProduct(Long id, ProductUpdated productUpdated) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto", "ID", id));
 
-        if(!this.existProduct(id)){
-            throw new ResourceNotFoundException("Producto", "ID", id);
-        }
+        List<FieldValidationError> errors = new ArrayList<>();
 
-        List<Long> idProviders = productUpdated.providerIds();
-        List<Provider> providers = new ArrayList<>();
-
-        for(Long idProvider : idProviders) {
-            Provider provider = providerService.getProviderById(idProvider);
-            if(provider == null){
-                throw new RuntimeException("Proveedor no encontrado con ID: " + idProvider);
+        if (productUpdated.name() != null && !productUpdated.name().isBlank()) {
+            if (productUpdated.name().length() < 2 || productUpdated.name().length() > 50) {
+               throw new BadRequestException
+                       ("El nombre del producto debe tener entre 2 y 50 caracteres.");
             }
-            providers.add(provider);
         }
 
-        Product product = getProductById(id);
+        if (productUpdated.description() != null && !productUpdated.description().isBlank()) {
+            if (productUpdated.description().length() < 10 || productUpdated.description().length() > 255) {
+                throw new BadRequestException
+                        ("La descripción del producto debe tener entre 10 y 255 caracteres.");
+            }
+        }
+
+        if (productUpdated.category() != null && !productUpdated.category().isBlank()) {
+            if (productUpdated.category().length() < 3 || productUpdated.category().length() > 50) {
+                throw new BadRequestException
+                        ("La categoría del producto debe tener entre 3 y 50 caracteres.");
+            }
+        }
+
+        if (productUpdated.amount() != null && productUpdated.amount() < 0) {
+            throw new BadRequestException
+                    ("La cantidad debe ser mayor o igual a 0.");
+        }
+
+        if (productUpdated.sellPrice() != null && productUpdated.sellPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException
+                    ("El precio debe ser mayor o igual a 0.00.");
+        }
+
+        List<Provider> providers = null;
+        if (productUpdated.providerIds() != null && !productUpdated.providerIds().isEmpty()) {
+            providers = providerRepository.findAllById(productUpdated.providerIds());
+            if (providers.isEmpty()) providers = null;
+        }
+
+        boolean anyUpdate = false;
+        if (productUpdated.name() != null && !productUpdated.name().isBlank()) anyUpdate = true;
+        if (productUpdated.description() != null && !productUpdated.description().isBlank()) anyUpdate = true;
+        if (productUpdated.category() != null && !productUpdated.category().isBlank()) anyUpdate = true;
+        if (productUpdated.amount() != null && productUpdated.amount() > 0) anyUpdate = true;
+        if (productUpdated.sellPrice() != null && productUpdated.sellPrice().compareTo(BigDecimal.ZERO) > 0) anyUpdate = true;
+        if (providers != null && !providers.isEmpty()) anyUpdate = true;
+        if (!anyUpdate) {
+            throw new BadRequestException
+                    ("No se modificó ningún campo del producto.");
+        }
+
         product.updateProduct(productUpdated, providers);
+
         return productRepository.save(product);
     }
 

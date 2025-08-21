@@ -116,4 +116,5 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null));
     }
+
 }

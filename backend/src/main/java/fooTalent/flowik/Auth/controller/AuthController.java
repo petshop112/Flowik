@@ -3,6 +3,9 @@ package fooTalent.flowik.Auth.controller;
 import fooTalent.flowik.Auth.dto.*;
 import fooTalent.flowik.Auth.repositories.VerificationTokenRepository;
 import fooTalent.flowik.Auth.service.AuthService;
+import fooTalent.flowik.config.SecurityUtil;
+import fooTalent.flowik.exceptions.ResourceNotFoundException;
+import fooTalent.flowik.products.entity.Product;
 import fooTalent.flowik.users.entity.User;
 import fooTalent.flowik.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +18,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,7 +64,7 @@ public class AuthController {
 
         ResponseCookie cookie = ResponseCookie.from("token", authResponse.token())
                 .httpOnly(true)
-                .secure(false) // en producion debe pasar a true
+                .secure(false) // CAMBIAR A TRUE EN PRODUCCION!!!
                 .path("/")
                 .maxAge(Duration.ofHours(2))
                 .sameSite("Strict")
@@ -108,9 +113,16 @@ public class AuthController {
     @Operation(summary = "Realizar el cambio de contraseña de un usuario")
     @PutMapping("/change_password")
     public ResponseEntity<AuthResponse> changePassword(
-            @Valid @RequestBody ChangePasswordRequest request,
-            Authentication authentication
+            @Valid @RequestBody ChangePasswordRequest request
     ) {
+        String email = SecurityUtil.getAuthenticatedEmail();
+        if (!email.equals(request.email())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new AuthResponse( null,
+                            "No estás autorizado a cambiar la contraseña de otro usuario.",
+                            false));
+        }
+
         AuthResponse response = authService.changePassword(request);
 
         if (!response.success()) {
@@ -123,6 +135,7 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
+
     @Operation(summary = "Solicitar recuperacion de contraseña.")
     @PostMapping("/forgot_password")
         public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
@@ -140,5 +153,20 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(response);
+    }
+    @Operation(summary = "Cerrar sesión (Logout)")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(false) // CAMBIAR A TRUE EN PRODUCCION!!!
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok().body("Sesión cerrada exitosamente");
     }
 }

@@ -59,7 +59,6 @@ public class ProductController {
     public ResponseEntity<ProductResponse> getProductById(@PathVariable("id_product") Long idProduct) {
 
         String email = SecurityUtil.getAuthenticatedEmail();
-
         Product existingProduct = productRepository.findById(idProduct)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto", "ID", idProduct));
 
@@ -73,10 +72,9 @@ public class ProductController {
     @Operation(summary = "Modificar un producto")
     @PutMapping("/{id_product}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id_product") Long idProduct,
-                                                         @RequestBody @Valid ProductUpdated productUpdated) {
+                                                         @RequestBody ProductUpdated productUpdated) {
 
         String email = SecurityUtil.getAuthenticatedEmail();
-
         Product existingProduct = productRepository.findById(idProduct)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto", "ID", idProduct));
 
@@ -150,7 +148,6 @@ public class ProductController {
     @Operation(summary = "Ajustar precios en productos por IDs")
     @PatchMapping("/")
     public ResponseEntity<List<ProductList>> editPrice(@RequestBody @Valid ProducEditPrice producEditPrice){
-
 
         String email = SecurityUtil.getAuthenticatedEmail();
 

@@ -34,7 +34,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
         if (
-                path.startsWith("/api/auth") ||
+                        path.startsWith("/api/auth/login") ||
+                        path.startsWith("/api/auth/register") ||
+                        path.startsWith("/api/auth/forgot_password") ||
                         path.startsWith("/swagger-ui") ||
                         path.startsWith("/v3/api-docs")
         ) {
@@ -75,7 +77,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String newToken = jwtService.generateToken(userDetails);
                     ResponseCookie cookie = ResponseCookie.from("token", newToken)
                             .httpOnly(true)
-                            .secure(false) // en producion debe pasar a true
+                            .secure(false) // CAMBIAR A TRUE EN PRODUCCION!!!
                             .path("/")
                             .maxAge(Duration.ofHours(2))
                             .sameSite("Strict")
