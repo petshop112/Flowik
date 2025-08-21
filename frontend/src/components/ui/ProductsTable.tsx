@@ -64,18 +64,16 @@ const ProductSavedModal = ({ description, isOpen, onClose }: ProductSavedModalPr
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
-    new Set()
-  );
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const { data: products, isLoading, error } = useGetAllProducts();
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
-  const { data: productToEdit, isLoading: isLoadingProductToEdit } =
-    useGetProductById(editingProductId || 0);
+  const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
+    editingProductId || 0
+  );
   const { data: providers } = useGetAllProviders();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] =
-    useState<ProductWithOptionalId | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
 
   const queryClient = useQueryClient();
   const createProductMutation = useCreateProduct();
@@ -216,10 +214,11 @@ const ProductsTable: React.FC = () => {
 
     if (!searchTerm.trim()) return products;
 
-    return products.filter((product: Product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.id.toString().includes(searchTerm)
+    return products.filter(
+      (product: Product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.id.toString().includes(searchTerm)
     );
   }, [products, searchTerm]);
 
@@ -233,7 +232,7 @@ const ProductsTable: React.FC = () => {
         <article className="mx-auto">
           {/* Header */}
           <header className="mb-6">
-            <h1 className="dark-blue mb-4 text-2xl font-semibold">Productos</h1>
+            <h1 className="text-dark-blue mb-4 text-2xl font-semibold">Productos</h1>
 
             {/* Barra de acciones */}
             <article className="flex flex-wrap items-center justify-between gap-3">
@@ -250,38 +249,28 @@ const ProductsTable: React.FC = () => {
                 >
                   <ToggleRight
                     size={18}
-                    className={`${
-                      hasSelectedProducts
-                        ? "text-tropical-cyan"
-                        : "text-gray-400"
-                    }`}
+                    className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
                   />
                   Desactivar
                 </button>
                 <button
                   className={`${
-                    hasSelectedProducts
-                      ? "text-deep-teal hover:bg-cyan-50"
-                      : "text-gray-400"
-                  } flex items-center gap-2 px-3 py-2 rounded-md transition-colors`}
+                    hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                  } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
                 >
                   <Trash2
                     size={18}
-                    className={`${
-                      hasSelectedProducts
-                        ? "text-tropical-cyan"
-                        : "text-gray-400"
-                    }`}
+                    className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
                   />
                   Eliminar
                 </button>
               </article>
 
-              <aside className="flex gap-3 items-center">
+              <aside className="flex items-center gap-3">
                 {/* Búsqueda */}
                 <article className="relative">
                   <Search
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-electric-blue"
+                    className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
                     size={18}
                   />
                   <input
@@ -289,21 +278,21 @@ const ProductsTable: React.FC = () => {
                     placeholder="Buscar"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 bg-white border border-dark-blue rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+                    className="border-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </article>
 
                 {/* Nuevo producto */}
                 <button
                   onClick={handleNewProduct}
-                  className="flex items-center gap-2 px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+                  className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
                 >
                   <Plus size={18} />
                   Nuevo producto
                 </button>
 
                 {/* Cambiar Precio */}
-                <button className="flex items-center gap-2 px-4 py-2 text-white bg-deep-teal hover:bg-teal-700 rounded-md transition-colors cursor-pointer ">
+                <button className="bg-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-teal-700">
                   <Calculator size={18} />
                   Cambiar Precio
                 </button>
@@ -312,11 +301,11 @@ const ProductsTable: React.FC = () => {
           </header>
 
           {/* Tabla */}
-          <main className="bg-white rounded-xl shadow-sm overflow-hidden border border-[#9cb7fc]">
+          <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
             <article className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-polar-mist">
-                  <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal [&>th]:border-l-2 [&>th]:border-white">
+                  <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
                     <th className="w-12 px-4 py-3">
                       <Check />
                     </th>
@@ -331,7 +320,7 @@ const ProductsTable: React.FC = () => {
                     <th className="w-8">Editar</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {filteredProducts.map((product: Product) => {
                     const stockStatus = getStockStatus(product.amount);
                     const stockColor = getStockColor(stockStatus);
@@ -340,40 +329,36 @@ const ProductsTable: React.FC = () => {
                     return (
                       <tr
                         key={product.id}
-                        className="hover:bg-gray-50 transition-colors border-b-2 border-gray-200 last:border-none"
+                        className="border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50"
                       >
                         <td className="px-5 py-3">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleProductSelection(product.id)}
-                            className="w-4 h-4 cursor-pointer rounded focus:ring-blue-500 text-blue-600"
+                            className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                           />
                         </td>
-                        <td className="px-4 text-sm text-gray-900 border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm text-gray-900">
                           {product.id}
                         </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
-                          {product.name}
-                        </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">{product.name}</td>
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">
                           {product.category}
                         </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">
                           {product.amount}
                         </td>
                         <td>
-                          <div
-                            className={`w-4 h-4 rounded-full mx-auto ${stockColor}`}
-                          ></div>
+                          <div className={`mx-auto h-4 w-4 rounded-full ${stockColor}`}></div>
                         </td>
-                        <td className="px-4 text-sm border-l-2 border-gray-200">
+                        <td className="border-l-2 border-gray-200 px-4 text-sm">
                           $ {product.sellPrice}
                         </td>
-                        <td className="text-center border-l-2 border-gray-200 w-fit">
+                        <td className="w-fit border-l-2 border-gray-200 text-center">
                           <button
                             onClick={() => handleEditProduct(product)}
-                            className="py-3 text-glacial-blue hover:text-blue-500 transition-colors cursor-pointer"
+                            className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
                           >
                             <Edit size={24} />
                           </button>
