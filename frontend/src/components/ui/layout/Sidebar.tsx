@@ -17,7 +17,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
         </div>
         <NavLink to="/" className={({ isActive }) => `${baseItem} ${isActive ? active : inactive}`}>
           <img
-            src="/public/icons/sidebar/Home.svg"
+            src="/icons/sidebar/Home.svg"
             className="shrink-0 text-current group-hover:text-current"
             alt=""
           />
@@ -30,7 +30,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           className={({ isActive }) => `${baseItem} ${isActive ? active : inactive}`}
         >
           <img
-            src="/public/icons/sidebar/productos.svg"
+            src="/icons/sidebar/productos.svg"
             className="shrink-0 text-current group-hover:text-current"
             alt=""
           />
@@ -42,7 +42,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           className={({ isActive }) => `${baseItem} ${isActive ? active : inactive}`}
         >
           <img
-            src="/public/icons/sidebar/clientes.svg"
+            src="/icons/sidebar/clientes.svg"
             className="shrink-0 text-current group-hover:text-current"
             alt=""
           />
@@ -55,7 +55,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           className={({ isActive }) => `${baseItem} ${isActive ? active : inactive}`}
         >
           <img
-            src="/public/icons/sidebar/provedores.svg"
+            src="/icons/sidebar/provedores.svg"
             className="shrink-0 text-current group-hover:text-current"
             alt=""
           />
