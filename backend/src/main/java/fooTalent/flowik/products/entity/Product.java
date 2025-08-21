@@ -30,17 +30,11 @@ public class Product {
     @Column(nullable = false, name = "buy_date")
     private LocalDate buyDate;
 
-    @Column(nullable = true)
-    private LocalDate expiration;
-
     @Column(nullable = false, length = 50)
     private String name;
 
     @Column(nullable = true, length = 255)
     private String description;
-
-    @Column(nullable = true)
-    private double weigth;
 
     @Column(nullable = false)
     private int amount;
@@ -72,10 +66,8 @@ public class Product {
 
     public Product(ProductRegister p, List<Provider> providers) {
         this.buyDate = LocalDate.now();
-        this.expiration = p.expiration();
         this.name = p.name();
         this.description = p.description();
-        this.weigth = p.weight();
         this.amount = p.amount();
         this.sellPrice = p.sellPrice();
         this.category = p.category();
@@ -84,10 +76,8 @@ public class Product {
     }
 
     public void updateProduct(ProductUpdated p, List<Provider> providersNew) {
-        if(p.expiration() != null) this.expiration = p.expiration();
         if(p.name() != null) this.name = p.name();
         if(p.description() != null) this.description = p.description();
-        if(p.weight() != null) this.weigth = p.weight();
         if(p.amount() != null) this.amount = p.amount();
         if(p.sellPrice() != null) this.sellPrice = p.sellPrice();
         if(providersNew != null && !providersNew.isEmpty()) this.providers = providersNew;

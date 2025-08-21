@@ -14,10 +14,9 @@ public record ProductResponse(
         String category,
         List<String> providers,
         Integer amount,
-        Double weigth,
         BigDecimal sellPrice,
         LocalDate buyDate,
-        LocalDate expiration
+        boolean isActive
 ) {
     public ProductResponse(Product p) {
         this(
@@ -29,10 +28,9 @@ public record ProductResponse(
                         .map(Provider::getName_provider)
                         .toList() : null,
                 (p != null) ? p.getAmount() : null,
-                (p != null) ? p.getWeigth() : null,
                 (p != null) ? p.getSellPrice() : null,
                 (p != null) ? p.getBuyDate() : null,
-                (p != null) ? p.getExpiration() : null
+                (p != null) ? p.isActive() : null
         );
     }
 }

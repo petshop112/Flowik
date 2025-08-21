@@ -8,15 +8,15 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record ProductList(
+
         Long id,
         String name,
         String category,
         Integer amount,
         BigDecimal sellPrice,
-        Double weigth,
         LocalDate buyDate,
-        LocalDate expiration,
-        List<String> providers
+        List<String> providers,
+        boolean isActive
 ) {
     public ProductList(Product p) {
         this(
@@ -25,13 +25,12 @@ public record ProductList(
                 p.getCategory(),
                 p.getAmount(),
                 p.getSellPrice(),
-                p.getWeigth(),
                 p.getBuyDate(),
-                p.getExpiration(),
                 p.getProviders()
                         .stream()
                         .map(Provider::getName_provider)
-                        .toList()
+                        .toList(),
+                p.isActive()
         );
     }
 }

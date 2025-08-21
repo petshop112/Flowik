@@ -1,9 +1,13 @@
 package fooTalent.flowik.products.service;
 
+import fooTalent.flowik.exceptions.BadRequestException;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
+import fooTalent.flowik.products.dto.ProducEditPrice;
 import fooTalent.flowik.products.dto.ProductRegister;
 import fooTalent.flowik.products.dto.ProductUpdated;
 import fooTalent.flowik.products.entity.Product;
+import fooTalent.flowik.products.enums.AdjustType;
+import fooTalent.flowik.products.enums.AdjustValue;
 import fooTalent.flowik.products.repositories.ProductRepository;
 import fooTalent.flowik.provider.entity.Provider;
 import fooTalent.flowik.provider.service.ProviderService;
@@ -11,6 +15,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,5 +98,55 @@ public class ProductService implements ProductServiceImpl{
     @Override
     public Integer getStockStatusById(Long id) {
         return productRepository.findAmountById(id);
+    }
+
+    @Override
+    public List<Product> editPrice(ProducEditPrice producEditPrice) {
+
+        BigDecimal value = producEditPrice.value();
+        AdjustType adjustType = producEditPrice.adjustType();
+        AdjustValue adjustValue = producEditPrice.adjustValue();
+
+        if(value.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("El valor debe ser mayor que 0.");
+        }
+
+        List<Long> idProducts = producEditPrice.IDs();
+        List<Product> products = productRepository.findAllById(idProducts);
+
+        for(Product product : products){
+
+            BigDecimal currentPrice = product.getSellPrice();
+            BigDecimal newPrice;
+
+            if(adjustValue.equals(AdjustValue.Percent)) {
+
+                BigDecimal percentValue = value.divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
+                BigDecimal adjustmentAmount = currentPrice.multiply(percentValue);
+
+                if(adjustType.equals(AdjustType.Aumentar)){
+                    newPrice = currentPrice.add(adjustmentAmount);
+                }else{
+                    newPrice = currentPrice.subtract(adjustmentAmount);
+                }
+
+            }else{ // AdjustValue.Money
+
+                if(adjustType.equals(AdjustType.Aumentar)){
+                    newPrice = currentPrice.add(value);
+                }else{
+                    newPrice = currentPrice.subtract(value);
+                }
+            }
+
+            if(newPrice.compareTo(BigDecimal.ZERO) < 0){
+                newPrice = BigDecimal.ZERO;
+            }
+
+            product.setSellPrice(newPrice);
+        }
+
+        this.productRepository.saveAll(products);
+        return products;
     }
 }

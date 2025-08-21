@@ -6,7 +6,6 @@ import fooTalent.flowik.products.dto.*;
 import fooTalent.flowik.products.entity.Product;
 import fooTalent.flowik.products.repositories.ProductRepository;
 import fooTalent.flowik.products.service.ProductServiceImpl;
-import fooTalent.flowik.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -25,11 +24,9 @@ public class ProductController {
 
     private final ProductServiceImpl productService;
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
-
 
     @Operation(summary = "Registrar un nuevo producto")
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Valid ProductRegister productRegister,
                                                          UriComponentsBuilder uriComponentsBuilder) {
 
@@ -44,11 +41,10 @@ public class ProductController {
     @Operation(summary = "Listar todos los productos del usuario autenticado")
     @GetMapping("/getProducts")
     public ResponseEntity<List<ProductList>> getAllProducts() {
+
         String email = SecurityUtil.getAuthenticatedEmail();
 
-
         List<ProductList> products = productService.getAllProducts().stream()
-
                 .filter(product -> product.getCreatedBy().equals(email))
                 .map(ProductList::new)
                 .toList();
@@ -93,6 +89,7 @@ public class ProductController {
     @Operation(summary = "Eliminar de forma definitiva múltiples productos por IDs")
     @DeleteMapping
     public ResponseEntity<Void> deleteProductsByIds(@RequestBody ProductIDs productIDs) {
+
         String email = SecurityUtil.getAuthenticatedEmail();
 
         List<Product> products = productRepository.findAllById(productIDs.IDs());
@@ -113,6 +110,7 @@ public class ProductController {
     @Operation(summary = "Desactivar múltiples productos (eliminado lógico) por IDs")
     @PatchMapping
     public ResponseEntity<Void> toggleProductsActiveState(@RequestBody ProductIDs productIDs) {
+
         String email = SecurityUtil.getAuthenticatedEmail();
 
         List<Product> products = productRepository.findAllById(productIDs.IDs());
@@ -133,7 +131,9 @@ public class ProductController {
     @Operation(summary = "Obtener el número de stock de un producto por IDs")
     @GetMapping("/stock/{id_product}")
     public ResponseEntity<StockProduct> getStockStatusById(@PathVariable("id_product") Long idProduct) {
+
         String email = SecurityUtil.getAuthenticatedEmail();
+
         Product existingProduct = productRepository.findById(idProduct)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto", "ID", idProduct));
 
@@ -143,5 +143,20 @@ public class ProductController {
 
         Integer amountProduct = productService.getStockStatusById(idProduct);
         return ResponseEntity.ok(new StockProduct(amountProduct));
+    }
+
+    @Operation(summary = "Ajustar precios en productos por IDs")
+    @PatchMapping("/")
+    public ResponseEntity<List<ProductList>> editPrice(@RequestBody @Valid ProducEditPrice producEditPrice){
+
+
+        String email = SecurityUtil.getAuthenticatedEmail();
+
+        List<ProductList> products = productService.editPrice(producEditPrice).stream()
+                .filter(product -> product.getCreatedBy().equals(email))
+                .map(product -> new ProductList(product))
+                .toList();
+
+        return ResponseEntity.ok(products);
     }
 }

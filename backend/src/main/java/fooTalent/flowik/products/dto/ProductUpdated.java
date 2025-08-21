@@ -1,10 +1,8 @@
 package fooTalent.flowik.products.dto;
 
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 public record ProductUpdated(
@@ -30,23 +28,9 @@ public record ProductUpdated(
         @Min(value = 0, message = "La cantidad debe ser mayor o igual a 0.")
         Integer amount,
 
-        @Nullable
-//        @NotNull(message = "El peso del producto es obligatorio.")
-        @DecimalMin(value = "0.01", inclusive = true, message = "El peso del producto debe ser mayor o igual a 0.01.")
-        Double weight,
-
         @NotNull(message = "El precio del producto es obligatorio.")
         @DecimalMin(value = "0.00", inclusive = true, message = "El precio debe ser mayor o igual a 0.00.")
         @Digits(integer = 10, fraction = 2, message = "El precio debe tener hasta 10 dígitos enteros y 2 decimales.")
-        BigDecimal sellPrice,
-
-        @Nullable
-//        @NotNull(message = "El fecha de vencimiento del producto es obligatoria.")
-        @FutureOrPresent(message = "La fecha de compra no puede ser una fecha pasada.")
-        LocalDate expiration
-
-        // Se habilitará en futuras versiones
-//        @Pattern(regexp = "^(http(s?):)([/|.|\\w|\\s|-])*\\.(?:jpg|jpeg|png)$", message = "La URL de la imagen no es válida.")
-//        String image;
+        BigDecimal sellPrice
 ){
 }
