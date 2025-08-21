@@ -68,7 +68,7 @@ public class AuthService {
 
         String verificationToken = UUID.randomUUID().toString();
         user.setVerificationToken(verificationToken);
-        user.setVerificationTokenExpiration(new Date(System.currentTimeMillis() + 86400000)); // Expira en 1 día
+        user.setVerificationTokenExpiration(new Date(System.currentTimeMillis() + 86400000));
         user.setIsActive(false);
 
         try {
@@ -137,6 +137,10 @@ public class AuthService {
         if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
             return new AuthResponse(null, "La nueva contraseña no puede ser igual a la anterior.", false);
         }
+        if(!request.newPassword().equals(request.confirmPassword())){
+            return new AuthResponse(null, "El campo nueva contraseña y confirmar contraseñas no coinciden.", false);
+        }
+
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
