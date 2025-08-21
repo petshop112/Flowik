@@ -28,8 +28,9 @@ import ProductSavedModal from '../modal/ProductSavedModal';
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
-  const { data: products, isLoading, error } = useGetAllProducts();
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { data: products, isLoading, error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
     editingProductId || 0
   );
@@ -45,6 +46,7 @@ const ProductsTable: React.FC = () => {
   const [isSavingProduct, setIsSavingProduct] = useState(false);
 
   const hasSelectedProducts = selectedProductIds.size > 0;
+  const itemsPerPage = 10;
 
   const categories = useMemo((): string[] => {
     if (!products?.length) {
@@ -71,6 +73,10 @@ const ProductsTable: React.FC = () => {
       setEditingProduct(productToEdit);
     }
   }, [productToEdit]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const toggleProductSelection = (id: number) => {
     setSelectedProductIds((prevIds) => {
@@ -185,6 +191,26 @@ const ProductsTable: React.FC = () => {
     );
   }, [products, searchTerm]);
 
+  const totalProducts = filteredProducts.length;
+  const totalPages = Math.ceil(totalProducts / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   if (isLoading) return <p>Cargando productos...</p>;
 
   if (error) return <p>Error al cargar productos: {error.message}</p>;
@@ -240,6 +266,7 @@ const ProductsTable: React.FC = () => {
                     type="text"
                     placeholder="Buscar por nombre o categoría"
                     value={searchTerm}
+                    data-test="search-input"
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="border-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
@@ -284,7 +311,7 @@ const ProductsTable: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {filteredProducts.map((product: Product) => {
+                  {currentProducts.map((product: Product) => {
                     const stockStatus = getStockStatus(product.amount);
                     const stockColor = getStockColor(stockStatus);
                     const isSelected = selectedProductIds.has(product.id);
@@ -341,25 +368,48 @@ const ProductsTable: React.FC = () => {
           </main>
 
           {/* Paginación */}
-          <article className="flex justify-center py-3">
-            <nav className="flex items-center justify-between">
-              <ul className="text-dark-blue flex items-center gap-2">
-                <li>
-                  <button className="py-2">
-                    <ChevronLeft size={32} />
-                  </button>
-                </li>
-                <li>
-                  <button className="text-xl">1</button>
-                </li>
-                <li>
-                  <button className="py-2">
-                    <ChevronRight size={32} />
-                  </button>
-                </li>
-              </ul>
-            </nav>
-          </article>
+          {totalPages > 1 && (
+            <article className="flex justify-center py-3">
+              <nav className="flex items-center justify-between">
+                <ul className="text-dark-blue flex items-center gap-2">
+                  <li>
+                    <button
+                      className={`py-2 ${currentPage === 1 ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft size={32} />
+                    </button>
+                  </li>
+
+                  {getPageNumbers().map((pageNumber) => (
+                    <li key={pageNumber}>
+                      <button
+                        className={`rounded-md px-3 py-2 text-lg transition-colors ${
+                          currentPage === pageNumber
+                            ? 'font-semibold'
+                            : 'hover:text-dark-blue cursor-pointer text-neutral-400/70'
+                        }`}
+                        onClick={() => handlePageChange(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    </li>
+                  ))}
+
+                  <li>
+                    <button
+                      className={`py-2 ${currentPage === totalPages ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight size={32} />
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </article>
+          )}
 
           <InventoryLegend />
         </article>

@@ -58,44 +58,48 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     if (isOpen) {
       setErrors({});
       setTouched({});
-
-      if (product) {
-        let providerIds: string[] = [];
-        if (product.providerIds && Array.isArray(product.providerIds)) {
-          providerIds = product.providerIds.map((id) => String(id));
-        } else if (product.providers && Array.isArray(product.providers)) {
-          providerIds = product.providers
-            .map((providerName) => {
-              const found = providers.find((p) => p.name_provider === providerName);
-              return found ? found.id_provider.toString() : '';
-            })
-            .filter((id) => id !== '');
-        }
-
-        setFormData({
-          name: product.name || '',
-          category: product.category || '',
-          description: product.description || '',
-          amount: product.amount || 0,
-          sellPrice: product.sellPrice || 0,
-          buyDate: formatDateForInput(product.buyDate) || getCurrentDate(),
-          expiration: formatDateForInput(product.expiration) || '',
-          providerIds: providerIds,
-        });
-      } else {
-        setFormData({
-          name: '',
-          category: '',
-          description: '',
-          amount: 0,
-          sellPrice: 0,
-          buyDate: getCurrentDate(),
-          expiration: '',
-          providerIds: [],
-        });
-      }
+    } else {
+      setFormData({
+        name: '',
+        category: '',
+        description: '',
+        amount: 0,
+        sellPrice: 0,
+        buyDate: getCurrentDate(),
+        expiration: '',
+        providerIds: [],
+      });
+      setErrors({});
+      setTouched({});
     }
-  }, []);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && product) {
+      let providerIds: string[] = [];
+      if (product.providerIds && Array.isArray(product.providerIds)) {
+        providerIds = product.providerIds.map((id) => String(id));
+      } else if (product.providers && Array.isArray(product.providers)) {
+        providerIds = product.providers
+          .map((providerName) => {
+            const found = providers.find((p) => p.name_provider === providerName);
+            return found ? found.id_provider.toString() : '';
+          })
+          .filter((id) => id !== '');
+      }
+
+      setFormData({
+        name: product.name || '',
+        category: product.category || '',
+        description: product.description || '',
+        amount: product.amount || 0,
+        sellPrice: product.sellPrice || 0,
+        buyDate: formatDateForInput(product.buyDate) || getCurrentDate(),
+        expiration: formatDateForInput(product.expiration) || '',
+        providerIds: providerIds,
+      });
+    }
+  }, [isOpen, product]);
 
   const validateField = (fieldName: ValidatableFields, value: string | number): boolean => {
     const newErrors = { ...errors };
@@ -265,6 +269,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <input
                 type="text"
                 value={formData.name}
+                data-test="product-name"
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 onBlur={() => validateField('name', formData.name)}
                 placeholder={isEditMode ? formData.name : 'Nombre producto'}
@@ -282,6 +287,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <textarea
                 rows={1}
                 value={formData.description}
+                data-test="product-description"
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 onBlur={() => validateField('description', formData.description)}
                 placeholder={isEditMode ? formData.description : 'Especificaciones'}
@@ -301,6 +307,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 <label className="text-dark-blue mb-2 block text-sm font-medium">Categoría*</label>
                 <select
                   value={formData.category}
+                  data-test="product-category"
                   onChange={(e) => handleInputChange('category', e.target.value)}
                   onBlur={() => validateField('category', formData.category)}
                   className="w-full rounded-sm border border-gray-300 px-3 py-2 text-gray-500 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
@@ -318,6 +325,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <div>
                 <label className="text-dark-blue mb-2 block text-sm font-medium">Proveedor</label>
                 <select
+                  data-test="product-provider"
                   value={
                     formData.providerIds && formData.providerIds.length > 0
                       ? formData.providerIds[0]
@@ -357,6 +365,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   type="number"
                   min="0"
                   value={formData.amount || ''}
+                  data-test="product-amount"
                   onChange={(e) => handleInputChange('amount', parseInt(e.target.value) || 0)}
                   placeholder={isEditMode ? formData.amount.toString() : 'Uds.'}
                   className={`${
@@ -374,6 +383,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   step="0.01"
                   min="0.01"
                   value={formData.sellPrice || ''}
+                  data-test="product-sell-price"
                   onChange={(e) => handleInputChange('sellPrice', parseFloat(e.target.value) || 0)}
                   onBlur={() => validateField('sellPrice', formData.sellPrice)}
                   placeholder={isEditMode ? formData.sellPrice.toString() : '000.000'}
