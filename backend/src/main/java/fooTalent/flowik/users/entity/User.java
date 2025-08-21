@@ -1,6 +1,5 @@
 package fooTalent.flowik.users.entity;
 
-import fooTalent.flowik.Auth.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
