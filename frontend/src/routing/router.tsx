@@ -2,14 +2,16 @@ import { createBrowserRouter } from 'react-router-dom';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import Home from '../pages/home/home';
-import NotFoundPage from '../pages/NotFoundPage';
-import Dashboard from '../pages/Dashboard';
+import NotFoundPage from '../pages/notfound/NotFoundPage';
+// import Dashboard from '../pages/Dashboard';
+import Client from '../pages/clients/Client';
 import { PrivateRoute } from '../components/features/PrivateRoute';
 import Products from '../pages/products/Products';
 import RecoverPassword from '../pages/auth/RecoverPassword';
 import VerifyEmail from '../pages/auth/VerifyEmail';
 import NewPassword from '../pages/auth/NewPassword';
 import PasswordReset from '../pages/auth/PasswordReset';
+import DashboardLayoutRoute from '../components/ui/layout/DashboardLayoutRoute';
 
 const router = createBrowserRouter([
   {
@@ -18,9 +20,16 @@ const router = createBrowserRouter([
       {
         element: <PrivateRoute />,
         children: [
-          { path: '/', element: <Home /> },
-          { path: 'dashboard', element: <Dashboard /> },
-          { path: 'products', element: <Products /> },
+          {
+            element: <DashboardLayoutRoute />, // hereda Header + Sidebar
+            children: [
+              { index: true, element: <Home /> },
+              // { path: 'dashboard', element: <Dashboard /> },
+              { path: 'products', element: <Products /> },
+              { path: 'clients', element: <Client /> },
+              // { path: 'providers', element: <Providers /> },
+            ],
+          },
         ],
       },
       { path: 'login', element: <Login /> },
