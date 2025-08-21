@@ -91,7 +91,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOriginPatterns(List.of(
-                "https://misinomascotas.netlify.app",
+                "https://flowik.netlify.app",
                 "http://localhost:8080",
                 "http://localhost:5173",
                 "http://localhost:5174"

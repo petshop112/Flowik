@@ -10,5 +10,4 @@ public class FlowikApplication {
 		SpringApplication.run(FlowikApplication.class, args);
 		System.out.println("Versión de Java en ejecución: " + Runtime.version());
 	}
-
 }

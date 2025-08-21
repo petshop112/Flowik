@@ -1,9 +1,8 @@
 package fooTalent.flowik.products.service;
 
-import fooTalent.flowik.products.dto.ProductIDs;
-import fooTalent.flowik.products.dto.ProductRegister;
-import fooTalent.flowik.products.dto.ProductUpdated;
+import fooTalent.flowik.products.dto.*;
 import fooTalent.flowik.products.entity.Product;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -24,4 +23,6 @@ public interface ProductServiceImpl {
     void toggleProductsActiveState(List<Long> productIDs);
 
     Integer getStockStatusById(Long id);
+
+    List<Product> editPrice(@Valid ProducEditPrice producEditPrice);
 }
