@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { URL_DEPLOY } from './baseUrl';
+import { URL_DEPLOY } from './baseurl';
 
 // Interceptor para manejar token expirado (401/403)
 axios.interceptors.response.use(
