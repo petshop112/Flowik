@@ -12,6 +12,7 @@ type Props = {
   onSave: (values: ClientFormValues) => Promise<void> | void;
   isSaving?: boolean;
   client?: any | null;
+  readOnly?: boolean;
 };
 
 type UIState = {
@@ -34,7 +35,14 @@ const EMPTY: UIState = {
   notes: '',
 };
 
-export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, client }: Props) {
+export default function ClientFormModal({
+  isOpen,
+  onClose,
+  onSave,
+  isSaving,
+  client,
+  readOnly = false,
+}: Props) {
   const [form, setForm] = useState<UIState>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const isEditMode = !!client;
@@ -108,7 +116,9 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
       <div className="w-full max-w-4xl overflow-hidden rounded-lg bg-white p-6 shadow-xl">
         <header className="flex items-start justify-between border-b border-b-gray-400 px-8 py-6">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">ID – Nuevo Cliente</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {readOnly ? 'Ver Cliente' : isEditMode ? 'Editar Cliente' : 'ID – Nuevo Cliente'}
+            </h2>
             <div className="mt-3">
               <span className="border-b-2 border-blue-600 pb-1 text-sm font-medium text-blue-700">
                 Detalles del cliente
@@ -116,7 +126,6 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
             </div>
           </div>
         </header>
-
         <form onSubmit={handleSubmit} className="px-8 py-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
@@ -129,6 +138,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
                   placeholder="Nombre"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  disabled={readOnly}
                 />
                 {errors.firstName && (
                   <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
@@ -144,6 +154,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
                   placeholder="Apellidos"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  disabled={readOnly}
                 />
                 {errors.lastName && <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>}
               </div>
@@ -157,6 +168,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
                   onChange={(e) => setField('document_type', e.target.value)}
                   placeholder="DNI o CUIT"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={readOnly}
                 />
               </div>
 
@@ -167,6 +179,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
                   onChange={(e) => setField('notes', e.target.value)}
                   placeholder="Notas u observaciones"
                   className="min-h-[88px] w-full resize-y rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={readOnly}
                 />
               </div>
             </div>
@@ -181,6 +194,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
                   placeholder="Número de teléfono"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  disabled={readOnly}
                 />
                 {errors.telephone_client && (
                   <p className="mt-1 text-sm text-red-500">{errors.telephone_client}</p>
@@ -196,6 +210,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
                   onChange={(e) => setField('direction_client', e.target.value)}
                   placeholder="Dirección"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={readOnly}
                 />
               </div>
 
@@ -211,6 +226,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
                   placeholder="Email"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  disabled={readOnly}
                 />
                 {errors.email_client && (
                   <p className="mt-1 text-sm text-red-500">{errors.email_client}</p>
@@ -228,18 +244,19 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, cli
             >
               Cancelar
             </button>
-
-            <button
-              type="submit"
-              disabled={!canSave || isSaving}
-              className={`h-12 w-[166px] rounded-md font-semibold ${
-                !canSave || isSaving
-                  ? 'cursor-not-allowed bg-gray-200 text-gray-400'
-                  : 'bg-[#F1F9FE] text-blue-700 hover:bg-[#E9F3FF]'
-              }`}
-            >
-              {isSaving ? 'Guardando…' : 'Guardar'}
-            </button>
+            {!readOnly && (
+              <button
+                type="submit"
+                disabled={!canSave || isSaving}
+                className={`h-12 w-[166px] rounded-md font-semibold ${
+                  !canSave || isSaving
+                    ? 'cursor-not-allowed bg-gray-200 text-gray-400'
+                    : 'bg-[#F1F9FE] text-blue-700 hover:bg-[#E9F3FF]'
+                }`}
+              >
+                {isSaving ? 'Guardando…' : 'Guardar'}
+              </button>
+            )}
           </div>
         </form>
       </div>
