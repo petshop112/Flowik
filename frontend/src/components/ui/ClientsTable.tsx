@@ -10,7 +10,7 @@ import {
   ToggleRight,
   Bell,
 } from 'lucide-react';
-import { useGetAllClients, useCreateClient } from '../../hooks/useClient';
+import { useGetAllClients, useCreateClient, useEditClient } from '../../hooks/useClient';
 import type { Client, ClientFormValues } from '../../types/clients';
 import ClientFormModal from '../modal/clientFormModal';
 import { DebtLegend } from './DebtLegend';
@@ -59,8 +59,10 @@ const ClientsTable: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [newClientId, setNewClientId] = useState<number | null>(null);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const createClientMutation = useCreateClient();
-
+  const editClientMutation = useEditClient();
+  const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,18 +100,35 @@ const ClientsTable: React.FC = () => {
     });
   };
 
-  const handleNewClient = () => setIsModalOpen(true);
+  const handleNewClient = () => {
+    setEditingClient(null);
+    setIsModalOpen(true);
+  };
   const handleSaveClient = async (values: ClientFormValues) => {
     try {
       setIsSaving(true);
-      const newClient = await createClientMutation.mutateAsync(values);
-      setNewClientId(newClient.id_client);
+      let result;
+      if (editingClient) {
+        if (typeof editingClient.id_client !== 'number') throw new Error('No hay id_client');
+        result = await editClientMutation.mutateAsync({
+          id_client: editingClient.id_client,
+          values,
+        });
+        setLastActionWasEdit(true);
+        setNewClientId(null);
+      } else {
+        result = await createClientMutation.mutateAsync(values);
+        setLastActionWasEdit(false);
+        setNewClientId(result?.id_client ?? null);
+      }
       setShowSuccessModal(true);
       setIsModalOpen(false);
+      setEditingClient(null);
     } finally {
       setIsSaving(false);
     }
   };
+
   const handleDeactivate = () => {
     // TODO: endpoint desactivar
     console.log('Desactivar IDs:', Array.from(selectedClientIds));
@@ -119,18 +138,50 @@ const ClientsTable: React.FC = () => {
     console.log('Administrar deuda');
   };
 
-  if (isLoading) return <p>Cargando clientes...</p>;
-  if (error) return <p>Error al cargar clientes: {(error as Error).message}</p>;
+  if (isLoading) {
+    return (
+      <section className="bg-custom-mist h-full w-full p-6">
+        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
+          <div className="relative mb-4 h-12 w-12">
+            <div className="h-12 w-12 rounded-full border-4 border-gray-300"></div>
+            <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+          <p className="text-gray-600">Cargando clientes...</p>
+        </article>
+      </section>
+    );
+  }
+  if (error) {
+    return (
+      <section className="bg-custom-mist h-full w-full p-6">
+        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
+          <div className="mb-4 flex items-center justify-center">
+            <span className="text-4xl text-red-500">!</span>
+          </div>
+          <p className="font-semibold text-red-600">
+            Error al cargar clientes: {(error as Error).message}
+          </p>
+        </article>
+      </section>
+    );
+  }
 
   return (
     <>
-      {showSuccessModal && newClientId && (
+      {showSuccessModal && (
         <SuccessModal
           isOpen={showSuccessModal}
-          onClose={() => setShowSuccessModal(false)}
-          id={newClientId}
-          title="¡Nuevo cliente agregado!"
-          description="La ficha del cliente se ha dado de alta correctamente y ya está disponible en la lista de clientes."
+          onClose={() => {
+            setShowSuccessModal(false);
+            setNewClientId(null);
+          }}
+          title={lastActionWasEdit ? '¡Cambios guardados!' : '¡Nuevo cliente agregado!'}
+          description={
+            lastActionWasEdit
+              ? 'Los datos se han guardado correctamente.'
+              : 'La ficha del cliente se ha dado de alta correctamente y ya está disponible en la lista de clientes.'
+          }
+          {...(!lastActionWasEdit && newClientId ? { id: newClientId } : {})}
         />
       )}
       <section className="bg-custom-mist w-full p-6">
@@ -212,7 +263,6 @@ const ClientsTable: React.FC = () => {
             </article>
           </header>
 
-          {/* Tabla */}
           <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
             <article className="overflow-x-auto">
               <table className="w-full">
@@ -221,8 +271,7 @@ const ClientsTable: React.FC = () => {
                     <th className="w-12 px-4 py-3">
                       <Check />
                     </th>
-                    <th>ID cliente</th>
-                    <th>Nombre Apellidos</th>
+                    <th>Nombre Apellido</th>
                     <th>Contacto</th>
                     <th>Total deuda</th>
                     <th>Modificación deuda</th>
@@ -260,9 +309,6 @@ const ClientsTable: React.FC = () => {
                         </td>
 
                         <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          {client.id_client}
-                        </td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
                           {client.name_client}
                         </td>
                         <td className="border-l-2 border-gray-200 px-4 text-sm">
@@ -289,7 +335,13 @@ const ClientsTable: React.FC = () => {
                         </td>
 
                         <td className="w-fit border-l-2 border-gray-200 text-center">
-                          <button className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500">
+                          <button
+                            onClick={() => {
+                              setEditingClient(client);
+                              setIsModalOpen(true);
+                            }}
+                            className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
+                          >
                             <Edit size={24} />
                           </button>
                         </td>
@@ -355,9 +407,13 @@ const ClientsTable: React.FC = () => {
 
         <ClientFormModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingClient(null);
+          }}
           onSave={handleSaveClient}
           isSaving={isSaving || createClientMutation.isPending}
+          client={editingClient}
         />
       </section>
     </>
