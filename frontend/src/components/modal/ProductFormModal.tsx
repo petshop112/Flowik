@@ -99,6 +99,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         providerIds: providerIds,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, product]);
 
   const validateField = (fieldName: ValidatableFields, value: string | number): boolean => {
