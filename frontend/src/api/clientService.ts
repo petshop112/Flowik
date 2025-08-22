@@ -4,10 +4,12 @@ import type { Client, ClientFormValues } from '../types/clients';
 
 export const getAllClients = async (id_user: number, token: string): Promise<Client[]> => {
   try {
+    console.log('[getAllClients] API_BASE_URL:', API_BASE_URL);
     const { data } = await axios.get(`${API_BASE_URL}client/${id_user}`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
+    console.log('[getAllClients] data:', data);
     return data;
   } catch (err) {
     const e = err as AxiosError;
@@ -30,4 +32,22 @@ export const createClient = async (payload: ClientFormValues, token: string): Pr
   }
 };
 
-export const clientService = { getAllClients, createClient };
+export const editClient = async (
+  id_user: number,
+  payload: ClientFormValues,
+  token: string
+): Promise<Client> => {
+  try {
+    const { data } = await axios.put(`${API_BASE_URL}client/${id_user}`, payload, {
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return data;
+  } catch (err) {
+    const e = err as AxiosError;
+    console.error('[editClient] Error:', e.response?.data ?? e.message);
+    throw err;
+  }
+};
+
+export const clientService = { getAllClients, createClient, editClient };

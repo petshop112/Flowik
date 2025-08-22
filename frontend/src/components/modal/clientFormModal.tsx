@@ -59,24 +59,49 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
     const next: Errors = { ...errors };
     const req = (ok: boolean, msg: string) => (ok ? delete next[name] : (next[name] = msg));
 
-    if (name === 'firstName') req(!!form.firstName.trim(), 'El nombre es obligatorio.');
-    if (name === 'lastName') req(!!form.lastName.trim(), 'Los apellidos son obligatorios.');
-    if (name === 'telephone_client')
-      req(form.telephone_client.trim().length >= 6, 'El teléfono es inválido.');
+    if (name === 'firstName') {
+      const value = form.firstName.trim();
+      if (!value) {
+        req(false, 'El nombre es obligatorio.');
+      } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/.test(value)) {
+        req(false, 'El nombre solo puede contener letras y espacios.');
+      } else {
+        req(true, '');
+      }
+    }
+    if (name === 'lastName') {
+      const value = form.lastName.trim();
+      if (!value) {
+        req(false, 'Los apellidos son obligatorios.');
+      } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/.test(value)) {
+        req(false, 'El apellido solo puede contener letras y espacios.');
+      } else {
+        req(true, '');
+      }
+    }
+    if (name === 'telephone_client') {
+      const tel = form.telephone_client.trim();
+      req(/^\d{6,15}$/.test(tel), 'El teléfono debe tener entre 6 y 15 dígitos.');
+    }
     if (name === 'email_client')
       req(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email_client.trim()), 'El correo es inválido.');
 
     if (name === 'document_type') {
-      req(!!(form.document_type ?? '').trim(), 'El tipo de documento es obligatorio.');
+      const doc = (form.document_type ?? '').trim();
+      if (doc.length > 0) {
+        req(/^\d{7,11}$/.test(doc), 'El DNI/CUIT debe tener entre 7 y 11 números.');
+      } else {
+        delete next[name]; // Opcional, no mostrar error si está vacío
+      }
     }
     if (name === 'direction_client') {
       const dir = (form.direction_client ?? '').trim();
-      const okLen = dir.length >= 10 && dir.length <= 100;
-      const okChars = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ]+$/.test(dir);
-      req(
-        okLen && okChars,
-        'La dirección debe tener 10–100 caracteres y solo letras/números/espacios.'
-      );
+      if (dir.length > 0) {
+        const cant_letras = dir.length >= 10 && dir.length <= 100;
+        req(cant_letras, 'La dirección debe tener entre 10 y 100 caracteres.');
+      } else {
+        delete next[name]; // Opcional, no mostrar error si está vacío
+      }
     }
 
     setErrors(next);
@@ -109,11 +134,9 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
     !!form.firstName.trim() &&
     !!form.lastName.trim() &&
     !!form.telephone_client.trim() &&
-    !!form.email_client.trim() &&
-    !!(form.document_type ?? '').trim() &&
-    !!(form.direction_client ?? '').trim();
+    !!form.email_client.trim();
 
-  const canSave = requiredOk && Object.keys(errors).length == 0;
+  const canSave = requiredOk && Object.keys(errors).length === 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,8 +155,8 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
 
   return (
     <article className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-4xl overflow-hidden rounded-lg bg-white shadow-xl">
-        <header className="flex items-start justify-between border-b px-8 py-6">
+      <div className="w-full max-w-4xl overflow-hidden rounded-lg bg-white p-6 shadow-xl">
+        <header className="flex items-start justify-between border-b border-b-gray-400 px-8 py-6">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">ID – Nuevo Cliente</h2>
             <div className="mt-3">
@@ -142,7 +165,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
               </span>
             </div>
           </div>
-          <button
+          {/* <button
             type="button"
             disabled
             title="Próximamente"
@@ -152,7 +175,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
               <img src="/icons/client/deudamodal.svg" alt="" className="h-6 w-6" />
             </span>
             <span className="text-[18px] leading-none">Agregar deuda</span>
-          </button>
+          </button> */}
         </header>
 
         <form onSubmit={handleSubmit} className="px-8 py-6">
