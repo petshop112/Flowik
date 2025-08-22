@@ -77,9 +77,10 @@ export const useDeleteProduct = () => {
   const token = getUserTokenFromStorage();
 
   return useMutation({
-    mutationFn: (id: number) => {
+    mutationFn: (ids: number[]) => {
       if (!token) throw new Error('No hay token de autenticación');
-      return productService.deleteProduct(id, token);
+      if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a eliminar');
+      return productService.deleteProduct(ids, token);
     },
   });
 };
