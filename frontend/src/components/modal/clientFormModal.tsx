@@ -1,4 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import {
+  validateField,
+  validateAll as validateAllFields,
+} from '../../utils/validation/clientRules';
+import type { Errors } from '../../utils/validation/clientRules';
 import type { ClientFormValues } from '../../types/clients';
 
 type Props = {
@@ -6,6 +11,7 @@ type Props = {
   onClose: () => void;
   onSave: (values: ClientFormValues) => Promise<void> | void;
   isSaving?: boolean;
+  client?: any | null;
 };
 
 type UIState = {
@@ -18,15 +24,6 @@ type UIState = {
   notes: string;
 };
 
-type Errors = {
-  firstName?: string;
-  lastName?: string;
-  telephone_client?: string;
-  email_client?: string;
-  direction_client?: string;
-  document_type?: string;
-};
-
 const EMPTY: UIState = {
   firstName: '',
   lastName: '',
@@ -37,16 +34,29 @@ const EMPTY: UIState = {
   notes: '',
 };
 
-export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: Props) {
+export default function ClientFormModal({ isOpen, onClose, onSave, isSaving, client }: Props) {
   const [form, setForm] = useState<UIState>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
+  const isEditMode = !!client;
 
   useEffect(() => {
     if (!isOpen) {
       setForm(EMPTY);
       setErrors({});
+    } else if (isEditMode && client) {
+      const [firstName, ...lastArr] = (client.name_client || '').split(' ');
+      const lastName = lastArr.join(' ');
+      setForm({
+        firstName: firstName || '',
+        lastName: lastName || '',
+        telephone_client: client.telephone_client || '',
+        direction_client: client.direction_client || '',
+        document_type: client.document_type || '',
+        email_client: client.email_client || '',
+        notes: client.notes || '',
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, client, isEditMode]);
 
   if (!isOpen) return null;
 
@@ -54,79 +64,19 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
     setForm((f) => ({ ...f, [name]: value }));
   };
 
-  // tuve que validar para rerenderizar (NO se llama en el render)
   const validateOne = (name: keyof Errors) => {
-    const next: Errors = { ...errors };
-    const req = (ok: boolean, msg: string) => (ok ? delete next[name] : (next[name] = msg));
-
-    if (name === 'firstName') {
-      const value = form.firstName.trim();
-      if (!value) {
-        req(false, 'El nombre es obligatorio.');
-      } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/.test(value)) {
-        req(false, 'El nombre solo puede contener letras y espacios.');
-      } else {
-        req(true, '');
-      }
-    }
-    if (name === 'lastName') {
-      const value = form.lastName.trim();
-      if (!value) {
-        req(false, 'Los apellidos son obligatorios.');
-      } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/.test(value)) {
-        req(false, 'El apellido solo puede contener letras y espacios.');
-      } else {
-        req(true, '');
-      }
-    }
-    if (name === 'telephone_client') {
-      const tel = form.telephone_client.trim();
-      req(/^\d{6,15}$/.test(tel), 'El teléfono debe tener entre 6 y 15 dígitos.');
-    }
-    if (name === 'email_client')
-      req(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email_client.trim()), 'El correo es inválido.');
-
-    if (name === 'document_type') {
-      const doc = (form.document_type ?? '').trim();
-      if (doc.length > 0) {
-        req(/^\d{7,11}$/.test(doc), 'El DNI/CUIT debe tener entre 7 y 11 números.');
-      } else {
-        delete next[name]; // Opcional, no mostrar error si está vacío
-      }
-    }
-    if (name === 'direction_client') {
-      const dir = (form.direction_client ?? '').trim();
-      if (dir.length > 0) {
-        const cant_letras = dir.length >= 10 && dir.length <= 100;
-        req(cant_letras, 'La dirección debe tener entre 10 y 100 caracteres.');
-      } else {
-        delete next[name]; // Opcional, no mostrar error si está vacío
-      }
-    }
-
-    setErrors(next);
+    setErrors((prev) => validateField(name, form, prev));
   };
 
   const validateAll = () => {
-    (
-      [
-        'firstName',
-        'lastName',
-        'telephone_client',
-        'email_client',
-        'document_type',
-        'direction_client',
-      ] as (keyof Errors)[]
-    ).forEach(validateOne);
-
+    const errs = validateAllFields(form);
+    setErrors(errs);
     return (
-      Object.keys(errors).length === 0 &&
+      Object.keys(errs).length === 0 &&
       !!form.firstName.trim() &&
       !!form.lastName.trim() &&
       !!form.telephone_client.trim() &&
-      !!form.email_client.trim() &&
-      !!(form.document_type ?? '').trim() &&
-      !!(form.direction_client ?? '').trim()
+      !!form.email_client.trim()
     );
   };
 
@@ -165,17 +115,6 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
               </span>
             </div>
           </div>
-          {/* <button
-            type="button"
-            disabled
-            title="Próximamente"
-            className="inline-flex items-center justify-center gap-2 rounded-md border-2 border-[#86DDE0] bg-[#E9FCFC] px-3 py-1.5 text-[#52B7BA] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <span className="inline-flex h-6 w-6 items-center justify-center border-[#86DDE0]">
-              <img src="/icons/client/deudamodal.svg" alt="" className="h-6 w-6" />
-            </span>
-            <span className="text-[18px] leading-none">Agregar deuda</span>
-          </button> */}
         </header>
 
         <form onSubmit={handleSubmit} className="px-8 py-6">
@@ -211,7 +150,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
 
               <div>
                 <label className="mb-1 block text-sm font-semibold text-blue-800">
-                  DNI / CUIT <span className="font-normal text-gray-400">(Opcional)</span>
+                  DNI / CUIT <span className="font-normal text-gray-400"></span>
                 </label>
                 <input
                   value={form.document_type}
@@ -250,7 +189,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
 
               <div>
                 <label className="mb-1 block text-sm font-semibold text-blue-800">
-                  Dirección <span className="font-normal text-gray-400">(Opcional)</span>
+                  Dirección <span className="font-normal text-gray-400"></span>
                 </label>
                 <input
                   value={form.direction_client}
