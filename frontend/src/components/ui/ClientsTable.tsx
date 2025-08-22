@@ -9,7 +9,6 @@ import {
   Plus,
   ToggleRight,
   Bell,
-  FileText,
 } from 'lucide-react';
 import { useGetAllClients, useCreateClient } from '../../hooks/useClient';
 import type { Client, ClientFormValues } from '../../types/clients';

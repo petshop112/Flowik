@@ -40,13 +40,11 @@ const EMPTY: UIState = {
 export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: Props) {
   const [form, setForm] = useState<UIState>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!isOpen) {
       setForm(EMPTY);
       setErrors({});
-      setTouched({});
     }
   }, [isOpen]);
 
@@ -54,7 +52,6 @@ export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: P
 
   const setField = (name: keyof UIState, value: string) => {
     setForm((f) => ({ ...f, [name]: value }));
-    setTouched((t) => ({ ...t, [name]: true }));
   };
 
   // tuve que validar para rerenderizar (NO se llama en el render)
