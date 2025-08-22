@@ -24,50 +24,46 @@ import { InventoryLegend } from './InventoryLegend';
 import { getStockStatus, getStockColor } from '../../utils/product';
 import { useGetAllProviders } from '../../hooks/useProviders';
 import type { Product, ProductWithOptionalId } from '../../types/product';
-import ProductSavedModal from '../modal/ProductSavedModal';
 import EmptyProductsState from './EmptyProductsState';
+import DeleteProductModal from '../modal/DeleteProductModal';
+import SuccessModal from '../modal/SuccessModal';
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
+
   const { data: products = [], isLoading, error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
     editingProductId || 0
   );
   const { data: providers } = useGetAllProviders();
   const deleteProductMutation = useDeleteProduct();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
-
   const queryClient = useQueryClient();
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
-  const [isProductSavedModalOpen, setIsProductSavedModalOpen] = useState(false);
-  const [isSavingProduct, setIsSavingProduct] = useState(false);
 
   const hasSelectedProducts = selectedProductIds.size > 0;
   const itemsPerPage = 10;
   const hasProducts = products && products.length > 0;
 
   const categories = useMemo((): string[] => {
-    if (!products?.length) {
-      return ['Gato', 'Perro', 'Alimento'];
-    }
+    const categorySet = new Set<string>(['Gato', 'Perro', 'Alimento']);
 
-    const categorySet = new Set<string>();
-
-    products.forEach((product: Product) => {
-      if (product.category) {
-        categorySet.add(product.category);
-      }
-    });
-
-    if (categorySet.size === 0) {
-      return ['Gato', 'Perro', 'Alimento'];
+    if (products?.length) {
+      products.forEach((product: Product) => {
+        if (product.category) {
+          categorySet.add(product.category);
+        }
+      });
     }
 
     return Array.from(categorySet).sort();
@@ -130,7 +126,12 @@ const ProductsTable: React.FC = () => {
         queryClient.setQueryData(['product', editingProductId], updatedProduct);
         setIsSavingProduct(false);
         handleCloseModal();
-        setIsProductSavedModalOpen(true);
+
+        setSuccessMessage({
+          title: '¡Cambios guardados!',
+          description: 'Los datos se han guardado correctamente.',
+        });
+        setIsSuccessModalOpen(true);
         console.log('Producto actualizado en el cache:', updatedProduct);
       } else {
         const newProduct = {
@@ -167,7 +168,13 @@ const ProductsTable: React.FC = () => {
         }
         setIsSavingProduct(false);
         handleCloseModal();
-        setIsProductSavedModalOpen(true);
+
+        setSuccessMessage({
+          title: '¡Nuevo producto agregado!',
+          description:
+            'El producto se ha dado de alta correctamente y ya está disponible en el inventario.',
+        });
+        setIsSuccessModalOpen(true);
         console.log('Nuevo producto creado:', productData);
       }
 
@@ -188,6 +195,12 @@ const ProductsTable: React.FC = () => {
 
       setSelectedProductIds(new Set());
       setIsDeleteModalOpen(false);
+
+      setSuccessMessage({
+        title: '¡Eliminación completada!',
+        description: `Los elementos seleccionados ya no estarán disponibles en la tabla ni en el buscador.`,
+      });
+      setIsSuccessModalOpen(true);
 
       console.log('Productos eliminados exitosamente');
     } catch (error) {
@@ -499,17 +512,18 @@ const ProductsTable: React.FC = () => {
         categories={categories}
         isSaving={isSavingProduct}
       />
-      <ProductSavedModal
-        title={editingProductId !== null ? '¡Nuevo producto agregado!' : '¡Cambios guardados!'}
-        description={
-          editingProductId !== null
-            ? 'El producto se ha dado de alta correctamente y ya está disponible en el inventario.'
-            : 'Los datos se han guardado correctamente.'
-        }
-        isOpen={isProductSavedModalOpen}
-        onClose={() => setIsProductSavedModalOpen(false)}
+      <DeleteProductModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteProducts}
+        isLoading={deleteProductMutation.isPending}
       />
-      {/* <DeleteProductModal /> */}
+      <SuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        title={successMessage.title}
+        description={successMessage.description}
+      />
     </>
   );
 };
