@@ -1,7 +1,7 @@
 import { X, CheckIcon } from 'lucide-react';
 import type { ProductSavedModalProps } from '../../types/product';
 
-const ProductSavedModal = ({ description, isOpen, onClose }: ProductSavedModalProps) => {
+const ProductSavedModal = ({ title, description, isOpen, onClose }: ProductSavedModalProps) => {
   const handleClose = () => {
     onClose();
   };
@@ -23,8 +23,8 @@ const ProductSavedModal = ({ description, isOpen, onClose }: ProductSavedModalPr
           <article className="bg-dark-emerald mx-auto mb-2 flex h-6 w-6 items-center justify-center rounded-full">
             <CheckIcon size={18} className="text-white" />
           </article>
-          <h2 className="text-lg font-semibold text-gray-900">Producto Guardado</h2>
-          <p className="text-gray-500">{description}</p>
+          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          <p className="px-6 text-gray-500">{description}</p>
         </main>
       </article>
     </article>
