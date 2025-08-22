@@ -32,3 +32,18 @@ export const useCreateClient = () => {
     },
   });
 };
+
+export const useEditClient = () => {
+  const qc = useQueryClient();
+  const token = getUserTokenFromStorage();
+
+  return useMutation<Client, Error, { id_user: number; values: ClientFormValues }>({
+    mutationFn: ({ id_user, values }) => {
+      if (!token) throw new Error('No hay token');
+      return clientService.editClient(id_user, values, token);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+};
