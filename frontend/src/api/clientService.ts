@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { API_BASE_URL } from '../lib/baseUrl';
+import { API_BASE_URL } from '../lib/baseurl';
 import type { Client, ClientFormValues } from '../types/clients';
 
 export const getAllClients = async (id_user: number, token: string): Promise<Client[]> => {
