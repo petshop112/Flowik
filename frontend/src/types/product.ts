@@ -33,6 +33,7 @@ export interface Product {
   buyDate: string;
   expiration: string;
   providers: string[];
+  isActive?: boolean;
 }
 
 export interface ProductUpdateFormData extends Omit<Product, 'id' | 'providers'> {
