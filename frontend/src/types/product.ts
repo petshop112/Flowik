@@ -67,6 +67,7 @@ export interface ProductFormModalProps {
 }
 
 export interface ProductSavedModalProps {
+  title: string;
   description: string;
   isOpen: boolean;
   onClose: () => void;
