@@ -11,7 +11,6 @@ import {
   Bell,
 } from 'lucide-react';
 import { useGetAllClients, useCreateClient } from '../../hooks/useClient';
-import ProductSavedModal from '../modal/ProductSavedModal';
 import type { Client, ClientFormValues } from '../../types/clients';
 import ClientFormModal from '../modal/clientFormModal';
 import { DebtLegend } from './DebtLegend';
