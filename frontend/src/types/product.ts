@@ -33,6 +33,7 @@ export interface Product {
   buyDate: string;
   expiration: string;
   providers: string[];
+  isActive?: boolean;
 }
 
 export interface ProductUpdateFormData extends Omit<Product, 'id' | 'providers'> {
@@ -59,9 +60,9 @@ export interface ProductFormModalProps {
   isSaving: boolean;
 }
 
-export interface ProductSavedModalProps {
-  title: string;
-  description: string;
+export interface DeleteProductModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onConfirm: () => void;
+  isLoading?: boolean;
 }
