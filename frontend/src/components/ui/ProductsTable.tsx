@@ -17,6 +17,7 @@ import {
   useGetAllProducts,
   useGetProductById,
   useUpdateProduct,
+  useDeleteProduct,
 } from '../../hooks/useProducts';
 import ProductFormModal from '../modal/ProductFormModal';
 import { InventoryLegend } from './InventoryLegend';
@@ -36,6 +37,8 @@ const ProductsTable: React.FC = () => {
     editingProductId || 0
   );
   const { data: providers } = useGetAllProviders();
+  const deleteProductMutation = useDeleteProduct();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
@@ -176,6 +179,28 @@ const ProductsTable: React.FC = () => {
     }
   };
 
+  const handleDeleteProducts = async () => {
+    if (selectedProductIds.size === 0) return;
+
+    try {
+      const idsArray = Array.from(selectedProductIds);
+      await deleteProductMutation.mutateAsync(idsArray);
+
+      setSelectedProductIds(new Set());
+      setIsDeleteModalOpen(false);
+
+      console.log('Productos eliminados exitosamente');
+    } catch (error) {
+      console.error('Error al eliminar productos:', error);
+    }
+  };
+
+  const handleOpenDeleteModal = () => {
+    if (selectedProductIds.size > 0) {
+      setIsDeleteModalOpen(true);
+    }
+  };
+
   const filteredProducts = useMemo(() => {
     if (!products) return [];
 
@@ -274,15 +299,17 @@ const ProductsTable: React.FC = () => {
                     Desactivar
                   </button>
                   <button
+                    onClick={handleOpenDeleteModal}
+                    disabled={!hasSelectedProducts || deleteProductMutation.isPending}
                     className={`${
                       hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
                     } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
                   >
                     <Trash2
                       size={18}
-                      className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
+                      className={`${hasSelectedProducts && !deleteProductMutation.isPending ? 'text-tropical-cyan' : 'text-gray-400'}`}
                     />
-                    Eliminar
+                    {deleteProductMutation.isPending ? 'Eliminando...' : 'Eliminar'}
                   </button>
                 </article>
               ) : (
