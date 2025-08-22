@@ -24,13 +24,14 @@ import { getStockStatus, getStockColor } from '../../utils/product';
 import { useGetAllProviders } from '../../hooks/useProviders';
 import type { Product, ProductWithOptionalId } from '../../types/product';
 import ProductSavedModal from '../modal/ProductSavedModal';
+import EmptyProductsState from './EmptyProductsState';
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const { data: products, isLoading, error } = useGetAllProducts();
+  const { data: products = [], isLoading, error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
     editingProductId || 0
   );
@@ -47,6 +48,7 @@ const ProductsTable: React.FC = () => {
 
   const hasSelectedProducts = selectedProductIds.size > 0;
   const itemsPerPage = 10;
+  const hasProducts = products && products.length > 0;
 
   const categories = useMemo((): string[] => {
     if (!products?.length) {
@@ -211,9 +213,37 @@ const ProductsTable: React.FC = () => {
     }
   };
 
-  if (isLoading) return <p>Cargando productos...</p>;
+  if (isLoading) {
+    return (
+      <section className="bg-custom-mist h-full w-full p-6">
+        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
+          <div className="relative mb-4 h-12 w-12">
+            <div className="h-12 w-12 rounded-full border-4 border-gray-300"></div>
+            <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+          <p className="text-gray-600">Cargando productos...</p>
+        </article>
+      </section>
+    );
+  }
 
-  if (error) return <p>Error al cargar productos: {error.message}</p>;
+  if (error && !error.message.includes('404')) {
+    return (
+      <section className="bg-custom-mist w-full p-6">
+        <article className="flex items-center justify-center py-12">
+          <div className="text-center text-red-600">
+            <p>Error al cargar productos: {error.message}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+            >
+              Reintentar
+            </button>
+          </div>
+        </article>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -225,52 +255,58 @@ const ProductsTable: React.FC = () => {
 
             {/* Barra de acciones */}
             <article className="flex flex-wrap items-center justify-between gap-3">
-              <article
-                className={`flex items-center gap-2 [&>button]:font-semibold ${
-                  hasSelectedProducts ? '[&>button]:cursor-pointer' : ''
-                } `}
-              >
-                <button
-                  disabled={!hasSelectedProducts}
-                  className={`${
-                    hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
-                  } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
+              {hasProducts ? (
+                <article
+                  className={`flex items-center gap-2 [&>button]:font-semibold ${
+                    hasSelectedProducts ? '[&>button]:cursor-pointer' : ''
+                  } `}
                 >
-                  <ToggleRight
-                    size={18}
-                    className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
-                  />
-                  Desactivar
-                </button>
-                <button
-                  className={`${
-                    hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
-                  } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
-                >
-                  <Trash2
-                    size={18}
-                    className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
-                  />
-                  Eliminar
-                </button>
-              </article>
+                  <button
+                    disabled={!hasSelectedProducts}
+                    className={`${
+                      hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                    } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
+                  >
+                    <ToggleRight
+                      size={18}
+                      className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
+                    />
+                    Desactivar
+                  </button>
+                  <button
+                    className={`${
+                      hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                    } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
+                  >
+                    <Trash2
+                      size={18}
+                      className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
+                    />
+                    Eliminar
+                  </button>
+                </article>
+              ) : (
+                <article></article>
+              )}
 
               <aside className="flex items-center gap-3">
                 {/* Búsqueda */}
-                <article className="relative">
-                  <Search
-                    className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
-                    size={18}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre o categoría"
-                    value={searchTerm}
-                    data-test="search-input"
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </article>
+                {hasProducts && (
+                  <article className="relative">
+                    <Search
+                      className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
+                      size={18}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre o categoría"
+                      value={searchTerm}
+                      data-test="search-input"
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="border-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </article>
+                )}
 
                 {/* Nuevo producto */}
                 <button
@@ -282,136 +318,148 @@ const ProductsTable: React.FC = () => {
                 </button>
 
                 {/* Cambiar Precio */}
-                <button className="bg-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-teal-700">
-                  <Calculator size={18} />
-                  Cambiar Precio
-                </button>
+                {hasProducts && (
+                  <button className="bg-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-teal-700">
+                    <Calculator size={18} />
+                    Cambiar Precio
+                  </button>
+                )}
               </aside>
             </article>
           </header>
 
           {/* Tabla */}
-          <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
-            <article className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-polar-mist">
-                  <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
-                    <th className="w-12 px-4 py-3">
-                      <Check />
-                    </th>
-                    <th>ID</th>
-                    <th>Nombre producto</th>
-                    <th>Categoría</th>
-                    <th>Stock unitario</th>
-                    <th className="border-none">
-                      <Bell size={18} className="mx-auto" />
-                    </th>
-                    <th>Precio venta</th>
-                    <th className="w-8">Editar</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {currentProducts.map((product: Product) => {
-                    const stockStatus = getStockStatus(product.amount);
-                    const stockColor = getStockColor(stockStatus);
-                    const isSelected = selectedProductIds.has(product.id);
-
-                    return (
-                      <tr
-                        key={product.id}
-                        className="border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50"
-                      >
-                        <td className="px-5 py-3">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleProductSelection(product.id)}
-                            className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm text-gray-900">
-                          {product.id}
-                        </td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">{product.name}</td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          {product.category}
-                        </td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          {product.amount}
-                        </td>
-                        <td>
-                          <div className={`mx-auto h-4 w-4 rounded-full ${stockColor}`}></div>
-                        </td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          $ {product.sellPrice}
-                        </td>
-                        <td className="w-fit border-l-2 border-gray-200 text-center">
-                          <button
-                            onClick={() => handleEditProduct(product)}
-                            className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
-                          >
-                            <Edit size={24} />
-                          </button>
-                        </td>
+          {!hasProducts ? (
+            <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+              <EmptyProductsState onAddProduct={handleNewProduct} />
+            </main>
+          ) : (
+            <>
+              <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+                <article className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-polar-mist">
+                      <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                        <th className="w-12 px-4 py-3">
+                          <Check />
+                        </th>
+                        <th>ID</th>
+                        <th>Nombre producto</th>
+                        <th>Categoría</th>
+                        <th>Stock unitario</th>
+                        <th className="border-none">
+                          <Bell size={18} className="mx-auto" />
+                        </th>
+                        <th>Precio venta</th>
+                        <th className="w-8">Editar</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </article>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {currentProducts.map((product: Product) => {
+                        const stockStatus = getStockStatus(product.amount);
+                        const stockColor = getStockColor(stockStatus);
+                        const isSelected = selectedProductIds.has(product.id);
 
-            {filteredProducts.length === 0 && searchTerm && (
-              <div className="py-8 text-center text-gray-500">
-                No se encontraron productos que coincidan con "{searchTerm}"
-              </div>
-            )}
-          </main>
+                        return (
+                          <tr
+                            key={product.id}
+                            className="border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50"
+                          >
+                            <td className="px-5 py-3">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleProductSelection(product.id)}
+                                className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                              />
+                            </td>
+                            <td className="border-l-2 border-gray-200 px-4 text-sm text-gray-900">
+                              {product.id}
+                            </td>
+                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                              {product.name}
+                            </td>
+                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                              {product.category}
+                            </td>
+                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                              {product.amount}
+                            </td>
+                            <td>
+                              <div className={`mx-auto h-4 w-4 rounded-full ${stockColor}`}></div>
+                            </td>
+                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                              $ {product.sellPrice}
+                            </td>
+                            <td className="w-fit border-l-2 border-gray-200 text-center">
+                              <button
+                                onClick={() => handleEditProduct(product)}
+                                className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
+                              >
+                                <Edit size={24} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </article>
 
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <article className="flex justify-center py-3">
-              <nav className="flex items-center justify-between">
-                <ul className="text-dark-blue flex items-center gap-2">
-                  <li>
-                    <button
-                      className={`py-2 ${currentPage === 1 ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft size={32} />
-                    </button>
-                  </li>
+                {filteredProducts.length === 0 && searchTerm && (
+                  <div className="py-8 text-center text-gray-500">
+                    No se encontraron productos que coincidan con "{searchTerm}"
+                  </div>
+                )}
+              </main>
 
-                  {getPageNumbers().map((pageNumber) => (
-                    <li key={pageNumber}>
-                      <button
-                        className={`rounded-md px-3 py-2 text-lg transition-colors ${
-                          currentPage === pageNumber
-                            ? 'font-semibold'
-                            : 'hover:text-dark-blue cursor-pointer text-neutral-400/70'
-                        }`}
-                        onClick={() => handlePageChange(pageNumber)}
-                      >
-                        {pageNumber}
-                      </button>
-                    </li>
-                  ))}
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <article className="flex justify-center py-3">
+                  <nav className="flex items-center justify-between">
+                    <ul className="text-dark-blue flex items-center gap-2">
+                      <li>
+                        <button
+                          className={`py-2 ${currentPage === 1 ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft size={32} />
+                        </button>
+                      </li>
 
-                  <li>
-                    <button
-                      className={`py-2 ${currentPage === totalPages ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <ChevronRight size={32} />
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </article>
+                      {getPageNumbers().map((pageNumber) => (
+                        <li key={pageNumber}>
+                          <button
+                            className={`rounded-md px-3 py-2 text-lg transition-colors ${
+                              currentPage === pageNumber
+                                ? 'font-semibold'
+                                : 'hover:text-dark-blue cursor-pointer text-neutral-400/70'
+                            }`}
+                            onClick={() => handlePageChange(pageNumber)}
+                          >
+                            {pageNumber}
+                          </button>
+                        </li>
+                      ))}
+
+                      <li>
+                        <button
+                          className={`py-2 ${currentPage === totalPages ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          <ChevronRight size={32} />
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </article>
+              )}
+
+              <InventoryLegend />
+            </>
           )}
-
-          <InventoryLegend />
         </article>
       </section>
       <ProductFormModal
@@ -425,14 +473,16 @@ const ProductsTable: React.FC = () => {
         isSaving={isSavingProduct}
       />
       <ProductSavedModal
+        title={editingProductId !== null ? '¡Nuevo producto agregado!' : '¡Cambios guardados!'}
         description={
           editingProductId !== null
-            ? 'El producto se ha actualizado con éxito.'
-            : 'El producto se ha guardado con éxito.'
+            ? 'El producto se ha dado de alta correctamente y ya está disponible en el inventario.'
+            : 'Los datos se han guardado correctamente.'
         }
         isOpen={isProductSavedModalOpen}
         onClose={() => setIsProductSavedModalOpen(false)}
       />
+      {/* <DeleteProductModal /> */}
     </>
   );
 };

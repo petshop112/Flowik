@@ -13,12 +13,24 @@ export const useGetAllProducts = () => {
 
   return useQuery({
     queryKey: ['products'],
-    queryFn: () => {
+    queryFn: async () => {
       if (!token) throw new Error('No hay token, no se puede acceder');
-      return productService.getAllProducts(token);
+      try {
+        return await productService.getAllProducts(token);
+      } catch (error: any) {
+        if (error?.response?.status === 404) {
+          return [];
+        }
+        throw error;
+      }
     },
     staleTime: 1000 * 60 * 2,
-    retry: 1,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 404) {
+        return false;
+      }
+      return failureCount < 1;
+    },
     refetchOnWindowFocus: false,
   });
 };

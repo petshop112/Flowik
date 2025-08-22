@@ -24,13 +24,6 @@ export interface ProductModalProps {
   handleInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-export interface DeleteProductConfirmationModalProps {
-  showDeleteModal: boolean;
-  actionLoading: boolean;
-  closeDeleteModal: () => void;
-  handleDelete: () => Promise<boolean>;
-}
-
 export interface Product {
   id: number;
   name: string;
@@ -67,6 +60,7 @@ export interface ProductFormModalProps {
 }
 
 export interface ProductSavedModalProps {
+  title: string;
   description: string;
   isOpen: boolean;
   onClose: () => void;

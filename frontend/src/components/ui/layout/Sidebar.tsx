@@ -9,7 +9,7 @@ const active = 'bg-[#CDDBFE] text-blue-700 ring-1 ring-inset ring-blue-200';
 export default function Sidebar({ className = '' }: SidebarProps) {
   return (
     <aside
-      className={`h-full w-full border-r border-gray-200 bg-white px-[40px] py-5 ${className}`}
+      className={`h-full w-full border-r border-gray-200 bg-white px-[40px] py-5 font-[var(--Font-family-Albert-Sans)] ${className}`}
     >
       <nav className="flex flex-col gap-4">
         <div>

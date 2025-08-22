@@ -1,6 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@600&display=swap");
-@import "tailwindcss";
-@import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@600&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+:root {
+  --Font-family-Albert-Sans: 'Albert Sans', sans-serif;
+}
 
 @theme {
   --color-custom-mist: #f2f6f8;
@@ -16,4 +20,9 @@
   --color-amount-supplied: #06c696;
   --color-dark-blue: #042b95;
   --color-blue-ocean: #0679c6;
+  --color-warning-crimson: #c60633;
+}
+
+body {
+  font-family: var(--Font-family-Albert-Sans, 'Albert Sans', sans-serif);
 }

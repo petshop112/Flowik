@@ -4,7 +4,7 @@ import Register from '../pages/auth/Register';
 import Home from '../pages/home/home';
 import NotFoundPage from '../pages/notfound/NotFoundPage';
 // import Dashboard from '../pages/Dashboard';
-import Client from '../pages/clients/Client';
+import ClientsPage from '../pages/clients/Clients';
 import { PrivateRoute } from '../components/features/PrivateRoute';
 import Products from '../pages/products/Products';
 import RecoverPassword from '../pages/auth/RecoverPassword';
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
               { index: true, element: <Home /> },
               // { path: 'dashboard', element: <Dashboard /> },
               { path: 'products', element: <Products /> },
-              { path: 'clients', element: <Client /> },
+              { path: 'clients', element: <ClientsPage /> },
               // { path: 'providers', element: <Providers /> },
             ],
           },
