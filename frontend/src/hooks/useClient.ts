@@ -43,3 +43,15 @@ export const useEditClient = () => {
     },
   });
 };
+
+export const useGetClientById = (id_client?: number) => {
+  const token = getUserTokenFromStorage();
+  return useQuery<Client[], Error>({
+    queryKey: ['client', id_client, token],
+    enabled: !!token && typeof id_client === 'number',
+    queryFn: () => clientService.getClientById(id_client!, token!),
+    staleTime: 2 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};

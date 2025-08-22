@@ -10,7 +10,12 @@ import {
   ToggleRight,
   Bell,
 } from 'lucide-react';
-import { useGetAllClients, useCreateClient, useEditClient } from '../../hooks/useClient';
+import {
+  useGetAllClients,
+  useCreateClient,
+  useEditClient,
+  useGetClientById,
+} from '../../hooks/useClient';
 import type { Client, ClientFormValues } from '../../types/clients';
 import ClientFormModal from '../modal/clientFormModal';
 import { DebtLegend } from './DebtLegend';
@@ -60,8 +65,12 @@ const ClientsTable: React.FC = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [newClientId, setNewClientId] = useState<number | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [viewClientId, setViewClientId] = useState<number | null>(null);
   const createClientMutation = useCreateClient();
   const editClientMutation = useEditClient();
+  const { data: viewClient, isLoading: isLoadingViewClient } = useGetClientById(
+    viewClientId ?? undefined
+  );
   const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<Set<number>>(new Set());
@@ -309,7 +318,12 @@ const ClientsTable: React.FC = () => {
                         </td>
 
                         <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          {client.name_client}
+                          <span
+                            className="cursor-pointer text-blue-700 hover:underline"
+                            onClick={() => setViewClientId(client.id_client)}
+                          >
+                            {client.name_client}
+                          </span>
                         </td>
                         <td className="border-l-2 border-gray-200 px-4 text-sm">
                           {client.telephone_client || client.email_client}
@@ -415,6 +429,18 @@ const ClientsTable: React.FC = () => {
           isSaving={isSaving || createClientMutation.isPending}
           client={editingClient}
         />
+
+        {/* Modal de ver cliente */}
+        {viewClientId && (
+          <ClientFormModal
+            isOpen={!!viewClientId}
+            onClose={() => setViewClientId(null)}
+            onSave={() => {}}
+            client={viewClient}
+            readOnly={true}
+            isSaving={isLoadingViewClient}
+          />
+        )}
       </section>
     </>
   );
