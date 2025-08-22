@@ -247,7 +247,7 @@ const ProductsTable: React.FC = () => {
 
   return (
     <>
-      <section className="bg-custom-mist w-full p-6">
+      <section className="bg-custom-mist min-h-[calc(100vh-6.5rem)] w-full p-6">
         <article className="mx-auto">
           {/* Header */}
           <header className="mb-6">
@@ -299,7 +299,7 @@ const ProductsTable: React.FC = () => {
                     />
                     <input
                       type="text"
-                      placeholder="Buscar por nombre o categoría"
+                      placeholder="Buscar"
                       value={searchTerm}
                       data-test="search-input"
                       onChange={(e) => setSearchTerm(e.target.value)}
