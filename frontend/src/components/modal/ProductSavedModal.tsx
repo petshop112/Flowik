@@ -12,7 +12,7 @@ const ProductSavedModal = ({ description, isOpen, onClose }: ProductSavedModalPr
         isOpen ? '' : 'hidden'
       }`}
     >
-      <article className="border-dark-emerald relative flex h-60 w-full max-w-96 items-center overflow-y-auto rounded-lg border bg-white shadow-2xl">
+      <article className="border-dark-emerald relative flex h-60 w-full max-w-96 items-center overflow-y-auto rounded-lg border bg-white p-5 shadow-2xl">
         <button
           onClick={handleClose}
           className="absolute top-3 right-3 cursor-pointer text-gray-900 transition-colors hover:text-gray-500"
