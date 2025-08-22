@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService } from '../api/productService';
 import { getUserTokenFromStorage } from '../utils/storage';
 import type { Product } from '../types/product';
@@ -75,12 +75,16 @@ export const useUpdateProduct = () => {
 
 export const useDeleteProduct = () => {
   const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (ids: number[]) => {
       if (!token) throw new Error('No hay token de autenticación');
       if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a eliminar');
       return productService.deleteProduct(ids, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 };
