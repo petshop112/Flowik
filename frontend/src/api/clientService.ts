@@ -18,6 +18,22 @@ export const getAllClients = async (id_user: number, token: string): Promise<Cli
   }
 };
 
+export const getClientById = async (id_user: number, token: string): Promise<Client[]> => {
+  try {
+    console.log('[getAllClients] API_BASE_URL:', API_BASE_URL);
+    const { data } = await axios.get(`${API_BASE_URL}client/details/${id_user}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    console.log('[getAllClients] data:', data);
+    return data;
+  } catch (err) {
+    const e = err as AxiosError;
+    console.error('[getAllClientsByUser] Error:', e.response?.data ?? e.message);
+    throw err;
+  }
+};
+
 export const createClient = async (payload: ClientFormValues, token: string): Promise<Client> => {
   try {
     const { data } = await axios.post(`${API_BASE_URL}client/createclient`, payload, {
@@ -50,4 +66,24 @@ export const editClient = async (
   }
 };
 
-export const clientService = { getAllClients, createClient, editClient };
+export const deleteClient = async (id_user: number, token: string): Promise<Client> => {
+  try {
+    const { data } = await axios.delete(`${API_BASE_URL}client/${id_user}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return data;
+  } catch (err) {
+    const e = err as AxiosError;
+    console.error('[getClientSimpleById] Error:', e.response?.data ?? e.message);
+    throw err;
+  }
+};
+
+export const clientService = {
+  getAllClients,
+  getClientById,
+  createClient,
+  editClient,
+  deleteClient,
+};

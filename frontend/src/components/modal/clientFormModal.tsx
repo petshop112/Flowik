@@ -1,309 +1,355 @@
-import React, { useEffect, useState } from 'react';
-import type { ClientFormValues } from '../../types/clients';
+// src/components/modal/ClientFormModal.tsx
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { Client, ClientFormValues } from '../../types/clients';
+import {
+  validateField,
+  validateAll,
+  type Errors,
+  type Form,
+} from '../../utils/validation/clientRules';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (values: ClientFormValues) => Promise<void> | void;
+  onSave: (values: ClientFormValues) => void;
   isSaving?: boolean;
+  client?: Client | null;
+  readOnly?: boolean;
 };
 
-type UIState = {
-  firstName: string;
-  lastName: string;
-  telephone_client: string;
-  direction_client?: string;
-  document_type?: string;
-  email_client: string;
-  notes: string;
-};
+function splitName(full?: string): { firstName: string; lastName: string } {
+  const s = (full ?? '').trim();
+  if (!s) return { firstName: '', lastName: '' };
+  const parts = s.split(/\s+/);
+  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+  return {
+    firstName: parts.slice(0, -1).join(' '),
+    lastName: parts.slice(-1).join(' '),
+  };
+}
 
-type Errors = {
-  firstName?: string;
-  lastName?: string;
-  telephone_client?: string;
-  email_client?: string;
-  direction_client?: string;
-  document_type?: string;
-};
+function joinName(first: string, last: string) {
+  return [first.trim(), last.trim()].filter(Boolean).join(' ');
+}
 
-const EMPTY: UIState = {
+const emptyForm: Form = {
   firstName: '',
   lastName: '',
   telephone_client: '',
-  direction_client: '',
-  document_type: '',
   email_client: '',
-  notes: '',
+  document_type: '',
+  direction_client: '',
 };
 
-export default function ClientFormModal({ isOpen, onClose, onSave, isSaving }: Props) {
-  const [form, setForm] = useState<UIState>(EMPTY);
+const ClientFormModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  onSave,
+  isSaving = false,
+  client,
+  readOnly = false,
+}) => {
+  const initialForm: Form = useMemo(() => {
+    if (!client) return emptyForm;
+    const { firstName, lastName } = splitName(client.name_client);
+    return {
+      firstName,
+      lastName,
+      telephone_client: client.telephone_client ?? '',
+      email_client: client.email_client ?? '',
+      document_type: client.document_type ?? '',
+      direction_client: client.direction_client ?? '',
+    };
+  }, [client]);
+
+  const [form, setForm] = useState<Form>(initialForm);
   const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<Record<keyof Form, boolean>>({
+    firstName: false,
+    lastName: false,
+    telephone_client: false,
+    email_client: false,
+    document_type: false,
+    direction_client: false,
+  });
+
+  const fieldRefs = useRef<Partial<Record<keyof Form, HTMLInputElement | null>>>({});
 
   useEffect(() => {
-    if (!isOpen) {
-      setForm(EMPTY);
+    if (isOpen) {
+      setForm(initialForm);
       setErrors({});
+      setTouched({
+        firstName: false,
+        lastName: false,
+        telephone_client: false,
+        email_client: false,
+        document_type: false,
+        direction_client: false,
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, initialForm]);
 
   if (!isOpen) return null;
 
-  const setField = (name: keyof UIState, value: string) => {
-    setForm((f) => ({ ...f, [name]: value }));
-  };
+  const handleChange =
+    (name: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      const nextForm = { ...form, [name]: value };
+      setForm(nextForm);
 
-  // tuve que validar para rerenderizar (NO se llama en el render)
-  const validateOne = (name: keyof Errors) => {
-    const next: Errors = { ...errors };
-    const req = (ok: boolean, msg: string) => (ok ? delete next[name] : (next[name] = msg));
-
-    if (name === 'firstName') {
-      const value = form.firstName.trim();
-      if (!value) {
-        req(false, 'El nombre es obligatorio.');
-      } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/.test(value)) {
-        req(false, 'El nombre solo puede contener letras y espacios.');
-      } else {
-        req(true, '');
+      if (touched[name]) {
+        const nextErrors = validateField(name, nextForm, { ...errors });
+        setErrors(nextErrors);
       }
-    }
-    if (name === 'lastName') {
-      const value = form.lastName.trim();
-      if (!value) {
-        req(false, 'Los apellidos son obligatorios.');
-      } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/.test(value)) {
-        req(false, 'El apellido solo puede contener letras y espacios.');
-      } else {
-        req(true, '');
-      }
-    }
-    if (name === 'telephone_client') {
-      const tel = form.telephone_client.trim();
-      req(/^\d{6,15}$/.test(tel), 'El teléfono debe tener entre 6 y 15 dígitos.');
-    }
-    if (name === 'email_client')
-      req(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email_client.trim()), 'El correo es inválido.');
-
-    if (name === 'document_type') {
-      const doc = (form.document_type ?? '').trim();
-      if (doc.length > 0) {
-        req(/^\d{7,11}$/.test(doc), 'El DNI/CUIT debe tener entre 7 y 11 números.');
-      } else {
-        delete next[name]; // Opcional, no mostrar error si está vacío
-      }
-    }
-    if (name === 'direction_client') {
-      const dir = (form.direction_client ?? '').trim();
-      if (dir.length > 0) {
-        const cant_letras = dir.length >= 10 && dir.length <= 100;
-        req(cant_letras, 'La dirección debe tener entre 10 y 100 caracteres.');
-      } else {
-        delete next[name]; // Opcional, no mostrar error si está vacío
-      }
-    }
-
-    setErrors(next);
-  };
-
-  const validateAll = () => {
-    (
-      [
-        'firstName',
-        'lastName',
-        'telephone_client',
-        'email_client',
-        'document_type',
-        'direction_client',
-      ] as (keyof Errors)[]
-    ).forEach(validateOne);
-
-    return (
-      Object.keys(errors).length === 0 &&
-      !!form.firstName.trim() &&
-      !!form.lastName.trim() &&
-      !!form.telephone_client.trim() &&
-      !!form.email_client.trim() &&
-      !!(form.document_type ?? '').trim() &&
-      !!(form.direction_client ?? '').trim()
-    );
-  };
-
-  const requiredOk =
-    !!form.firstName.trim() &&
-    !!form.lastName.trim() &&
-    !!form.telephone_client.trim() &&
-    !!form.email_client.trim();
-
-  const canSave = requiredOk && Object.keys(errors).length === 0;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateAll()) return;
-
-    const payload: ClientFormValues = {
-      name_client: `${form.firstName} ${form.lastName}`.replace(/\s+/g, ' ').trim(),
-      document_type: form.document_type ?? '',
-      telephone_client: form.telephone_client,
-      direction_client: form.direction_client ?? '',
-      email_client: form.email_client,
     };
 
-    await onSave(payload);
+  const handleBlur = (name: keyof Form) => {
+    setTouched((t) => ({ ...t, [name]: true }));
+    const nextErrors = validateField(name, form, { ...errors });
+    setErrors(nextErrors);
+  };
+
+  const focusFirstError = (errs: Errors) => {
+    const firstKey = Object.keys(errs)[0] as keyof Form | undefined;
+    if (!firstKey) return;
+    const el = fieldRefs.current[firstKey];
+    if (el && typeof el.focus === 'function') el.focus();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const allErrors = validateAll(form);
+    setErrors(allErrors);
+
+    if (Object.keys(allErrors).length > 0) {
+      setTouched({
+        firstName: true,
+        lastName: true,
+        telephone_client: true,
+        email_client: true,
+        document_type: true,
+        direction_client: true,
+      });
+      focusFirstError(allErrors);
+      return;
+    }
+
+    // payload para el backend
+    const payload: ClientFormValues = {
+      name_client: joinName(form.firstName, form.lastName),
+      telephone_client: form.telephone_client.trim(),
+      email_client: form.email_client.trim(),
+      document_type: form.document_type?.trim() || '',
+      direction_client: form.direction_client?.trim() || '',
+    };
+
+    onSave(payload);
   };
 
   return (
-    <article className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-4xl overflow-hidden rounded-lg bg-white p-6 shadow-xl">
-        <header className="flex items-start justify-between border-b border-b-gray-400 px-8 py-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">ID – Nuevo Cliente</h2>
-            <div className="mt-3">
-              <span className="border-b-2 border-blue-600 pb-1 text-sm font-medium text-blue-700">
-                Detalles del cliente
-              </span>
-            </div>
-          </div>
-          {/* <button
-            type="button"
-            disabled
-            title="Próximamente"
-            className="inline-flex items-center justify-center gap-2 rounded-md border-2 border-[#86DDE0] bg-[#E9FCFC] px-3 py-1.5 text-[#52B7BA] disabled:cursor-not-allowed disabled:opacity-60"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-5xl rounded-2xl bg-white shadow-2xl">
+        <header className="flex items-center justify-between px-8 py-6">
+          <h2 className="text-[20px] font-semibold text-gray-900">
+            {readOnly ? 'ID – Ver Cliente' : client ? 'ID – Editar Cliente' : 'ID – Nuevo Cliente'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            aria-label="Cerrar"
           >
-            <span className="inline-flex h-6 w-6 items-center justify-center border-[#86DDE0]">
-              <img src="/icons/client/deudamodal.svg" alt="" className="h-6 w-6" />
-            </span>
-            <span className="text-[18px] leading-none">Agregar deuda</span>
-          </button> */}
+            ✕
+          </button>
         </header>
 
-        <form onSubmit={handleSubmit} className="px-8 py-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-blue-800">Nombre</label>
-                <input
-                  value={form.firstName}
-                  onChange={(e) => setField('firstName', e.target.value)}
-                  onBlur={() => validateOne('firstName')}
-                  placeholder="Nombre"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
-                )}
-              </div>
+        <div className="border-b border-[#E5EAF7] px-8 pt-4">
+          <button
+            type="button"
+            className="border-b-2 border-[#3B82F6] px-1 pb-3 text-sm font-medium text-[#1E3A8A]"
+          >
+            Detalles del cliente
+          </button>
+        </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-blue-800">Apellidos</label>
-                <input
-                  value={form.lastName}
-                  onChange={(e) => setField('lastName', e.target.value)}
-                  onBlur={() => validateOne('lastName')}
-                  placeholder="Apellidos"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                {errors.lastName && <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-blue-800">
-                  DNI / CUIT <span className="font-normal text-gray-400">(Opcional)</span>
-                </label>
-                <input
-                  value={form.document_type}
-                  onChange={(e) => setField('document_type', e.target.value)}
-                  placeholder="DNI o CUIT"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-blue-800">Notas</label>
-                <textarea
-                  value={form.notes}
-                  onChange={(e) => setField('notes', e.target.value)}
-                  placeholder="Notas u observaciones"
-                  className="min-h-[88px] w-full resize-y rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6 px-8 py-8">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Nombre</label>
+              <input
+                ref={(el) => {
+                  fieldRefs.current.firstName = el;
+                }}
+                type="text"
+                value={form.firstName}
+                onChange={handleChange('firstName')}
+                onBlur={() => handleBlur('firstName')}
+                disabled={readOnly || isSaving}
+                placeholder="Nombre"
+                className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none ${
+                  errors.firstName && touched.firstName
+                    ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
+                    : ''
+                }`}
+              />
+              {errors.firstName && touched.firstName && (
+                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+              )}
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-blue-800">Teléfono</label>
-                <input
-                  value={form.telephone_client}
-                  onChange={(e) => setField('telephone_client', e.target.value)}
-                  onBlur={() => validateOne('telephone_client')}
-                  placeholder="Número de teléfono"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                {errors.telephone_client && (
-                  <p className="mt-1 text-sm text-red-500">{errors.telephone_client}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-blue-800">
-                  Dirección <span className="font-normal text-gray-400">(Opcional)</span>
-                </label>
-                <input
-                  value={form.direction_client}
-                  onChange={(e) => setField('direction_client', e.target.value)}
-                  placeholder="Dirección"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-blue-800">
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  value={form.email_client}
-                  onChange={(e) => setField('email_client', e.target.value)}
-                  onBlur={() => validateOne('email_client')}
-                  placeholder="Email"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                {errors.email_client && (
-                  <p className="mt-1 text-sm text-red-500">{errors.email_client}</p>
-                )}
-              </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Teléfono</label>
+              <input
+                ref={(el) => {
+                  fieldRefs.current.telephone_client = el;
+                }}
+                type="tel"
+                value={form.telephone_client}
+                onChange={handleChange('telephone_client')}
+                onBlur={() => handleBlur('telephone_client')}
+                disabled={readOnly || isSaving}
+                placeholder="Número de teléfono"
+                className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
+                  errors.telephone_client && touched.telephone_client
+                    ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
+                    : ''
+                }`}
+              />
+              {errors.telephone_client && touched.telephone_client && (
+                <p className="mt-1 text-sm text-red-600">{errors.telephone_client}</p>
+              )}
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-3 pt-4">
+          {/* Apellidos + Dirección */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Apellidos</label>
+              <input
+                ref={(el) => {
+                  fieldRefs.current.lastName = el;
+                }}
+                type="text"
+                value={form.lastName}
+                onChange={handleChange('lastName')}
+                onBlur={() => handleBlur('lastName')}
+                disabled={readOnly || isSaving}
+                placeholder="Apellidos"
+                className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
+                  errors.lastName && touched.lastName
+                    ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
+                    : ''
+                }`}
+              />
+              {errors.lastName && touched.lastName && (
+                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
+                Dirección <span className="font-normal text-[#8CA5E6]"></span>
+              </label>
+              <input
+                ref={(el) => {
+                  fieldRefs.current.direction_client = el;
+                }}
+                type="text"
+                value={form.direction_client ?? ''}
+                onChange={handleChange('direction_client')}
+                onBlur={() => handleBlur('direction_client')}
+                disabled={readOnly || isSaving}
+                placeholder="Dirección"
+                className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
+                  errors.direction_client && touched.direction_client
+                    ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
+                    : ''
+                }`}
+              />
+              {errors.direction_client && touched.direction_client && (
+                <p className="mt-1 text-sm text-red-600">{errors.direction_client}</p>
+              )}
+            </div>
+          </div>
+
+          {/* DNI + Correo */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
+                DNI / CUIT <span className="font-normal text-[#8CA5E6]"></span>
+              </label>
+              <input
+                ref={(el) => {
+                  fieldRefs.current.document_type = el;
+                }}
+                type="text"
+                value={form.document_type ?? ''}
+                onChange={handleChange('document_type')}
+                onBlur={() => handleBlur('document_type')}
+                disabled={readOnly || isSaving}
+                placeholder="DNI o CUIT"
+                className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
+                  errors.document_type && touched.document_type
+                    ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
+                    : ''
+                }`}
+              />
+              {errors.document_type && touched.document_type && (
+                <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
+                Correo Electrónico
+              </label>
+              <input
+                ref={(el) => {
+                  fieldRefs.current.email_client = el;
+                }}
+                type="email"
+                value={form.email_client}
+                onChange={handleChange('email_client')}
+                onBlur={() => handleBlur('email_client')}
+                disabled={readOnly || isSaving}
+                placeholder="Email"
+                className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
+                  errors.email_client && touched.email_client
+                    ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
+                    : ''
+                }`}
+              />
+              {errors.email_client && touched.email_client && (
+                <p className="mt-1 text-sm text-red-600">{errors.email_client}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="flex items-center justify-center gap-4 pt-2 pb-2">
             <button
               type="button"
               onClick={onClose}
-              className="h-12 w-[166px] rounded-md border border-gray-300 bg-[#FFFFFF] font-medium text-blue-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isSaving}
+              className="h-10 rounded-md border border-[#D6E3FF] bg-[#F5F9FF] px-6 text-[15px] font-medium text-[#6A88D9] hover:bg-[#ECF3FF] disabled:opacity-60"
             >
-              Cancelar
+              {readOnly ? 'Cerrar' : 'Cancelar'}
             </button>
 
-            <button
-              type="submit"
-              disabled={!canSave || isSaving}
-              className={`h-12 w-[166px] rounded-md font-semibold ${
-                !canSave || isSaving
-                  ? 'cursor-not-allowed bg-gray-200 text-gray-400'
-                  : 'bg-[#F1F9FE] text-blue-700 hover:bg-[#E9F3FF]'
-              }`}
-            >
-              {isSaving ? 'Guardando…' : 'Guardar'}
-            </button>
+            {!readOnly && (
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="h-10 rounded-md bg-[#3B82F6] px-6 text-[15px] font-semibold text-white shadow-sm hover:bg-[#2F6FE0] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSaving ? 'Guardando…' : 'Guardar'}
+              </button>
+            )}
           </div>
         </form>
       </div>
-    </article>
+    </div>
   );
-}
+};
+
+export default ClientFormModal;

@@ -10,11 +10,21 @@ import {
   ToggleRight,
   Bell,
 } from 'lucide-react';
-import { useGetAllClients, useCreateClient } from '../../hooks/useClient';
+import {
+  useGetAllClients,
+  useCreateClient,
+  useEditClient,
+  useGetClientById,
+  useDeleteClient,
+} from '../../hooks/useClient';
 import type { Client, ClientFormValues } from '../../types/clients';
 import ClientFormModal from '../modal/clientFormModal';
 import { DebtLegend } from './DebtLegend';
 import SuccessModal from '../modal/SuccessModal';
+import DeleteClientModal from '../modal/DeleteClientModal';
+import { currencyPipe, toNumber } from '../../utils/pipe/currency.pipe';
+import { formatDate } from '../../utils/formatDate';
+import { debtColor } from '../../utils/debtColors';
 
 type ClientWithDebt = Client & {
   total_debt?: number | string;
@@ -22,34 +32,16 @@ type ClientWithDebt = Client & {
   total_debt_days?: number;
 };
 
+function hasDebt(v?: number | string) {
+  return toNumber(v) > 0;
+}
+
 function getUserId() {
   const storedId = sessionStorage.getItem('userId');
   return storedId ? Number(storedId) : undefined;
 }
 
 const itemsPerPage = 10;
-
-function formatCurrency(v?: number | string) {
-  const n = typeof v === 'string' ? Number(v) : (v ?? 0);
-  if (!Number.isFinite(n)) return '$0,00';
-  return n.toLocaleString('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 2,
-  });
-}
-function formatDate(d?: string) {
-  if (!d) return '00/00/0000';
-  const dt = new Date(d);
-  return Number.isNaN(dt.getTime()) ? '00/00/0000' : dt.toLocaleDateString('es-AR');
-}
-function debtDotClass(days?: number) {
-  const n = Number(days ?? 0);
-  if (!Number.isFinite(n) || n <= 0) return 'bg-gray-300';
-  if (n > 60) return 'bg-rose-500';
-  if (n >= 30) return 'bg-orange-400';
-  return 'bg-teal-300';
-}
 
 const ClientsTable: React.FC = () => {
   const id_user = getUserId();
@@ -59,8 +51,18 @@ const ClientsTable: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [newClientId, setNewClientId] = useState<number | null>(null);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [viewClientId, setViewClientId] = useState<number | null>(null);
+  const [deleteClientId, setDeleteClientId] = useState<number[] | null>(null);
+  const [deleteClientName, setDeleteClientName] = useState<string>('');
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const createClientMutation = useCreateClient();
-
+  const editClientMutation = useEditClient();
+  const { data: viewClient, isLoading: isLoadingViewClient } = useGetClientById(
+    viewClientId ?? undefined
+  );
+  const deleteClientMutation = useDeleteClient();
+  const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,6 +87,7 @@ const ClientsTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentClients = filteredClients.slice(startIndex, endIndex) as ClientWithDebt[];
+  const canManageDebt = hasSelectedClients;
 
   const getPageNumbers = () => Array.from({ length: totalPages }, (_, i) => i + 1);
   const handlePageChange = (page: number) =>
@@ -98,41 +101,94 @@ const ClientsTable: React.FC = () => {
     });
   };
 
-  const handleNewClient = () => setIsModalOpen(true);
+  const handleNewClient = () => {
+    setEditingClient(null);
+    setIsModalOpen(true);
+  };
+
   const handleSaveClient = async (values: ClientFormValues) => {
     try {
       setIsSaving(true);
-      const newClient = await createClientMutation.mutateAsync(values);
-      setNewClientId(newClient.id_client);
+      let result;
+      if (editingClient) {
+        if (typeof editingClient.id_client !== 'number') throw new Error('No hay id_client');
+        result = await editClientMutation.mutateAsync({
+          id_client: editingClient.id_client,
+          values,
+        });
+        setLastActionWasEdit(true);
+        setNewClientId(null);
+      } else {
+        result = await createClientMutation.mutateAsync(values);
+        setLastActionWasEdit(false);
+        setNewClientId(result?.id_client ?? null);
+      }
       setShowSuccessModal(true);
       setIsModalOpen(false);
+      setEditingClient(null);
     } finally {
       setIsSaving(false);
     }
   };
+
   const handleDeactivate = () => {
     // TODO: endpoint desactivar
     console.log('Desactivar IDs:', Array.from(selectedClientIds));
   };
+
   const handleManageDebt = () => {
     // TODO: abrir modal de deuda / navegar
     console.log('Administrar deuda');
   };
 
-  if (isLoading) return <p>Cargando clientes...</p>;
-  if (error) return <p>Error al cargar clientes: {(error as Error).message}</p>;
+  if (isLoading) {
+    return (
+      <section className="bg-custom-mist h-full w-full p-6">
+        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
+          <div className="relative mb-4 h-12 w-12">
+            <div className="h-12 w-12 rounded-full border-4 border-gray-300"></div>
+            <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+          <p className="text-gray-600">Cargando clientes...</p>
+        </article>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="bg-custom-mist h-full w-full p-6">
+        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
+          <div className="mb-4 flex items-center justify-center">
+            <span className="text-4xl text-red-500">!</span>
+          </div>
+          <p className="font-semibold text-red-600">
+            Error al cargar clientes: {(error as Error).message}
+          </p>
+        </article>
+      </section>
+    );
+  }
 
   return (
     <>
-      {showSuccessModal && newClientId && (
+      {showSuccessModal && (
         <SuccessModal
           isOpen={showSuccessModal}
-          onClose={() => setShowSuccessModal(false)}
-          id={newClientId}
-          title="¡Nuevo cliente agregado!"
-          description="La ficha del cliente se ha dado de alta correctamente y ya está disponible en la lista de clientes."
+          onClose={() => {
+            setShowSuccessModal(false);
+            setNewClientId(null);
+          }}
+          title={lastActionWasEdit ? '¡Cambios guardados!' : '¡Nuevo cliente agregado!'}
+          description={
+            lastActionWasEdit
+              ? 'Los datos se han guardado correctamente.'
+              : 'La ficha del cliente se ha dado de alta correctamente y ya está disponible en la lista de clientes.'
+          }
+          {...(!lastActionWasEdit && newClientId ? { id: newClientId } : {})}
         />
       )}
+
       <section className="bg-custom-mist w-full p-6">
         <article className="mx-auto">
           <header className="mb-6">
@@ -160,16 +216,24 @@ const ClientsTable: React.FC = () => {
                 </button>
 
                 <button
+                  onClick={() => {
+                    if (hasSelectedClients) {
+                      setDeleteClientId(Array.from(selectedClientIds));
+                      setDeleteClientName(
+                        Array.from(selectedClientIds).length === 1
+                          ? clients?.find((c) => c.id_client === Array.from(selectedClientIds)[0])
+                              ?.name_client || ''
+                          : `${Array.from(selectedClientIds).length} clientes seleccionados`
+                      );
+                    }
+                  }}
                   disabled={!hasSelectedClients}
                   className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
                     hasSelectedClients ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
                   }`}
                   title="Eliminar seleccionados"
                 >
-                  <Trash2
-                    size={18}
-                    className={`${hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}`}
-                  />
+                  <Trash2 size={18} />
                   Eliminar
                 </button>
               </article>
@@ -200,9 +264,16 @@ const ClientsTable: React.FC = () => {
                   Nuevo cliente
                 </button>
 
+                {/* Botón Administrar deuda (estado según selección) */}
                 <button
-                  onClick={handleManageDebt}
-                  className="flex items-center gap-2 rounded-md border border-teal-200 bg-teal-50 px-4 py-2 text-teal-600 transition-colors hover:bg-teal-100"
+                  onClick={canManageDebt ? handleManageDebt : undefined}
+                  disabled={!canManageDebt}
+                  aria-disabled={!canManageDebt}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2 transition-colors ${
+                    canManageDebt
+                      ? 'bg-teal-600 text-white hover:bg-teal-700'
+                      : 'cursor-not-allowed border border-teal-200 bg-teal-50 text-teal-600 opacity-60'
+                  }`}
                   title="Administrar deuda"
                 >
                   <img src="/icons/client/calculator.svg" alt="" />
@@ -212,7 +283,6 @@ const ClientsTable: React.FC = () => {
             </article>
           </header>
 
-          {/* Tabla */}
           <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
             <article className="overflow-x-auto">
               <table className="w-full">
@@ -221,29 +291,29 @@ const ClientsTable: React.FC = () => {
                     <th className="w-12 px-4 py-3">
                       <Check />
                     </th>
-                    <th>ID cliente</th>
-                    <th>Nombre Apellidos</th>
+                    <th>Nombre y Apellido</th>
                     <th>Contacto</th>
                     <th>Total deuda</th>
                     <th>Modificación deuda</th>
-
                     <th>
                       <div className="flex items-center justify-between">
                         <span>Total días deuda</span>
                         <Bell size={16} className="opacity-70" />
                       </div>
                     </th>
-
                     <th className="w-8">Editar</th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
                   {currentClients.map((client) => {
                     const isSelected = selectedClientIds.has(client.id_client);
+                    const debtExists = hasDebt(client.total_debt);
                     const days = client.total_debt_days ?? 0;
-                    const dot = debtDotClass(days);
+                    const dot = debtColor(days);
                     const daysDisplay = days ? String(days).padStart(3, '0') : '000';
+
+                    const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
 
                     return (
                       <tr
@@ -260,25 +330,29 @@ const ClientsTable: React.FC = () => {
                         </td>
 
                         <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          {client.id_client}
+                          <span
+                            className="cursor-pointer text-gray-900 hover:underline"
+                            onClick={() => setViewClientId(client.id_client)}
+                          >
+                            {client.name_client}
+                          </span>
                         </td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          {client.name_client}
-                        </td>
+
                         <td className="border-l-2 border-gray-200 px-4 text-sm">
                           {client.telephone_client || client.email_client}
                         </td>
 
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
-                          {formatCurrency(client.total_debt)}
+                        <td className={`border-l-2 border-gray-200 px-4 text-sm ${mutedCell}`}>
+                          {currencyPipe(client.total_debt)}
                         </td>
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
+
+                        <td className={`border-l-2 border-gray-200 px-4 text-sm ${mutedCell}`}>
                           {formatDate(client.debt_modified_at)}
                         </td>
 
                         <td className="border-l-2 border-gray-200 px-4 text-sm">
                           <div className="flex items-center justify-between">
-                            <span className={days ? 'text-gray-900' : 'text-gray-300'}>
+                            <span className={debtExists ? 'text-gray-900' : 'text-neutral-400'}>
                               {daysDisplay}
                             </span>
                             <span
@@ -289,7 +363,13 @@ const ClientsTable: React.FC = () => {
                         </td>
 
                         <td className="w-fit border-l-2 border-gray-200 text-center">
-                          <button className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500">
+                          <button
+                            onClick={() => {
+                              setEditingClient(client);
+                              setIsModalOpen(true);
+                            }}
+                            className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
+                          >
                             <Edit size={24} />
                           </button>
                         </td>
@@ -313,7 +393,11 @@ const ClientsTable: React.FC = () => {
                 <ul className="text-dark-blue flex items-center gap-2">
                   <li>
                     <button
-                      className={`py-2 ${currentPage === 1 ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                      className={`py-2 ${
+                        currentPage === 1
+                          ? 'cursor-not-allowed text-neutral-400/70'
+                          : 'cursor-pointer hover:text-blue-600'
+                      }`}
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                     >
@@ -338,7 +422,11 @@ const ClientsTable: React.FC = () => {
 
                   <li>
                     <button
-                      className={`py-2 ${currentPage === totalPages ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                      className={`py-2 ${
+                        currentPage === totalPages
+                          ? 'cursor-not-allowed text-neutral-400/70'
+                          : 'cursor-pointer hover:text-blue-600'
+                      }`}
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
                     >
@@ -355,10 +443,51 @@ const ClientsTable: React.FC = () => {
 
         <ClientFormModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingClient(null);
+          }}
           onSave={handleSaveClient}
           isSaving={isSaving || createClientMutation.isPending}
+          client={editingClient}
         />
+
+        {viewClientId && (
+          <ClientFormModal
+            isOpen={!!viewClientId}
+            onClose={() => setViewClientId(null)}
+            onSave={() => {}}
+            client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
+            readOnly={true}
+            isSaving={isLoadingViewClient}
+          />
+        )}
+
+        <DeleteClientModal
+          isOpen={!!deleteClientId && deleteClientId.length > 0}
+          clientName={deleteClientName}
+          onCancel={() => setDeleteClientId(null)}
+          onConfirm={() => {
+            if (deleteClientId && deleteClientId.length > 0) {
+              Promise.all(deleteClientId.map((id) => deleteClientMutation.mutateAsync(id))).then(
+                () => {
+                  setDeleteClientId(null);
+                  setShowDeleteSuccess(true);
+                }
+              );
+            }
+          }}
+          isDeleting={deleteClientMutation.isPending}
+        />
+
+        {showDeleteSuccess && (
+          <SuccessModal
+            isOpen={showDeleteSuccess}
+            onClose={() => setShowDeleteSuccess(false)}
+            title="¡Cliente eliminado!"
+            description="Ya no aparecerá en la tabla ni en el buscador."
+          />
+        )}
       </section>
     </>
   );

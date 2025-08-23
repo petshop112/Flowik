@@ -1,4 +1,3 @@
-// src/hooks/useClients.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientService } from '../api/clientService';
 import { getUserTokenFromStorage } from '../utils/storage';
@@ -19,15 +18,13 @@ export const useGetAllClients = (id_user?: number) => {
 
 export const useCreateClient = () => {
   const qc = useQueryClient();
-  const token = getUserTokenFromStorage();
-
   return useMutation({
     mutationFn: (values: ClientFormValues) => {
-      if (!token) throw new Error('No hay token');
+      const token = getUserTokenFromStorage();
+      if (!token) throw new Error('No hay token de autenticación');
       return clientService.createClient(values, token);
     },
     onSuccess: () => {
-      // refresca la lista
       qc.invalidateQueries({ queryKey: ['clients'] });
     },
   });
@@ -35,15 +32,44 @@ export const useCreateClient = () => {
 
 export const useEditClient = () => {
   const qc = useQueryClient();
-  const token = getUserTokenFromStorage();
-
-  return useMutation<Client, Error, { id_user: number; values: ClientFormValues }>({
-    mutationFn: ({ id_user, values }) => {
-      if (!token) throw new Error('No hay token');
-      return clientService.editClient(id_user, values, token);
+  return useMutation<Client, Error, { id_client: number; values: ClientFormValues }>({
+    mutationFn: ({ id_client, values }) => {
+      const token = getUserTokenFromStorage();
+      if (!token) throw new Error('No hay token de autenticación');
+      return clientService.editClient(id_client, values, token);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+};
+
+export const useGetClientById = (id_client?: number) => {
+  const token = getUserTokenFromStorage();
+  return useQuery<Client[], Error>({
+    queryKey: ['client', id_client, token],
+    enabled: !!token && typeof id_client === 'number',
+    queryFn: () => clientService.getClientById(id_client!, token!),
+    staleTime: 2 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useDeleteClient = () => {
+  const qc = useQueryClient();
+  const token = getUserTokenFromStorage();
+  const id_user = sessionStorage.getItem('userId')
+    ? Number(sessionStorage.getItem('userId'))
+    : undefined;
+  return useMutation<Client, Error, number>({
+    mutationFn: (id_client) => {
+      if (!token) throw new Error('No hay token de autenticación');
+      return clientService.deleteClient(id_client, token);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.invalidateQueries({ queryKey: ['clients', id_user, token] });
     },
   });
 };

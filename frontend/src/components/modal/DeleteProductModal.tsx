@@ -1,4 +1,14 @@
-const DeleteProductModal = () => {
+import type React from 'react';
+import type { DeleteProductModalProps } from '../../types/product';
+
+const DeleteProductModal: React.FC<DeleteProductModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  isLoading = false,
+}) => {
+  if (!isOpen) return null;
+
   return (
     <article
       className={`bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4`}
@@ -19,23 +29,42 @@ const DeleteProductModal = () => {
               />
             </svg>
           </article>
-          <h2 className="text-lg font-semibold text-gray-900">¿Quieres eliminar el producto X?</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            ¿Estás seguro de realizar esta acción?
+          </h2>
           <p className="px-6 text-gray-500">
-            Vas a eliminar el "Producto X". Esta acción es permanente y no podrás deshacerla.
+            Se eliminarán los elementos seleccionados de forma permanente y no podrás deshacerlo.
           </p>
         </main>
         <footer className="mt-6 flex justify-center space-x-3 [&>button]:cursor-pointer [&>button]:px-12 [&>button]:py-[6px] [&>button]:transition-colors">
           <button
             type="button"
-            className="text-warning-crimson border-warning-crimson hover:bg-warning-crimson rounded-sm border transition-colors hover:text-white"
+            onClick={onClose}
+            disabled={isLoading}
+            className={`text-warning-crimson border-warning-crimson hover:bg-warning-crimson rounded-sm border transition-colors hover:text-white ${
+              isLoading ? 'cursor-not-allowed opacity-50' : ''
+            }`}
           >
             Cancelar
           </button>
           <button
             type="button"
-            className="bg-warning-crimson rounded-sm text-white transition-colors hover:bg-red-700"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className={`bg-warning-crimson flex items-center justify-center gap-2 rounded-sm text-white transition-colors hover:bg-red-700 ${
+              isLoading ? 'cursor-not-allowed opacity-75' : ''
+            }`}
           >
-            Eliminar
+            {isLoading ? (
+              <span className="animate-pulse">
+                Eliminando
+                <span className="inline-block animate-pulse delay-100">.</span>
+                <span className="inline-block animate-pulse delay-200">.</span>
+                <span className="inline-block animate-pulse delay-300">.</span>
+              </span>
+            ) : (
+              'Eliminar'
+            )}
           </button>
         </footer>
       </article>

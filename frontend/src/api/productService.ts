@@ -82,11 +82,14 @@ const updateProduct = async (
   }
 };
 
-const deleteProduct = async (id: number, token: string) => {
+const deleteProduct = async (ids: number[], token: string) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}products/${id}`, {
+    const response = await axios.delete(`${API_BASE_URL}products`, {
       headers: {
         Authorization: `Bearer ${token}`,
+      },
+      data: {
+        IDs: ids,
       },
     });
     return response.data;
