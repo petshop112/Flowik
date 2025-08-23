@@ -11,12 +11,15 @@ public record ClientRegister(
         @OnlyLettersAndSpaces
         String name_client,
 
-        @NotBlank(message = "El tipo de Documento del Cliente es obligatorio.")
-        @Size(min = 2, max = 50, message = "El Nombre del Cliente debe tener entre 2 y 50 caracteres")
+        @NotBlank(message = "El tipo de Documento(DNI o CUIL) del Cliente es obligatorio.")
+        @Pattern(regexp = "^[0-9]{8,11}$",
+                message = "El tipo de Documento(DNI o CUIL) del Cliente debe tener minimo 8 y maximo 11 caracteres, " +
+                        "SOLO RECIBE NUMEROS")
         String document_type,
 
+        @NotBlank
         @Pattern(regexp = "^[0-9]{7,20}$",
-        message = "El número telefónico recibe solo numeros")
+        message = "El número telefónico recibe solo numeros, minimo de 7 y maximo de 20 caracteres")
         @Schema(example = "1122334455")
         String telephone_client,
 

@@ -75,22 +75,22 @@ public class Client {
 
     }
 
-    public void updateFromDto(ClientUpdate dto){
-        if(dto.name_client() != null) {
+    public void updateFromDto(ClientUpdate dto) {
+        if (dto.name_client() != null && !dto.name_client().isBlank()) {
             this.name_client = dto.name_client();
         }
-        if(dto.document_type() != null) {
+        if (dto.document_type() != null && !dto.document_type().isBlank()) {
             this.document_type = dto.document_type();
         }
-        if(dto.telephone_client() != null) {
+        if (dto.telephone_client() != null && !dto.telephone_client().isBlank()) {
             this.telephone_client = dto.telephone_client();
         }
-        if(dto.direction_client() != null) {
+        if (dto.direction_client() != null && !dto.direction_client().isBlank()) {
             this.direction_client = dto.direction_client();
         }
-        if(dto.email_client() != null) {
+        if (dto.email_client() != null && !dto.email_client().isBlank()) {
             this.email_client = dto.email_client();
         }
-        }
+    }
     }
 

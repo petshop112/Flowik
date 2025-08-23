@@ -14,8 +14,6 @@ public interface ClientService {
 
     boolean existClient(Long id);
 
-    Client updateClient(Client client);
-
     Client updateClient(Long id, ClientUpdate clientUpdate);
 
     void deletelogic(Long id);

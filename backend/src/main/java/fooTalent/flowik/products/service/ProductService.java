@@ -62,13 +62,12 @@ public class ProductService implements ProductServiceImpl{
     public boolean existProduct(Long id) {
         return productRepository.existsById(id);
     }
+
     @Override
     @Transactional
     public Product updateProduct(Long id, ProductUpdated productUpdated) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto", "ID", id));
-
-        List<FieldValidationError> errors = new ArrayList<>();
 
         if (productUpdated.name() != null && !productUpdated.name().isBlank()) {
             if (productUpdated.name().length() < 2 || productUpdated.name().length() > 50) {
