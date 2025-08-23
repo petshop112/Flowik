@@ -88,3 +88,19 @@ export const useDeleteProduct = () => {
     },
   });
 };
+
+export const useDeactivateProduct = () => {
+  const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => {
+      if (!token) throw new Error('No hay token de autenticación');
+      if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a desactivar');
+      return productService.deactivateProduct(ids, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};
