@@ -57,19 +57,21 @@ export const useGetClientById = (id_client?: number) => {
 };
 
 export const useDeleteClient = () => {
-  const qc = useQueryClient();
   const token = getUserTokenFromStorage();
-  const id_user = sessionStorage.getItem('userId')
-    ? Number(sessionStorage.getItem('userId'))
-    : undefined;
   return useMutation<Client, Error, number>({
     mutationFn: (id_client) => {
       if (!token) throw new Error('No hay token de autenticación');
       return clientService.deleteClient(id_client, token);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['clients'] });
-      qc.invalidateQueries({ queryKey: ['clients', id_user, token] });
+  });
+};
+
+export const useDeactivateClient = () => {
+  const token = getUserTokenFromStorage();
+  return useMutation<Client, Error, number>({
+    mutationFn: (id_client) => {
+      if (!token) throw new Error('No hay token de autenticación');
+      return clientService.deactivateClient(id_client, token);
     },
   });
 };
