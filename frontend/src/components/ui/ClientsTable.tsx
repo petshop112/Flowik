@@ -22,17 +22,15 @@ import ClientFormModal from '../modal/clientFormModal';
 import { DebtLegend } from './DebtLegend';
 import SuccessModal from '../modal/SuccessModal';
 import DeleteClientModal from '../modal/DeleteClientModal';
+import { currencyPipe, toNumber } from '../../utils/pipe/currency.pipe';
+import { formatDate } from '../../utils/formatDate';
+import { debtColor } from '../../utils/debtColors';
 
 type ClientWithDebt = Client & {
   total_debt?: number | string;
   debt_modified_at?: string;
   total_debt_days?: number;
 };
-
-function toNumber(v?: number | string) {
-  const n = typeof v === 'string' ? Number(v.replace(/[^\d.-]/g, '')) : (v ?? 0);
-  return Number.isFinite(n) ? Number(n) : 0;
-}
 
 function hasDebt(v?: number | string) {
   return toNumber(v) > 0;
@@ -44,29 +42,6 @@ function getUserId() {
 }
 
 const itemsPerPage = 10;
-
-function formatCurrency(v?: number | string) {
-  const n = toNumber(v);
-  return n.toLocaleString('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 2,
-  });
-}
-
-function formatDate(d?: string) {
-  if (!d) return '00/00/0000';
-  const dt = new Date(d);
-  return Number.isNaN(dt.getTime()) ? '00/00/0000' : dt.toLocaleDateString('es-AR');
-}
-
-function debtDotClass(days?: number) {
-  const n = Number(days ?? 0);
-  if (!Number.isFinite(n) || n <= 0) return 'bg-gray-300';
-  if (n > 60) return 'bg-rose-500';
-  if (n >= 30) return 'bg-orange-400';
-  return 'bg-teal-300';
-}
 
 const ClientsTable: React.FC = () => {
   const id_user = getUserId();
@@ -335,7 +310,7 @@ const ClientsTable: React.FC = () => {
                     const isSelected = selectedClientIds.has(client.id_client);
                     const debtExists = hasDebt(client.total_debt);
                     const days = client.total_debt_days ?? 0;
-                    const dot = debtDotClass(days);
+                    const dot = debtColor(days);
                     const daysDisplay = days ? String(days).padStart(3, '0') : '000';
 
                     const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
@@ -368,7 +343,7 @@ const ClientsTable: React.FC = () => {
                         </td>
 
                         <td className={`border-l-2 border-gray-200 px-4 text-sm ${mutedCell}`}>
-                          {formatCurrency(client.total_debt)}
+                          {currencyPipe(client.total_debt)}
                         </td>
 
                         <td className={`border-l-2 border-gray-200 px-4 text-sm ${mutedCell}`}>
