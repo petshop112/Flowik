@@ -130,15 +130,15 @@ public class ClientController {
 
     @Operation(summary = "Eliminar un cliente por id")
     @DeleteMapping("/{id_client}")
-    public ResponseEntity<Void> deleteclient(@PathVariable Long idclient){
+    public ResponseEntity<Void> deleteclient(@PathVariable Long id_client){
         String email = SecurityUtil.getAuthenticatedEmail();
-        Client existingClient = clientRepository.findById(idclient)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", idclient));
+        Client existingClient = clientRepository.findById(id_client)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", id_client));
 
         if (!existingClient.getCreatedBy().equals(email)) {
             throw new AccessDeniedException("No puedes eliminar un cliente que no creaste.");
         }
-        clientService.deleteclient(idclient);
+        clientService.deleteclient(id_client);
         return ResponseEntity.noContent().build();
     }
 
