@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Edit,
   Trash2,
@@ -15,6 +16,7 @@ import {
   useEditClient,
   useGetClientById,
   useDeleteClient,
+  useDeactivateClient,
 } from '../../hooks/useClient';
 import type { Client, ClientFormValues } from '../../types/clients';
 import ClientFormModal from '../modal/clientFormModal';
@@ -29,6 +31,7 @@ type ClientWithDebt = Client & {
   total_debt?: number | string;
   debt_modified_at?: string;
   total_debt_days?: number;
+  is_active?: boolean;
 };
 
 function hasDebt(v?: number | string) {
@@ -43,6 +46,7 @@ function getUserId() {
 const itemsPerPage = 10;
 
 const ClientsTable: React.FC = () => {
+  const queryClient = useQueryClient();
   const id_user = getUserId();
   const { data: clients, isLoading, error } = useGetAllClients(id_user);
 
@@ -61,6 +65,7 @@ const ClientsTable: React.FC = () => {
     viewClientId ?? undefined
   );
   const deleteClientMutation = useDeleteClient();
+  const deactivateClientMutation = useDeactivateClient();
   const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<Set<number>>(new Set());
@@ -130,9 +135,17 @@ const ClientsTable: React.FC = () => {
     }
   };
 
-  const handleDeactivate = () => {
-    // TODO: endpoint desactivar
-    console.log('Desactivar IDs:', Array.from(selectedClientIds));
+  const handleDeactivate = async () => {
+    if (!hasSelectedClients) return;
+    try {
+      for (const id of selectedClientIds) {
+        await deactivateClientMutation.mutateAsync(id);
+      }
+      setSelectedClientIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    } catch (err) {
+      console.error('Error al desactivar clientes:', err);
+    }
   };
 
   const handleManageDebt = () => {
@@ -209,9 +222,11 @@ const ClientsTable: React.FC = () => {
                 >
                   <ToggleRight
                     size={18}
-                    className={`${hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}`}
+                    className={hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}
                   />
-                  Desactivar
+                  <span className={hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}>
+                    Desactivar
+                  </span>
                 </button>
 
                 <button
@@ -247,7 +262,7 @@ const ClientsTable: React.FC = () => {
                         : 'text-gray-400'
                     }
                   >
-                    {'\r\n          Eliminar\r\n          '}
+                    Eliminar
                   </span>
                 </button>
               </article>
@@ -323,6 +338,10 @@ const ClientsTable: React.FC = () => {
                 <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
                   {currentClients.map((client) => {
                     const isSelected = selectedClientIds.has(client.id_client);
+                    const isInactive =
+                      client.is_active === false ||
+                      (deactivateClientMutation.isSuccess &&
+                        deactivateClientMutation.variables === client.id_client);
                     const debtExists = hasDebt(client.total_debt);
                     const days = client.total_debt_days ?? 0;
                     const dot = debtColor(days);
@@ -333,57 +352,81 @@ const ClientsTable: React.FC = () => {
                     return (
                       <tr
                         key={client.id_client}
-                        className="border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50"
+                        className={`border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50 ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
                       >
                         <td className="px-5 py-3">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleClientSelection(client.id_client)}
+                            disabled={isInactive}
                             className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                           />
                         </td>
 
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
+                        <td
+                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                        >
                           <span
-                            className="cursor-pointer text-gray-900 hover:underline"
-                            onClick={() => setViewClientId(client.id_client)}
+                            className={`cursor-pointer ${isInactive ? 'pointer-events-none opacity-50' : 'text-gray-900 hover:underline'}`}
+                            onClick={() => !isInactive && setViewClientId(client.id_client)}
                           >
                             {client.name_client}
                           </span>
                         </td>
 
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
+                        <td
+                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                        >
                           {client.telephone_client || client.email_client}
                         </td>
 
-                        <td className={`border-l-2 border-gray-200 px-4 text-sm ${mutedCell}`}>
+                        <td
+                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
+                        >
                           {currencyPipe(client.total_debt)}
                         </td>
 
-                        <td className={`border-l-2 border-gray-200 px-4 text-sm ${mutedCell}`}>
+                        <td
+                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
+                        >
                           {formatDate(client.debt_modified_at)}
                         </td>
 
-                        <td className="border-l-2 border-gray-200 px-4 text-sm">
+                        <td
+                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                        >
                           <div className="flex items-center justify-between">
-                            <span className={debtExists ? 'text-gray-900' : 'text-neutral-400'}>
+                            <span
+                              className={
+                                debtExists
+                                  ? isInactive
+                                    ? 'opacity-50'
+                                    : 'text-gray-900'
+                                  : 'text-neutral-400'
+                              }
+                            >
                               {daysDisplay}
                             </span>
                             <span
                               title={days ? `${days} días` : 'Sin deuda'}
-                              className={`inline-block h-6 w-6 rounded-full ${dot}`}
+                              className={`inline-block h-6 w-6 rounded-full ${dot} ${isInactive ? 'opacity-50' : ''}`}
                             />
                           </div>
                         </td>
 
-                        <td className="w-fit border-l-2 border-gray-200 text-center">
+                        <td
+                          className={`w-fit border-l-2 border-gray-200 text-center ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
+                        >
                           <button
                             onClick={() => {
-                              setEditingClient(client);
-                              setIsModalOpen(true);
+                              if (!isInactive) {
+                                setEditingClient(client);
+                                setIsModalOpen(true);
+                              }
                             }}
-                            className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
+                            className={`text-glacial-blue py-3 transition-colors hover:text-blue-500 ${isInactive ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                            disabled={isInactive}
                           >
                             <Edit size={24} />
                           </button>
@@ -482,14 +525,19 @@ const ClientsTable: React.FC = () => {
           isOpen={!!deleteClientId && deleteClientId.length > 0}
           clientName={deleteClientName}
           onCancel={() => setDeleteClientId(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
             if (deleteClientId && deleteClientId.length > 0) {
-              Promise.all(deleteClientId.map((id) => deleteClientMutation.mutateAsync(id))).then(
-                () => {
-                  setDeleteClientId(null);
-                  setShowDeleteSuccess(true);
-                }
-              );
+              await Promise.all(deleteClientId.map((id) => deleteClientMutation.mutateAsync(id)));
+              // Invalidate queries once after all deletions
+              queryClient.invalidateQueries({ queryKey: ['clients'] });
+              const token = sessionStorage.getItem('token');
+              const id_user = sessionStorage.getItem('userId');
+              if (id_user && token) {
+                queryClient.invalidateQueries({ queryKey: ['clients', Number(id_user), token] });
+              }
+              setDeleteClientId(null);
+              setShowDeleteSuccess(true);
+              setTimeout(() => setShowDeleteSuccess(false), 1800);
             }
           }}
           isDeleting={deleteClientMutation.isPending}

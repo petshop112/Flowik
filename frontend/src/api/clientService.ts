@@ -80,10 +80,29 @@ export const deleteClient = async (id_user: number, token: string): Promise<Clie
   }
 };
 
+export const deactivateClient = async (id_client: number, token: string): Promise<Client> => {
+  try {
+    const { data } = await axios.patch(
+      `${API_BASE_URL}client/${id_client}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      }
+    );
+    return data;
+  } catch (err) {
+    const e = err as AxiosError;
+    console.error('[deactivateClient] Error:', e.response?.data ?? e.message);
+    throw err;
+  }
+};
+
 export const clientService = {
   getAllClients,
   getClientById,
   createClient,
   editClient,
   deleteClient,
+  deactivateClient,
 };
