@@ -38,7 +38,6 @@ const ProductsTable: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
 
   const { data: products = [], isLoading, error } = useGetAllProducts();
@@ -48,8 +47,9 @@ const ProductsTable: React.FC = () => {
   const { data: providers } = useGetAllProviders();
   const deleteProductMutation = useDeleteProduct();
   const queryClient = useQueryClient();
-  const createProductMutation = useCreateProduct();
-  const updateProductMutation = useUpdateProduct();
+  const { mutateAsync: createProductMutation, isPending: isCreating } = useCreateProduct();
+  const { mutateAsync: updateProductMutation, isPending: isUpdating } = useUpdateProduct();
+  const isSavingProduct = isCreating || isUpdating;
 
   const hasSelectedProducts = selectedProductIds.size > 0;
   const itemsPerPage = 10;
@@ -109,30 +109,23 @@ const ProductsTable: React.FC = () => {
   };
 
   const handleSaveProduct = async (productData: ProductWithOptionalId) => {
-    setIsSavingProduct(true);
     try {
+      let messageTitle = '';
+      let messageDescription = '';
+
       if (editingProductId !== null) {
         const updatedProduct = {
           ...productData,
           providerIds: productData.providerIds ? productData.providerIds.map(String) : [],
         };
-        console.log('Datos que se van a enviar:', updatedProduct);
 
-        await updateProductMutation.mutateAsync({
+        await updateProductMutation({
           id: editingProductId,
           data: updatedProduct,
         });
 
-        queryClient.setQueryData(['product', editingProductId], updatedProduct);
-        setIsSavingProduct(false);
-        handleCloseModal();
-
-        setSuccessMessage({
-          title: '¡Cambios guardados!',
-          description: 'Los datos se han guardado correctamente.',
-        });
-        setIsSuccessModalOpen(true);
-        console.log('Producto actualizado en el cache:', updatedProduct);
+        messageTitle = '¡Cambios guardados!';
+        messageDescription = 'Los datos se han guardado correctamente.';
       } else {
         const newProduct = {
           name: productData.name,
@@ -148,8 +141,7 @@ const ProductsTable: React.FC = () => {
               : [],
         };
 
-        console.log('Datos que se van a enviar:', newProduct);
-        const createdProduct = await createProductMutation.mutateAsync(newProduct);
+        const createdProduct = await createProductMutation(newProduct);
 
         if (productData.providerIds && productData.providerIds.length > 0 && providers) {
           const selectedProvider = providers.find(
@@ -166,23 +158,25 @@ const ProductsTable: React.FC = () => {
             queryClient.setQueryData(['product', createdProduct.id], updatedCreatedProduct);
           }
         }
-        setIsSavingProduct(false);
-        handleCloseModal();
 
-        setSuccessMessage({
-          title: '¡Nuevo producto agregado!',
-          description:
-            'El producto se ha dado de alta correctamente y ya está disponible en el inventario.',
-        });
-        setIsSuccessModalOpen(true);
-        console.log('Nuevo producto creado:', productData);
+        messageTitle = '¡Nuevo producto agregado!';
+        messageDescription =
+          'El producto se ha dado de alta correctamente y ya está disponible en el inventario.';
       }
 
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      handleCloseModal();
+      setSuccessMessage({
+        title: messageTitle,
+        description: messageDescription,
+      });
     } catch (error) {
-      setIsSavingProduct(false);
+      setSuccessMessage({
+        title: '¡Error al guardar producto!',
+        description: 'El producto no se ha guardado correctamente.',
+      });
       console.error('Error al guardar producto:', error);
+    } finally {
+      handleCloseModal();
+      setIsSuccessModalOpen(true);
     }
   };
 
