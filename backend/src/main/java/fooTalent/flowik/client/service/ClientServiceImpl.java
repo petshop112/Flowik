@@ -53,10 +53,19 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void deletelogic(Long id) {
         Client cl= clientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado para eliminar"));
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado para Desactivar"));
 
-        cl.setIsActive(false);
+        cl.changeStatus();
         clientRepository.save(cl);
     }
+
+    @Override
+    public void deleteclient(Long id) {
+        if (!clientRepository.existsById(id)) {
+            throw new RuntimeException("Cliente no encontrado para eliminar");
+        }
+        clientRepository.deleteById(id);
+    }
+
 
 }
