@@ -54,6 +54,10 @@ public class Client {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Debt> debts = new ArrayList<>();
 
+    public void changeStatus() {
+        this.isActive = !isActive;
+    }
+
    public boolean getIsActive() {
         return isActive;
     }

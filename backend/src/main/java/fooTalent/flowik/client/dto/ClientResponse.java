@@ -15,7 +15,8 @@ public record ClientResponse(
         String direction_client,
         String email_client,
         LocalDate ingress_date,
-        List<DebtResponse> debts
+        List<DebtResponse> debts,
+        boolean isActive
 ) {
     public ClientResponse(Client client) {
         this(
@@ -28,7 +29,8 @@ public record ClientResponse(
                 client.getIngress_date(),
                 client.getDebts().stream()
                         .map(DebtResponse::new)
-                        .toList()
+                        .toList(),
+                client.getIsActive()
         );
     }
     }
