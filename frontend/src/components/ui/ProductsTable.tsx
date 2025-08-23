@@ -473,7 +473,7 @@ const ProductsTable: React.FC = () => {
                               />
                             </td>
                             <td className="border-l-2 border-gray-200 px-4 text-sm">
-                              {product.name} {product.isActive ? '(Activo)' : '(Inactivo)'}
+                              {product.name}
                             </td>
                             <td className="border-l-2 border-gray-200 px-4 text-sm">
                               {product.category}
