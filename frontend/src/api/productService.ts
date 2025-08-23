@@ -105,14 +105,17 @@ const deleteProduct = async (ids: number[], token: string) => {
 
 const deactivateProduct = async (ids: number[], token: string) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}products`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      data: {
+    const response = await axios.patch(
+      `${API_BASE_URL}products`,
+      {
         IDs: ids,
       },
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
