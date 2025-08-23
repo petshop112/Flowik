@@ -103,10 +103,32 @@ const deleteProduct = async (ids: number[], token: string) => {
   }
 };
 
+const deactivateProduct = async (ids: number[], token: string) => {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}products`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: {
+        IDs: ids,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      '[deactivateProduct] Error fetching data:',
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
+  }
+};
+
 export const productService = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  deactivateProduct,
 };
