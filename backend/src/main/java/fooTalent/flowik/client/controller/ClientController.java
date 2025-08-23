@@ -66,7 +66,7 @@ public class ClientController {
 
         User user = userRepository.findById(id_user)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id_user));
-        String email = user.();
+        String email = user.getEmail();
 
         List<ClientResponse> clients = clientService.getAllClient().stream()
                 .filter(client -> client.getCreatedBy().equals(email))
