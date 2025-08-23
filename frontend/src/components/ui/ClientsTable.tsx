@@ -204,7 +204,7 @@ const ClientsTable: React.FC = () => {
                   onClick={hasSelectedClients ? handleDeactivate : undefined}
                   disabled={!hasSelectedClients}
                   className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-                    hasSelectedClients ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                    hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'
                   }`}
                   title="Desactivar seleccionados"
                 >
@@ -228,13 +228,28 @@ const ClientsTable: React.FC = () => {
                     }
                   }}
                   disabled={!hasSelectedClients}
-                  className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-                    hasSelectedClients ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                  className={`group flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
+                    hasSelectedClients ? 'text-[#F82254] hover:text-[#B3123A]' : 'text-gray-400'
                   }`}
                   title="Eliminar seleccionados"
                 >
-                  <Trash2 size={18} />
-                  Eliminar
+                  <Trash2
+                    size={18}
+                    className={
+                      hasSelectedClients
+                        ? 'text-[#F82254] group-hover:text-[#B3123A]'
+                        : 'text-gray-400'
+                    }
+                  />
+                  <span
+                    className={
+                      hasSelectedClients
+                        ? 'text-[#F82254] group-hover:text-[#B3123A]'
+                        : 'text-gray-400'
+                    }
+                  >
+                    {'\r\n          Eliminar\r\n          '}
+                  </span>
                 </button>
               </article>
 
@@ -298,7 +313,8 @@ const ClientsTable: React.FC = () => {
                     <th>
                       <div className="flex items-center justify-between">
                         <span>Total días deuda</span>
-                        <Bell size={16} className="opacity-70" />
+                        <img className="h-6 w-6" src="/icons/alarma.svg" alt="" />
+                        {/* <Bell size={16} className="opacity-70" /> */}
                       </div>
                     </th>
                     <th className="w-8">Editar</th>
@@ -357,7 +373,7 @@ const ClientsTable: React.FC = () => {
                             </span>
                             <span
                               title={days ? `${days} días` : 'Sin deuda'}
-                              className={`inline-block h-3.5 w-3.5 rounded-full ${dot}`}
+                              className={`inline-block h-6 w-6 rounded-full ${dot}`}
                             />
                           </div>
                         </td>
