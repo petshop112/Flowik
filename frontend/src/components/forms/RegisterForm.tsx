@@ -57,6 +57,7 @@ const validationSchema = Yup.object({
           'yandex.com',
           'mail.com',
           'unal.edu.co',
+          'live.com.ar',
         ];
 
         return validDomains.includes(domain.toLowerCase());
@@ -64,10 +65,11 @@ const validationSchema = Yup.object({
     )
     .required('El correo es obligatorio'),
   password: Yup.string()
-    .min(8, 'Mínimo 8 caracteres')
+    .min(8, 'La contraseña debe tener mínimo 8 caracteres')
     .max(16, 'La contraseña no debe superar los 16 caracteres')
-    .matches(/\d/, 'Contener 1 numeral')
-    .matches(/^[A-Z]/, 'Primera letra en mayúscula')
+    .matches(/\d/, 'Debe contener al menos un caracter numérico')
+    .matches(/[A-Z]/, 'Debe contener al menos una letra mayúscula')
+    .matches(/[a-z]/, 'Debe contener al menos una letra minúscula')
     .required('La contraseña es obligatoria'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')
