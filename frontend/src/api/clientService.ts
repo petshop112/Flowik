@@ -18,8 +18,6 @@ export const getAllClients = async (id_user: number, token: string): Promise<Cli
   }
 };
 
-///api/client/details/{id_client}
-
 export const getClientById = async (id_user: number, token: string): Promise<Client[]> => {
   try {
     console.log('[getAllClients] API_BASE_URL:', API_BASE_URL);
@@ -68,4 +66,24 @@ export const editClient = async (
   }
 };
 
-export const clientService = { getAllClients, getClientById, createClient, editClient };
+export const deleteClient = async (id_user: number, token: string): Promise<Client> => {
+  try {
+    const { data } = await axios.delete(`${API_BASE_URL}client/${id_user}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return data;
+  } catch (err) {
+    const e = err as AxiosError;
+    console.error('[getClientSimpleById] Error:', e.response?.data ?? e.message);
+    throw err;
+  }
+};
+
+export const clientService = {
+  getAllClients,
+  getClientById,
+  createClient,
+  editClient,
+  deleteClient,
+};
