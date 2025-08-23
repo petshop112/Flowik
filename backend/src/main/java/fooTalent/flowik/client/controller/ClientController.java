@@ -8,6 +8,7 @@ import fooTalent.flowik.client.repositories.ClientRepository;
 import fooTalent.flowik.client.service.ClientService;
 import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
+import fooTalent.flowik.users.entity.User;
 import fooTalent.flowik.users.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -43,29 +44,38 @@ public class ClientController {
         return ResponseEntity.created(location).body(new ClientResponse(saved));
     }
     @Operation(summary = "Obtener un cliente por su ID")
-    @GetMapping("/details/{id_client}")
+    @GetMapping("/{id_client}")
     public ResponseEntity<ClientResponse> getClientById(@PathVariable("id_client") Long id_client) {
 
-        Client client = clientService.getClientbyId(id_client);
-        String authenticatedUserEmail = SecurityUtil.getAuthenticatedEmail();
+        String email = SecurityUtil.getAuthenticatedEmail();
+        Client existingClient = clientRepository.findById(id_client)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente", "ID", id_client));
 
-        if (!client.getCreatedBy().equals(authenticatedUserEmail)) {
-            throw new AccessDeniedException("No tienes permiso para acceder a este cliente.");
+        if (!existingClient.getCreatedBy().equals(email)) {
+            throw new AccessDeniedException("No puedes ver un cliente que no creaste.");
         }
 
-        return ResponseEntity.ok(new ClientResponse(client));
+        return ResponseEntity.ok(new ClientResponse(existingClient));
     }
 
     @Operation(summary = "Lista todos los Clientes",
-    description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
+            description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
     @GetMapping("/{id_user}")
-    public ResponseEntity<List<ClientResponse>> getAllProviders(@PathVariable("id_user") Long id_user){
+    public ResponseEntity<List<ClientResponse>> getAllClients(@PathVariable("id_user") Long id_user){
         SecurityUtil.validateUserAccess(userRepository, id_user);
-        return ResponseEntity.ok(
-                clientService.getAllClient().stream()
-                        .map(ClientResponse::new)
-                        .toList()
-        );
+
+        User user = userRepository.findById(id_user)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id_user));
+        String email = user.getEmail();
+
+        List<ClientResponse> clients = clientService.getAllClient().stream()
+                .filter(client -> client.getCreatedBy().equals(email))
+                .map(ClientResponse::new)
+                .toList();
+        if (clients.isEmpty()) {
+            throw new ResourceNotFoundException("Clientes", "Usuario", id_user);
+        }
+        return ResponseEntity.ok(clients);
     }
     @Operation(summary = "Modificar un cliente por id")
     @PutMapping("/{id_client}")
@@ -100,9 +110,9 @@ public class ClientController {
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
-    @Operation(summary = "Eliminar un cliente por id")
-    @DeleteMapping("/{id_client}")
-    public ResponseEntity<Void> deleteProvider(@PathVariable Long id_client){
+    @Operation(summary = "Desactivar un cliente por id")
+    @PatchMapping("/{id_client}")
+    public ResponseEntity<Void> clientdeletelogic(@PathVariable Long id_client){
 
         String email = SecurityUtil.getAuthenticatedEmail();
 
@@ -110,11 +120,25 @@ public class ClientController {
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", id_client));
 
         if (!existingClient.getCreatedBy().equals(email)) {
-            throw new AccessDeniedException("No puedes eliminar un cliente que no creaste.");
+            throw new AccessDeniedException("No puedes desactivar un cliente que no creaste.");
         }
 
         clientService.deletelogic(id_client);
         return ResponseEntity.noContent().build();
     }
+    @Operation(summary = "Eliminar un cliente por id")
+    @DeleteMapping("/{id_client}")
+    public ResponseEntity<Void> deleteclient(@PathVariable Long idclient){
+        String email = SecurityUtil.getAuthenticatedEmail();
+        Client existingClient = clientRepository.findById(idclient)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", idclient));
+
+        if (!existingClient.getCreatedBy().equals(email)) {
+            throw new AccessDeniedException("No puedes eliminar un cliente que no creaste.");
+        }
+        clientService.deleteclient(idclient);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }

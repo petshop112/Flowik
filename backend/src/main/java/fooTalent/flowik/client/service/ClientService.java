@@ -20,4 +20,5 @@ public interface ClientService {
 
     void deletelogic(Long id);
 
+    void deleteclient(Long id);
 }
