@@ -5,7 +5,7 @@ import type { Client, ClientFormValues } from '../types/clients';
 export const getAllClients = async (id_user: number, token: string): Promise<Client[]> => {
   try {
     console.log('[getAllClients] API_BASE_URL:', API_BASE_URL);
-    const { data } = await axios.get(`${API_BASE_URL}client/${id_user}`, {
+    const { data } = await axios.get(`${API_BASE_URL}client/user/${id_user}`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
@@ -20,8 +20,8 @@ export const getAllClients = async (id_user: number, token: string): Promise<Cli
 
 export const getClientById = async (id_user: number, token: string): Promise<Client[]> => {
   try {
-    console.log('[getAllClients] API_BASE_URL:', API_BASE_URL);
-    const { data } = await axios.get(`${API_BASE_URL}client/details/${id_user}`, {
+    console.log('[getClientById] API_BASE_URL:', API_BASE_URL);
+    const { data } = await axios.get(`${API_BASE_URL}client/${id_user}`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
