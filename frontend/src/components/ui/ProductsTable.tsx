@@ -383,7 +383,6 @@ const ProductsTable: React.FC = () => {
                         <th className="w-12 px-4 py-3">
                           <Check />
                         </th>
-                        <th>ID</th>
                         <th>Nombre producto</th>
                         <th>Categoría</th>
                         <th>Stock unitario</th>
@@ -413,11 +412,8 @@ const ProductsTable: React.FC = () => {
                                 className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                               />
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm text-gray-900">
-                              {product.id}
-                            </td>
                             <td className="border-l-2 border-gray-200 px-4 text-sm">
-                              {product.name}
+                              {product.name} {product.isActive ? '(Activo)' : '(Inactivo)'}
                             </td>
                             <td className="border-l-2 border-gray-200 px-4 text-sm">
                               {product.category}
