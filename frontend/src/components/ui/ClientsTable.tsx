@@ -8,7 +8,6 @@ import {
   Check,
   Plus,
   ToggleRight,
-  Bell,
 } from 'lucide-react';
 import {
   useGetAllClients,
