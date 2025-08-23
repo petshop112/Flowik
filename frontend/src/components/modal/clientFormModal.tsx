@@ -15,6 +15,7 @@ type Props = {
   isSaving?: boolean;
   client?: Client | null;
   readOnly?: boolean;
+  clientesLista?: Client[];
 };
 
 function splitName(full?: string): { firstName: string; lastName: string } {
@@ -48,6 +49,7 @@ const ClientFormModal: React.FC<Props> = ({
   isSaving = false,
   client,
   readOnly = false,
+  clientesLista,
 }) => {
   const initialForm: Form = useMemo(() => {
     if (!client) return emptyForm;
@@ -72,6 +74,7 @@ const ClientFormModal: React.FC<Props> = ({
     document_type: false,
     direction_client: false,
   });
+  const [duplicateError, setDuplicateError] = useState('');
 
   const fieldRefs = useRef<Partial<Record<keyof Form, HTMLInputElement | null>>>({});
 
@@ -122,6 +125,7 @@ const ClientFormModal: React.FC<Props> = ({
 
     const allErrors = validateAll(form);
     setErrors(allErrors);
+    setDuplicateError('');
 
     if (Object.keys(allErrors).length > 0) {
       setTouched({
@@ -134,6 +138,22 @@ const ClientFormModal: React.FC<Props> = ({
       });
       focusFirstError(allErrors);
       return;
+    }
+
+    // Validación mejorada de duplicados (excluye el propio cliente si está editando)
+    if (!readOnly && clientesLista) {
+      const email = form.email_client.trim().toLowerCase();
+      const dni = form.document_type?.trim().toLowerCase() || '';
+      const existe = clientesLista.some(
+        (c) =>
+          c.id_client !== client?.id_client &&
+          (c.email_client?.trim().toLowerCase() === email ||
+            c.document_type?.trim().toLowerCase() === dni)
+      );
+      if (existe) {
+        setDuplicateError('Ya existe un usuario con ese email o documento.');
+        return;
+      }
     }
 
     // payload para el backend
@@ -325,6 +345,11 @@ const ClientFormModal: React.FC<Props> = ({
               )}
             </div>
           </div>
+
+          {/* Mostrar error de duplicado en el formulario */}
+          {duplicateError && (
+            <div className="mb-4 text-center font-semibold text-red-600">{duplicateError}</div>
+          )}
 
           {/* Botones */}
           <div className="flex items-center justify-center gap-4 pt-2 pb-2">
