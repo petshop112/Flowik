@@ -457,7 +457,7 @@ const ClientsTable: React.FC = () => {
             isOpen={!!viewClientId}
             onClose={() => setViewClientId(null)}
             onSave={() => {}}
-            client={viewClient}
+            client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
             readOnly={true}
             isSaving={isLoadingViewClient}
           />
