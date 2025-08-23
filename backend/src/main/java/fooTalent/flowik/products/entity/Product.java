@@ -75,6 +75,8 @@ public class Product {
         this.providers = providers;
     }
 
+
+
     public void updateProduct(ProductUpdated p, List<Provider> providersNew) {
         if (p.name() != null && !p.name().isBlank()) {
             this.name = p.name();

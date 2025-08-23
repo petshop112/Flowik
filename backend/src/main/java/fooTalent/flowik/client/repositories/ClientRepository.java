@@ -18,5 +18,8 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
            """)
     Optional<Client> findByNameAndDocumentType(@Param("name") String name,
                                                @Param("docType") String docType);
+
+    @Query(value = "SELECT * FROM client WHERE name_client = :name AND document_type = :dni", nativeQuery = true)
+    Optional<Client> findByNameAndDni(@Param("name") String name, @Param("dni") String dni);
 }
 

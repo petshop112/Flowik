@@ -59,8 +59,8 @@ public class ClientController {
     }
 
     @Operation(summary = "Lista todos los Clientes",
-            description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
-    @GetMapping("/{id_user}")
+    description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
+    @GetMapping("/user/{id_user}")
     public ResponseEntity<List<ClientResponse>> getAllClients(@PathVariable("id_user") Long id_user){
         SecurityUtil.validateUserAccess(userRepository, id_user);
 
@@ -110,9 +110,10 @@ public class ClientController {
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
-    @Operation(summary = "Desactivar un cliente por id")
-    @PatchMapping("/{id_client}")
-    public ResponseEntity<Void> clientdeletelogic(@PathVariable Long id_client){
+
+    @Operation(summary = "Eliminar un cliente por id")
+    @DeleteMapping("/{id_client}")
+    public ResponseEntity<Void> deleteProvider(@PathVariable Long id_client){
 
         String email = SecurityUtil.getAuthenticatedEmail();
 
@@ -120,25 +121,11 @@ public class ClientController {
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", id_client));
 
         if (!existingClient.getCreatedBy().equals(email)) {
-            throw new AccessDeniedException("No puedes desactivar un cliente que no creaste.");
+            throw new AccessDeniedException("No puedes eliminar un cliente que no creaste.");
         }
 
         clientService.deletelogic(id_client);
         return ResponseEntity.noContent().build();
     }
-    @Operation(summary = "Eliminar un cliente por id")
-    @DeleteMapping("/{id_client}")
-    public ResponseEntity<Void> deleteclient(@PathVariable Long idclient){
-        String email = SecurityUtil.getAuthenticatedEmail();
-        Client existingClient = clientRepository.findById(idclient)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", idclient));
-
-        if (!existingClient.getCreatedBy().equals(email)) {
-            throw new AccessDeniedException("No puedes eliminar un cliente que no creaste.");
-        }
-        clientService.deleteclient(idclient);
-        return ResponseEntity.noContent().build();
-    }
-
 
 }
