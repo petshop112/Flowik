@@ -18,6 +18,7 @@ import {
   useGetProductById,
   useUpdateProduct,
   useDeleteProduct,
+  useDeactivateProduct,
 } from '../../hooks/useProducts';
 import ProductFormModal from '../modal/ProductFormModal';
 import { InventoryLegend } from './InventoryLegend';
@@ -38,7 +39,6 @@ const ProductsTable: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
 
   const { data: products = [], isLoading, error } = useGetAllProducts();
@@ -47,9 +47,11 @@ const ProductsTable: React.FC = () => {
   );
   const { data: providers } = useGetAllProviders();
   const deleteProductMutation = useDeleteProduct();
+  const deactivateProductMutation = useDeactivateProduct();
   const queryClient = useQueryClient();
-  const createProductMutation = useCreateProduct();
-  const updateProductMutation = useUpdateProduct();
+  const { mutateAsync: createProductMutation, isPending: isCreating } = useCreateProduct();
+  const { mutateAsync: updateProductMutation, isPending: isUpdating } = useUpdateProduct();
+  const isSavingProduct = isCreating || isUpdating;
 
   const hasSelectedProducts = selectedProductIds.size > 0;
   const itemsPerPage = 10;
@@ -109,30 +111,23 @@ const ProductsTable: React.FC = () => {
   };
 
   const handleSaveProduct = async (productData: ProductWithOptionalId) => {
-    setIsSavingProduct(true);
     try {
+      let messageTitle = '';
+      let messageDescription = '';
+
       if (editingProductId !== null) {
         const updatedProduct = {
           ...productData,
           providerIds: productData.providerIds ? productData.providerIds.map(String) : [],
         };
-        console.log('Datos que se van a enviar:', updatedProduct);
 
-        await updateProductMutation.mutateAsync({
+        await updateProductMutation({
           id: editingProductId,
           data: updatedProduct,
         });
 
-        queryClient.setQueryData(['product', editingProductId], updatedProduct);
-        setIsSavingProduct(false);
-        handleCloseModal();
-
-        setSuccessMessage({
-          title: '¡Cambios guardados!',
-          description: 'Los datos se han guardado correctamente.',
-        });
-        setIsSuccessModalOpen(true);
-        console.log('Producto actualizado en el cache:', updatedProduct);
+        messageTitle = '¡Cambios guardados!';
+        messageDescription = 'Los datos se han guardado correctamente.';
       } else {
         const newProduct = {
           name: productData.name,
@@ -148,8 +143,7 @@ const ProductsTable: React.FC = () => {
               : [],
         };
 
-        console.log('Datos que se van a enviar:', newProduct);
-        const createdProduct = await createProductMutation.mutateAsync(newProduct);
+        const createdProduct = await createProductMutation(newProduct);
 
         if (productData.providerIds && productData.providerIds.length > 0 && providers) {
           const selectedProvider = providers.find(
@@ -166,23 +160,25 @@ const ProductsTable: React.FC = () => {
             queryClient.setQueryData(['product', createdProduct.id], updatedCreatedProduct);
           }
         }
-        setIsSavingProduct(false);
-        handleCloseModal();
 
-        setSuccessMessage({
-          title: '¡Nuevo producto agregado!',
-          description:
-            'El producto se ha dado de alta correctamente y ya está disponible en el inventario.',
-        });
-        setIsSuccessModalOpen(true);
-        console.log('Nuevo producto creado:', productData);
+        messageTitle = '¡Nuevo producto agregado!';
+        messageDescription =
+          'El producto se ha dado de alta correctamente y ya está disponible en el inventario.';
       }
 
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      handleCloseModal();
+      setSuccessMessage({
+        title: messageTitle,
+        description: messageDescription,
+      });
     } catch (error) {
-      setIsSavingProduct(false);
+      setSuccessMessage({
+        title: '¡Error al guardar producto!',
+        description: 'El producto no se ha guardado correctamente.',
+      });
       console.error('Error al guardar producto:', error);
+    } finally {
+      handleCloseModal();
+      setIsSuccessModalOpen(true);
     }
   };
 
@@ -200,9 +196,8 @@ const ProductsTable: React.FC = () => {
         title: '¡Eliminación completada!',
         description: `Los elementos seleccionados ya no estarán disponibles en la tabla ni en el buscador.`,
       });
-      setIsSuccessModalOpen(true);
 
-      console.log('Productos eliminados exitosamente');
+      setIsSuccessModalOpen(true);
     } catch (error) {
       console.error('Error al eliminar productos:', error);
     }
@@ -217,19 +212,75 @@ const ProductsTable: React.FC = () => {
   const filteredProducts = useMemo(() => {
     if (!products) return [];
 
-    if (!searchTerm.trim()) return products;
+    let filtered = products;
+    if (searchTerm.trim().length >= 3) {
+      filtered = products.filter(
+        (product: Product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.providers.some((provider) =>
+            provider.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+      );
+    }
 
-    if (searchTerm.trim().length < 3) return products;
-
-    return products.filter(
-      (product: Product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.providers.some((provider) =>
-          provider.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    );
+    return filtered.sort((a: Product, b: Product) => {
+      if (a.isActive && !b.isActive) {
+        return -1;
+      }
+      if (!a.isActive && b.isActive) {
+        return 1;
+      }
+      return 0;
+    });
   }, [products, searchTerm]);
+
+  const allSelectedAreActive = useMemo(() => {
+    if (selectedProductIds.size === 0) return false;
+
+    return Array.from(selectedProductIds).every((id) => {
+      const product = products.find((p: Product) => p.id === id);
+      return product ? product.isActive : false;
+    });
+  }, [selectedProductIds, products]);
+
+  const allSelectedAreInactive = useMemo(() => {
+    if (selectedProductIds.size === 0) return false;
+
+    return Array.from(selectedProductIds).every((id) => {
+      const product = products.find((p: Product) => p.id === id);
+      return product ? !product.isActive : false;
+    });
+  }, [selectedProductIds, products]);
+
+  const handleToggleProductStatus = async () => {
+    if (selectedProductIds.size === 0) return;
+
+    const idsArray = Array.from(selectedProductIds);
+
+    try {
+      if (allSelectedAreActive) {
+        await deactivateProductMutation.mutateAsync(idsArray);
+        setSuccessMessage({
+          title: '¡Desactivación completada!',
+          description:
+            'Los elementos seleccionados se mostrarán al final de la tabla. Para encontrarlos, usa el buscador y reactívalos.',
+        });
+      } else if (allSelectedAreInactive) {
+        await deactivateProductMutation.mutateAsync(idsArray);
+        setSuccessMessage({
+          title: '¡Activación completada!',
+          description: 'Los productos seleccionados han sido reactivados.',
+        });
+      }
+
+      setSelectedProductIds(new Set());
+    } catch (error) {
+      console.error('Error al cambiar el estado de los productos:', error);
+    } finally {
+      setIsSuccessModalOpen(true);
+    }
+  };
 
   const totalProducts = filteredProducts.length;
   const totalPages = Math.ceil(totalProducts / itemsPerPage);
@@ -300,7 +351,8 @@ const ProductsTable: React.FC = () => {
                   } `}
                 >
                   <button
-                    disabled={!hasSelectedProducts}
+                    onClick={handleToggleProductStatus}
+                    disabled={!hasSelectedProducts || deactivateProductMutation.isPending}
                     className={`${
                       hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
                     } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
@@ -309,7 +361,15 @@ const ProductsTable: React.FC = () => {
                       size={18}
                       className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
                     />
-                    Desactivar
+                    {allSelectedAreActive
+                      ? deactivateProductMutation.isPending
+                        ? 'Desactivando...'
+                        : 'Desactivar'
+                      : allSelectedAreInactive
+                        ? deactivateProductMutation.isPending
+                          ? 'Activando...'
+                          : 'Activar'
+                        : 'Activar/Desactivar'}
                   </button>
                   <button
                     onClick={handleOpenDeleteModal}
@@ -383,7 +443,6 @@ const ProductsTable: React.FC = () => {
                         <th className="w-12 px-4 py-3">
                           <Check />
                         </th>
-                        <th>ID</th>
                         <th>Nombre producto</th>
                         <th>Categoría</th>
                         <th>Stock unitario</th>
@@ -403,7 +462,7 @@ const ProductsTable: React.FC = () => {
                         return (
                           <tr
                             key={product.id}
-                            className="border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50"
+                            className={`${product.isActive ? 'hover:bg-gray-50' : 'bg-custom-mist text-neutral-400/80'} border-b-2 border-gray-200 transition-colors last:border-none`}
                           >
                             <td className="px-5 py-3">
                               <input
@@ -412,9 +471,6 @@ const ProductsTable: React.FC = () => {
                                 onChange={() => toggleProductSelection(product.id)}
                                 className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                               />
-                            </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm text-gray-900">
-                              {product.id}
                             </td>
                             <td className="border-l-2 border-gray-200 px-4 text-sm">
                               {product.name}
@@ -426,7 +482,9 @@ const ProductsTable: React.FC = () => {
                               {product.amount}
                             </td>
                             <td>
-                              <div className={`mx-auto h-4 w-4 rounded-full ${stockColor}`}></div>
+                              <div
+                                className={`mx-auto h-4 w-4 rounded-full ${product.isActive ? stockColor : 'bg-neutral-400/80'}`}
+                              ></div>
                             </td>
                             <td className="border-l-2 border-gray-200 px-4 text-sm">
                               $ {product.sellPrice}
@@ -434,7 +492,7 @@ const ProductsTable: React.FC = () => {
                             <td className="w-fit border-l-2 border-gray-200 text-center">
                               <button
                                 onClick={() => handleEditProduct(product)}
-                                className="text-glacial-blue cursor-pointer py-3 transition-colors hover:text-blue-500"
+                                className={`${product.isActive ? 'text-glacial-blue hover:text-blue-500' : 'text-neutral-400/80 hover:text-neutral-500'} cursor-pointer py-3 transition-colors`}
                               >
                                 <Edit size={24} />
                               </button>

@@ -66,3 +66,8 @@ export interface DeleteProductModalProps {
   onConfirm: () => void;
   isLoading?: boolean;
 }
+
+export interface ProductUpdateData extends Omit<Product, 'id' | 'providers'> {
+  description: string;
+  providersIds?: string[];
+}

@@ -1,12 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService } from '../api/productService';
 import { getUserTokenFromStorage } from '../utils/storage';
-import type { Product } from '../types/product';
-
-export interface ProductUpdateData extends Omit<Product, 'id' | 'providers'> {
-  description: string;
-  providersIds?: string[];
-}
+import type { ProductUpdateData } from '../types/product';
 
 export const useGetAllProducts = () => {
   const token = getUserTokenFromStorage();
@@ -53,22 +48,30 @@ export const useGetProductById = (id: number) => {
 
 export const useCreateProduct = () => {
   const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: ProductUpdateData) => {
       if (!token) throw new Error('No hay token de autenticación');
       return productService.createProduct(data, token);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
   });
 };
 
 export const useUpdateProduct = () => {
   const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id?: number; data: ProductUpdateData }) => {
       if (!token) throw new Error('No hay token de autenticación');
       return productService.updateProduct(id ?? 0, data, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 };
@@ -82,6 +85,22 @@ export const useDeleteProduct = () => {
       if (!token) throw new Error('No hay token de autenticación');
       if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a eliminar');
       return productService.deleteProduct(ids, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};
+
+export const useDeactivateProduct = () => {
+  const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => {
+      if (!token) throw new Error('No hay token de autenticación');
+      if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a desactivar');
+      return productService.deactivateProduct(ids, token);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });

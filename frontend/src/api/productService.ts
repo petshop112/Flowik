@@ -103,10 +103,35 @@ const deleteProduct = async (ids: number[], token: string) => {
   }
 };
 
+const deactivateProduct = async (ids: number[], token: string) => {
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}products`,
+      {
+        IDs: ids,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      '[deactivateProduct] Error fetching data:',
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
+  }
+};
+
 export const productService = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  deactivateProduct,
 };
