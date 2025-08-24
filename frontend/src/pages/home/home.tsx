@@ -1,4 +1,4 @@
-// src/pages/home/home.tsx
+import { useState } from 'react';
 
 import {
   BarChart,
@@ -132,10 +132,15 @@ const Home = () => {
     return `${value / 1000}k`;
   };
 
+  const [sellingFilter, setSellingFilter] = useState<'mayor' | 'menor'>('mayor');
+  const orderedProducts = [...productosData].sort((a, b) =>
+    sellingFilter === 'mayor' ? b.ventas - a.ventas : a.ventas - b.ventas
+  );
+
   // filtering data from the db to get the top 7 and top 10 for producto movement and stock
   const topStockBajo = [...stockBajoData].sort((a, b) => a.stock - b.stock).slice(0, 10);
 
-  const topProductosData = [...productosData].sort((a, b) => b.ventas - a.ventas).slice(0, 7);
+  const topProductosData = orderedProducts.slice(0, 7);
 
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
@@ -265,9 +270,13 @@ const Home = () => {
                 Movimiento de producto
               </span>
               <div className="relative w-44">
-                <select className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs">
-                  <option className="font-bold">Mayor salida</option>
-                  <option className="font-bold">Menor salida</option>
+                <select
+                  className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs"
+                  value={sellingFilter}
+                  onChange={(e) => setSellingFilter(e.target.value as 'mayor' | 'menor')}
+                >
+                  <option value="mayor" className="font-bold">Mayor salida</option>
+                  <option value="menor" className="font-bold">Menor salida</option>
                 </select>
                 <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2">
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
@@ -328,7 +337,7 @@ const Home = () => {
                   />
                   <Bar
                     dataKey="ventas"
-                    fill="#CDDBFE"
+                    fill={sellingFilter === 'menor' ? '#FDCED9' : '#BBD7FF'}
                     barSize={18}
                     radius={[5, 5, 5, 5]}
                     label={{
