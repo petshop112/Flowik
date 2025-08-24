@@ -3,19 +3,6 @@ import { clientService } from '../api/clientService';
 import { getUserTokenFromStorage } from '../utils/storage';
 import type { Client, ClientFormValues } from '../types/clients';
 
-// export const useGetAllClients = (id_user?: number) => {
-//   const token = getUserTokenFromStorage();
-
-//   return useQuery<Client[], Error>({
-//     queryKey: ['clients', id_user, token],
-//     enabled: !!token && typeof id_user === 'number',
-//     queryFn: () => clientService.getAllClients(id_user!, token!),
-//     staleTime: 2 * 60 * 1000,
-//     retry: 1,
-//     refetchOnWindowFocus: false,
-//   });
-// };
-
 export const useGetAllClients = (id_user?: number) => {
   const token = getUserTokenFromStorage();
   return useQuery<Client[], Error>({
