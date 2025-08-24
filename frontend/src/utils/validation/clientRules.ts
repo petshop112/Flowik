@@ -50,8 +50,10 @@ export function validateField(name: keyof Errors, form: Form, errors: Errors): E
     }
     case 'direction_client': {
       const v = (form.direction_client || '').trim();
-      if (isEmpty(v)) error = 'La direccion es obligatoria.';
-      else if (v.length > 0 && !lengthBetween(v, 10, 100)) error = 'Entre 10 y 100 caracteres.';
+      if (isEmpty(v)) error = 'La dirección es obligatoria.';
+      else if (!lengthBetween(v, 10, 100)) error = 'Entre 10 y 100 caracteres.';
+      else if (!/^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ ,.\-#]+$/.test(v))
+        error = 'No se permiten caracteres especiales.';
       break;
     }
     default:
