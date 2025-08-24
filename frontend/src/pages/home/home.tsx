@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
@@ -54,15 +55,15 @@ const coloresDeuda = {
   'Deudas cobros': '#6366f1',
 };
 const productosData = [
-  { producto: 'Pedigree Adulto Razas Pequeñas 3kg', ventas: 45 },
-  { producto: 'Eukanuba Cachorro', ventas: 40 },
-  { producto: 'Cat chow Grow', ventas: 35 },
-  { producto: 'Whiskas Gatitos', ventas: 30 },
-  { producto: 'Vitalcanino Raza', ventas: 25 },
-  { producto: 'Pro Carne y Leche', ventas: 20 },
-  { producto: 'Whiskas Razas grandes', ventas: 15 },
-  { producto: 'ocho', ventas: 40 },
-  { producto: 'nueve', ventas: 2 },
+  { producto: 'Pedigree Adulto Razas Pequeñas 3kg', ventas: 45, stock: 2 },
+  { producto: 'Eukanuba Cachorro', ventas: 40, stock: 500 },
+  { producto: 'Cat chow Grow', ventas: 35, stock: 5 },
+  { producto: 'Whiskas Gatitos', ventas: 30, stock: 5000 },
+  { producto: 'Vitalcanino Raza', ventas: 25, stock: 30 },
+  { producto: 'Pro Carne y Leche', ventas: 20, stock: 3 },
+  { producto: 'Whiskas Razas grandes', ventas: 15, stock: 300 },
+  { producto: 'ocho', ventas: 40, stock: 200 },
+  { producto: 'nueve', ventas: 2, stock: 2 },
 ];
 
 const stockBajoData = [
@@ -128,11 +129,10 @@ const renderCustomLegend = (props: any) => {
 };
 
 const Home = () => {
-  const formatYAxis = (value: number) => {
-    return `${value / 1000}k`;
-  };
-
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [sellingFilter, setSellingFilter] = useState<'mayor' | 'menor'>('mayor');
+
+  //ordering the products to render
   const orderedProducts = [...productosData].sort((a, b) =>
     sellingFilter === 'mayor' ? b.ventas - a.ventas : a.ventas - b.ventas
   );
@@ -142,6 +142,15 @@ const Home = () => {
 
   const topProductosData = orderedProducts.slice(0, 7);
 
+  //selecting products to display under the product rotaion graphic
+  const activeProd =
+    topProductosData.find((p) => p.producto === selectedProduct) || topProductosData[0];
+
+  const stockActiveProd = stockBajoData.find((s) => s.producto === activeProd.producto);
+
+  const formatYAxis = (value: number) => {
+    return `${value / 1000}k`;
+  };
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
       <div className="grid grid-cols-3 gap-6">
@@ -275,8 +284,12 @@ const Home = () => {
                   value={sellingFilter}
                   onChange={(e) => setSellingFilter(e.target.value as 'mayor' | 'menor')}
                 >
-                  <option value="mayor" className="font-bold">Mayor salida</option>
-                  <option value="menor" className="font-bold">Menor salida</option>
+                  <option value="mayor" className="font-bold">
+                    Mayor salida
+                  </option>
+                  <option value="menor" className="font-bold">
+                    Menor salida
+                  </option>
                 </select>
                 <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2">
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
@@ -346,7 +359,25 @@ const Home = () => {
                       fontSize: 15,
                       fontWeight: 700,
                     }}
-                  />
+                  >
+                    {' '}
+                    {topProductosData.map((entry, idx) => (
+                      <Cell
+                        key={`cell-${idx}`}
+                        fill={
+                          sellingFilter === 'menor'
+                            ? entry.producto === activeProd.producto
+                              ? '#F87171'
+                              : '#FDCED9'
+                            : entry.producto === activeProd.producto
+                              ? '#2563eb'
+                              : '#BBD7FF'
+                        }
+                        cursor="pointer"
+                        onClick={() => setSelectedProduct(entry.producto)}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -360,16 +391,16 @@ const Home = () => {
                     colSpan={4}
                     className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
                   >
-                    Pedigree Adulto Razas Pequeñas 3kg
+                    {activeProd.producto}
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white">
                 <tr>
                   <td className="px-4 py-4 text-sm font-medium">Unidades vendidas</td>
-                  <td className="px-4 py-4 text-2xl font-bold">45</td>
+                  <td className="px-4 py-4 text-2xl font-bold">{activeProd.ventas}</td>
                   <td className="font-mediu px-4 py-4 text-sm">Disponibles en stock (uds)</td>
-                  <td className="px-4 py-4 text-2xl font-bold">8</td>
+                  <td className="px-4 py-4 text-2xl font-bold">{activeProd?.stock ?? '-'}</td>
                 </tr>
               </tbody>
             </table>
