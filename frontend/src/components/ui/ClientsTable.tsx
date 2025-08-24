@@ -60,12 +60,14 @@ const ClientsTable: React.FC = () => {
   const [deleteClientId, setDeleteClientId] = useState<number[] | null>(null);
   const [deleteClientName, setDeleteClientName] = useState<string>('');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+  const [isDeletingUI, setIsDeletingUI] = useState(false);
+
   const createClientMutation = useCreateClient();
   const editClientMutation = useEditClient();
   const { data: viewClient, isLoading: isLoadingViewClient } = useGetClientById(
     viewClientId ?? undefined
   );
-  const deleteClientMutation = useDeleteClient();
+  const deleteClientMutation = useDeleteClient(id_user);
   const deactivateClientMutation = useDeactivateClient();
   const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,6 +93,14 @@ const ClientsTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentClients = filteredClients.slice(startIndex, endIndex) as ClientWithDebt[];
+
+  // Ajusta la página si el total de páginas cambia tras eliminar clientes
+  React.useEffect(() => {
+    const total = filteredClients.length;
+    const pages = Math.max(1, Math.ceil(total / itemsPerPage));
+    if (currentPage > pages) setCurrentPage(pages);
+  }, [filteredClients.length, currentPage]);
+
   const canManageDebt = hasSelectedClients;
 
   const getPageNumbers = () => Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -135,6 +145,9 @@ const ClientsTable: React.FC = () => {
     }
   };
 
+  // Usa el estado de la mutación para feedback persistente
+  const isDeactivating = deactivateClientMutation.isPending;
+
   const handleDeactivate = async () => {
     if (!hasSelectedClients) return;
     try {
@@ -142,7 +155,7 @@ const ClientsTable: React.FC = () => {
         await deactivateClientMutation.mutateAsync(id);
       }
       setSelectedClientIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      await queryClient.invalidateQueries({ queryKey: ['clients'] });
     } catch (err) {
       console.error('Error al desactivar clientes:', err);
     }
@@ -154,18 +167,40 @@ const ClientsTable: React.FC = () => {
   };
 
   const handleDeleteClients = async () => {
-    if (!deleteClientId || deleteClientId.length === 0) return;
+    if (!deleteClientId?.length || isDeletingUI) return;
+
+    // guardo los IDs actuales y cierro el modal YA
+    const ids = [...deleteClientId];
+    setIsDeletingUI(true);
+    setDeleteClientId(null); //cierra el modal de confirmación
+    setSelectedClientIds(new Set());
+
+    // muestro éxito optimista YA
+    setShowDeleteSuccess(true);
+
     try {
-      await Promise.all(deleteClientId.map((id) => deleteClientMutation.mutateAsync(id)));
-      await queryClient.invalidateQueries({ queryKey: ['clients'] });
-      setDeleteClientId(null);
-      setSelectedClientIds(new Set());
-      setShowDeleteSuccess(true);
-      setTimeout(() => setShowDeleteSuccess(false), 1800);
-    } catch (error) {
+      // ejecuto los deletes en paralelo
+      const results = await Promise.allSettled(
+        ids.map((id) => deleteClientMutation.mutateAsync(id))
+      );
+
+      await queryClient.invalidateQueries({ queryKey: ['clients', id_user] });
+
+      const hasError = results.some((r) => r.status === 'rejected');
+      if (hasError) {
+        setShowDeleteSuccess(false);
+        alert('No se pudo eliminar uno o más clientes. Intenta nuevamente.');
+      } else {
+        // si todo OK, dejo visible hasta que el back me devuelve el getall y cierra
+        setShowDeleteSuccess(false);
+      }
+    } catch (e) {
+      // si algo raro explota
       setShowDeleteSuccess(false);
       alert('Error al eliminar cliente. Intenta nuevamente.');
-      console.error('Error al eliminar cliente:', error);
+      console.error('Error al eliminar cliente:', e);
+    } finally {
+      setIsDeletingUI(false);
     }
   };
 
@@ -215,7 +250,7 @@ const ClientsTable: React.FC = () => {
                   >
                     <button
                       onClick={hasSelectedClients ? handleDeactivate : undefined}
-                      disabled={!hasSelectedClients}
+                      disabled={!hasSelectedClients || isDeactivating}
                       className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}`}
                       title="Desactivar seleccionados"
                     >
@@ -224,7 +259,7 @@ const ClientsTable: React.FC = () => {
                         className={hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}
                       />
                       <span className={hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}>
-                        Desactivar
+                        {isDeactivating ? 'Desactivando...' : 'Desactivar'}
                       </span>
                     </button>
                     <button
@@ -527,7 +562,7 @@ const ClientsTable: React.FC = () => {
           clientName={deleteClientName}
           onCancel={() => setDeleteClientId(null)}
           onConfirm={handleDeleteClients}
-          isDeleting={deleteClientMutation.isPending}
+          // isDeleting={deleteClientMutation.isPending}
         />
 
         {showDeleteSuccess && (

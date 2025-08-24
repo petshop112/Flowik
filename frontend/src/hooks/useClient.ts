@@ -3,11 +3,23 @@ import { clientService } from '../api/clientService';
 import { getUserTokenFromStorage } from '../utils/storage';
 import type { Client, ClientFormValues } from '../types/clients';
 
+// export const useGetAllClients = (id_user?: number) => {
+//   const token = getUserTokenFromStorage();
+
+//   return useQuery<Client[], Error>({
+//     queryKey: ['clients', id_user, token],
+//     enabled: !!token && typeof id_user === 'number',
+//     queryFn: () => clientService.getAllClients(id_user!, token!),
+//     staleTime: 2 * 60 * 1000,
+//     retry: 1,
+//     refetchOnWindowFocus: false,
+//   });
+// };
+
 export const useGetAllClients = (id_user?: number) => {
   const token = getUserTokenFromStorage();
-
   return useQuery<Client[], Error>({
-    queryKey: ['clients', id_user, token],
+    queryKey: ['clients', id_user],
     enabled: !!token && typeof id_user === 'number',
     queryFn: () => clientService.getAllClients(id_user!, token!),
     staleTime: 2 * 60 * 1000,
@@ -16,16 +28,28 @@ export const useGetAllClients = (id_user?: number) => {
   });
 };
 
-export const useCreateClient = () => {
-  const qc = useQueryClient();
+export const useDeleteClient = (id_user?: number) => {
+  const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
+  const key = ['clients', id_user];
   return useMutation({
-    mutationFn: (values: ClientFormValues) => {
-      const token = getUserTokenFromStorage();
+    mutationFn: async (id_client: number) => {
       if (!token) throw new Error('No hay token de autenticación');
-      return clientService.createClient(values, token);
+      await clientService.deleteClient(id_client, token);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['clients'] });
+    onMutate: async (id_client) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData<Client[]>(key) ?? [];
+      queryClient.setQueryData<Client[]>(key, (old = []) =>
+        old.filter((c) => c.id_client !== id_client)
+      );
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(key, ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: key });
     },
   });
 };
@@ -56,12 +80,16 @@ export const useGetClientById = (id_client?: number) => {
   });
 };
 
-export const useDeleteClient = () => {
-  const token = getUserTokenFromStorage();
-  return useMutation<Client, Error, number>({
-    mutationFn: (id_client) => {
+export const useCreateClient = () => {
+  const qc = useQueryClient();
+  return useMutation<Client, Error, ClientFormValues>({
+    mutationFn: (values) => {
+      const token = getUserTokenFromStorage();
       if (!token) throw new Error('No hay token de autenticación');
-      return clientService.deleteClient(id_client, token);
+      return clientService.createClient(values, token);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] });
     },
   });
 };
