@@ -27,6 +27,7 @@ import { currencyPipe, toNumber } from '../../utils/pipe/currency.pipe';
 import { formatDate } from '../../utils/formatDate';
 import { debtColor } from '../../utils/debtColors';
 import EmptyClientsState from './EmptyClientsState';
+import DebtFormModal from '../modal/DebtFormModal';
 
 type ClientWithDebt = Client & {
   total_debt?: number | string;
@@ -60,6 +61,7 @@ const ClientsTable: React.FC = () => {
   const [deleteClientId, setDeleteClientId] = useState<number[] | null>(null);
   const [deleteClientName, setDeleteClientName] = useState<string>('');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+  const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
   const createClientMutation = useCreateClient();
   const editClientMutation = useEditClient();
   const { data: viewClient, isLoading: isLoadingViewClient } = useGetClientById(
@@ -149,8 +151,7 @@ const ClientsTable: React.FC = () => {
   };
 
   const handleManageDebt = () => {
-    // TODO: abrir modal de deuda / navegar
-    console.log('Administrar deuda');
+    setIsDebtModalOpen(true);
   };
 
   const handleDeleteClients = async () => {
@@ -538,6 +539,11 @@ const ClientsTable: React.FC = () => {
             description="Ya no aparecerá en la tabla ni en el buscador."
           />
         )}
+        <DebtFormModal
+          isOpen={isDebtModalOpen}
+          onClose={() => setIsDebtModalOpen(false)}
+          selectedClientIds={Array.from(selectedClientIds)}
+        />
       </section>
     </>
   );
