@@ -61,13 +61,24 @@ const productosData = [
   { producto: 'Vitalcanino Raza', ventas: 25 },
   { producto: 'Pro Carne y Leche', ventas: 20 },
   { producto: 'Whiskas Razas grandes', ventas: 15 },
+  { producto: 'ocho', ventas: 40 },
+  { producto: 'nueve', ventas: 2 },
 ];
 
 const stockBajoData = [
   { producto: 'Pedigree Adulto Razas Pequeñas 3kg', stock: 0.0 },
-  { producto: 'Eukanuba Cachorro', stock: 0.0 },
-  { producto: 'Cat chow Grow', stock: 0.0 },
-  { producto: 'Otro más', stock: 0.0 },
+  { producto: 'Eukanuba Cachorro', stock: 1.0 },
+  { producto: 'Cat chow Grow', stock: 2.0 },
+  { producto: 'Otro más 4', stock: 2.0 },
+  { producto: 'Otro más 5', stock: 3.0 },
+  { producto: 'Otro más 6', stock: 3.0 },
+  { producto: 'Otro más 7', stock: 3.0 },
+  { producto: 'Otro más 8', stock: 4.0 },
+  { producto: 'Otro más 9', stock: 5.0 },
+  { producto: 'Otro más 10', stock: 5.0 },
+  { producto: 'Otro más 11', stock: 5.0 },
+  { producto: 'Otro más 12', stock: 900.0 },
+  { producto: 'Otro más 13', stock: 600.0 },
 ];
 
 const legendNames: Record<string, string> = {
@@ -120,6 +131,9 @@ const Home = () => {
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
   };
+
+  // filtering data from the db to get the top 7 and top 10 for producto movement and stock
+  const topStockBajo = [...stockBajoData].sort((a, b) => a.stock - b.stock).slice(0, 10);
 
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
@@ -352,27 +366,53 @@ const Home = () => {
         </div>
 
         {/* Stock bajo */}
-        <div className="dark:bg-card flex flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
-          <span className="mb-3 block font-semibold">⚠️ Stock Bajo</span>
-          <table className="w-full text-xs">
-            <thead>
-              <tr>
-                <th className="px-2 py-1 text-left">Nombre producto</th>
-                <th className="px-2 py-1 text-left">Stock unitario</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockBajoData.map((row, i) => (
-                <tr key={i}>
-                  <td className="truncate px-2 py-1">{row.producto}</td>
-                  <td className="flex items-center gap-3 px-2 py-1">
-                    {row.stock.toFixed(3)}
-                    <span className="ml-auto block h-2 w-2 rounded-full bg-pink-500" />
-                  </td>
+        <div className="dark:bg-card flex min-h-full flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
+          <div className="mb-3 flex items-center gap-2 text-2xl font-semibold text-[#042D95]">
+            <ShoppingCartIcon className="mr-2 h-7 w-7 text-[#5685FA]" />
+            Stock Bajo
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full overflow-hidden rounded-xl border border-gray-200 text-base">
+              <thead className="bg-polar-mist">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
+                    Nombre producto
+                  </th>
+                  <th className="px-4 py-2 text-left font-medium text-[#3056d3]">Stock unitario</th>
+                  <th className="px-2 py-2 text-center">
+                    <span
+                      className="inline-flex items-center"
+                      title="Producto sin stock disponible"
+                    >
+                      <svg
+                        height="20"
+                        width="20"
+                        className="ml-1 text-[#f82f69]"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <circle cx="12" cy="12" r="8" />
+                      </svg>
+                    </span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
+                {topStockBajo.map((item, i) => (
+                  <tr key={i} className="transition hover:bg-gray-50">
+                    <td className="max-w-[220px] truncate px-4 py-2">{item.producto}</td>
+                    <td className="px-4 py-2">{item.stock.toFixed(3)}</td>
+                    <td className="px-2 py-2 text-center">
+                      <span
+                        className="inline-block h-4 w-4 rounded-full bg-[#f82f69]"
+                        title="Stock bajo"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
