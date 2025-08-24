@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 // Mock dataaa
 const deudaData = [
@@ -55,17 +56,17 @@ const coloresDeuda = {
 const productosData = [
   { producto: 'Pedigree Adulto Razas Pequeñas 3kg', ventas: 45 },
   { producto: 'Eukanuba Cachorro', ventas: 40 },
-  { producto: 'Cat chow Grow...', ventas: 35 },
+  { producto: 'Cat chow Grow', ventas: 35 },
   { producto: 'Whiskas Gatitos', ventas: 30 },
-  { producto: 'Vitalcanino Raz...', ventas: 25 },
-  { producto: 'Pro Carne y Lec...', ventas: 20 },
-  { producto: 'Whiskas Razas...', ventas: 15 },
+  { producto: 'Vitalcanino Raza', ventas: 25 },
+  { producto: 'Pro Carne y Leche', ventas: 20 },
+  { producto: 'Whiskas Razas grandes', ventas: 15 },
 ];
 
 const stockBajoData = [
   { producto: 'Pedigree Adulto Razas Pequeñas 3kg', stock: 0.0 },
   { producto: 'Eukanuba Cachorro', stock: 0.0 },
-  { producto: 'Cat chow Grow...', stock: 0.0 },
+  { producto: 'Cat chow Grow', stock: 0.0 },
   { producto: 'Otro más', stock: 0.0 },
 ];
 
@@ -189,12 +190,12 @@ const Home = () => {
               </span>
             </div>
           </div>
-          <div className="mt-1 h-56 px-2">
+          <div className="mt-6 mb-2 h-60 px-2">
             {/* barra recharts */}
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 width={500}
-                height={300}
+                height={400}
                 data={data}
                 margin={{
                   top: 0,
@@ -238,48 +239,120 @@ const Home = () => {
       </div>
 
       {/* Productos y stock bajo */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-6">
         {/* Movimiento de producto */}
-        <div className="dark:bg-card flex flex-col gap-2 rounded-xl bg-white p-6 shadow md:col-span-2">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="font-semibold">🛒 Movimiento de producto</span>
-            <select className="rounded border px-2 py-1 text-xs">
-              <option>Mayor salida</option>
-              <option>Menor salida</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            {productosData.map((prod) => (
-              <div key={prod.producto} className="flex w-full items-center">
-                <span className="w-60 truncate">{prod.producto}</span>
-                <div className="relative ml-2 h-3 w-full rounded bg-blue-100">
-                  <div
-                    className="h-3 rounded bg-blue-500"
-                    style={{ width: `${(prod.ventas / 50) * 100}%` }}
-                  ></div>
-                </div>
-                <span className="ml-2 text-sm">{prod.ventas}</span>
+        <div className="md:col-span-1">
+          <div className="dark:bg-card flex flex-col gap-2 rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="flex items-center text-2xl font-semibold text-[#042D95]">
+                <ShoppingCartIcon className="mr-2 h-7 text-[#5685FA]" />
+                Movimiento de producto
+              </span>
+              <div className="relative w-44">
+                <select className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs">
+                  <option className="font-bold">Mayor salida</option>
+                  <option className="font-bold">Menor salida</option>
+                </select>
+                <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path
+                      d="M6 8L10 12L14 8"
+                      stroke="#048995"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               </div>
-            ))}
-          </div>
-          <span className="text-muted-foreground mt-1 text-xs">
-            El gráfico muestra los productos con más movimientos en los últimos 60 días
-          </span>
-          <div className="text-primary mt-4 border-t pt-2 text-xs">
-            <div className="font-semibold">Pedigree Adulto Razas Pequeñas 3kg</div>
-            <div className="mt-1 flex gap-4">
-              <span>
-                Unidades vendidas <b>45</b>
-              </span>
-              <span>
-                Disponibles en stock (uds) <b>8</b>
-              </span>
             </div>
+            {/* GRÁFICO con Recharts */}
+            <div style={{ width: '100%', height: 374 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={productosData}
+                  layout="vertical"
+                  margin={{ top: 8, right: 0, left: 100, bottom: 10 }}
+                  barCategoryGap={16}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
+                  <XAxis
+                    type="number"
+                    domain={[0, 50]}
+                    ticks={[10, 20, 30, 40, 50]}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 15, fill: '#94A3B8' }}
+                    tickFormatter={(v) => `${v}uds`}
+                  />
+                  <YAxis
+                    dataKey="producto"
+                    type="category"
+                    axisLine={false}
+                    tickLine={false}
+                    width={130}
+                    tick={({ y, payload }) => (
+                      <text
+                        x={12}
+                        y={y + 6}
+                        fill="#3056d3"
+                        fontWeight="bold"
+                        fontSize={12}
+                        textAnchor="start"
+                        alignmentBaseline="middle"
+                      >
+                        {payload.value}
+                      </text>
+                    )}
+                  />
+                  <Tooltip
+                    formatter={(val: number) => [`${val} uds`, 'Ventas']}
+                    labelFormatter={(label: string) => `Producto: ${label}`}
+                    contentStyle={{ fontSize: 14 }}
+                  />
+                  <Bar
+                    dataKey="ventas"
+                    fill="#BBD7FF"
+                    barSize={18}
+                    radius={[5, 5, 5, 5]}
+                    label={{
+                      position: 'right',
+                      fill: '#3056d3',
+                      fontSize: 15,
+                      fontWeight: 700,
+                    }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
+            <table className="w-full">
+              <thead className="bg-[#f8fbff]">
+                <tr>
+                  <th
+                    colSpan={4}
+                    className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
+                  >
+                    Pedigree Adulto Razas Pequeñas 3kg
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white">
+                <tr>
+                  <td className="px-4 py-4 text-sm font-medium">Unidades vendidas</td>
+                  <td className="px-4 py-4 text-2xl font-bold">45</td>
+                  <td className="font-mediu px-4 py-4 text-sm">Disponibles en stock (uds)</td>
+                  <td className="px-4 py-4 text-2xl font-bold">8</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         {/* Stock bajo */}
-        <div className="dark:bg-card flex flex-col rounded-xl bg-white p-6 shadow">
+        <div className="dark:bg-card flex flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
           <span className="mb-3 block font-semibold">⚠️ Stock Bajo</span>
           <table className="w-full text-xs">
             <thead>
