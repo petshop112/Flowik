@@ -297,7 +297,7 @@ const ClientFormModal: React.FC<Props> = ({
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
-                DNI / CUIT <span className="font-normal text-[#8CA5E6]"></span>
+                DNI <span className="font-normal text-[#8CA5E6]"></span>
               </label>
               <input
                 ref={(el) => {

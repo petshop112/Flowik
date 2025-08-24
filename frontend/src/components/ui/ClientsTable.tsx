@@ -26,6 +26,7 @@ import DeleteClientModal from '../modal/DeleteClientModal';
 import { currencyPipe, toNumber } from '../../utils/pipe/currency.pipe';
 import { formatDate } from '../../utils/formatDate';
 import { debtColor } from '../../utils/debtColors';
+import EmptyClientsState from './EmptyClientsState';
 
 type ClientWithDebt = Client & {
   total_debt?: number | string;
@@ -48,7 +49,7 @@ const itemsPerPage = 10;
 const ClientsTable: React.FC = () => {
   const queryClient = useQueryClient();
   const id_user = getUserId();
-  const { data: clients, isLoading, error } = useGetAllClients(id_user);
+  const { data: clients, isLoading } = useGetAllClients(id_user);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -72,7 +73,6 @@ const ClientsTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const hasSelectedClients = selectedClientIds.size > 0;
-
   const filteredClients = useMemo(() => {
     if (!clients) return [];
     if (!searchTerm.trim()) return clients;
@@ -153,6 +153,24 @@ const ClientsTable: React.FC = () => {
     console.log('Administrar deuda');
   };
 
+  const handleDeleteClients = async () => {
+    if (!deleteClientId || deleteClientId.length === 0) return;
+    try {
+      await Promise.all(deleteClientId.map((id) => deleteClientMutation.mutateAsync(id)));
+      await queryClient.invalidateQueries({ queryKey: ['clients'] });
+      setDeleteClientId(null);
+      setSelectedClientIds(new Set());
+      setShowDeleteSuccess(true);
+      setTimeout(() => setShowDeleteSuccess(false), 1800);
+    } catch (error) {
+      setShowDeleteSuccess(false);
+      alert('Error al eliminar cliente. Intenta nuevamente.');
+      console.error('Error al eliminar cliente:', error);
+    }
+  };
+
+  const hasClients = clients && clients.length > 0;
+
   if (isLoading) {
     return (
       <section className="bg-custom-mist h-full w-full p-6">
@@ -162,21 +180,6 @@ const ClientsTable: React.FC = () => {
             <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
           </div>
           <p className="text-gray-600">Cargando clientes...</p>
-        </article>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="bg-custom-mist h-full w-full p-6">
-        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
-          <div className="mb-4 flex items-center justify-center">
-            <span className="text-4xl text-red-500">!</span>
-          </div>
-          <p className="font-semibold text-red-600">
-            Error al cargar clientes: {(error as Error).message}
-          </p>
         </article>
       </section>
     );
@@ -200,303 +203,301 @@ const ClientsTable: React.FC = () => {
           {...(!lastActionWasEdit && newClientId ? { id: newClientId } : {})}
         />
       )}
-
       <section className="bg-custom-mist w-full p-6">
         <article className="mx-auto">
           <header className="mb-6">
             <h1 className="text-dark-blue mb-4 text-2xl font-semibold">Clientes</h1>
-
             <article className="flex flex-wrap items-center justify-between gap-3">
-              <article
-                className={`flex items-center gap-2 [&>button]:font-semibold ${
-                  hasSelectedClients ? '[&>button]:cursor-pointer' : ''
-                } `}
-              >
-                <button
-                  onClick={hasSelectedClients ? handleDeactivate : undefined}
-                  disabled={!hasSelectedClients}
-                  className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-                    hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'
-                  }`}
-                  title="Desactivar seleccionados"
-                >
-                  <ToggleRight
-                    size={18}
-                    className={hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}
-                  />
-                  <span className={hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}>
-                    Desactivar
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (hasSelectedClients) {
-                      setDeleteClientId(Array.from(selectedClientIds));
-                      setDeleteClientName(
-                        Array.from(selectedClientIds).length === 1
-                          ? clients?.find((c) => c.id_client === Array.from(selectedClientIds)[0])
-                              ?.name_client || ''
-                          : `${Array.from(selectedClientIds).length} clientes seleccionados`
-                      );
-                    }
-                  }}
-                  disabled={!hasSelectedClients}
-                  className={`group flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-                    hasSelectedClients ? 'text-[#F82254] hover:text-[#B3123A]' : 'text-gray-400'
-                  }`}
-                  title="Eliminar seleccionados"
-                >
-                  <Trash2
-                    size={18}
-                    className={
-                      hasSelectedClients
-                        ? 'text-[#F82254] group-hover:text-[#B3123A]'
-                        : 'text-gray-400'
-                    }
-                  />
-                  <span
-                    className={
-                      hasSelectedClients
-                        ? 'text-[#F82254] group-hover:text-[#B3123A]'
-                        : 'text-gray-400'
-                    }
+              {hasClients ? (
+                <>
+                  <article
+                    className={`flex items-center gap-2 [&>button]:font-semibold ${hasSelectedClients ? '[&>button]:cursor-pointer' : ''}`}
                   >
-                    Eliminar
-                  </span>
-                </button>
-              </article>
-
-              <aside className="flex items-center gap-3">
-                <article className="relative">
-                  <Search
-                    className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
-                    size={18}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Buscar"
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="border-dark-blue text-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </article>
-
-                <button
-                  className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
-                  onClick={handleNewClient}
-                >
-                  <Plus size={18} />
-                  Nuevo cliente
-                </button>
-
-                {/* Botón Administrar deuda (estado según selección) */}
-                <button
-                  onClick={canManageDebt ? handleManageDebt : undefined}
-                  disabled={!canManageDebt}
-                  aria-disabled={!canManageDebt}
-                  className={`flex items-center gap-2 rounded-md px-4 py-2 transition-colors ${
-                    canManageDebt
-                      ? 'bg-teal-600 text-white hover:bg-teal-700'
-                      : 'cursor-not-allowed border border-teal-200 bg-teal-50 text-teal-600 opacity-60'
-                  }`}
-                  title="Administrar deuda"
-                >
-                  <img src="/icons/client/calculator.svg" alt="" />
-                  Administrar deuda
-                </button>
-              </aside>
+                    <button
+                      onClick={hasSelectedClients ? handleDeactivate : undefined}
+                      disabled={!hasSelectedClients}
+                      className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}`}
+                      title="Desactivar seleccionados"
+                    >
+                      <ToggleRight
+                        size={18}
+                        className={hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}
+                      />
+                      <span className={hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}>
+                        Desactivar
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (hasSelectedClients) {
+                          setDeleteClientId(Array.from(selectedClientIds));
+                          setDeleteClientName(
+                            Array.from(selectedClientIds).length === 1
+                              ? clients?.find(
+                                  (c) => c.id_client === Array.from(selectedClientIds)[0]
+                                )?.name_client || ''
+                              : `${Array.from(selectedClientIds).length} clientes seleccionados`
+                          );
+                        }
+                      }}
+                      disabled={!hasSelectedClients}
+                      className={`group flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedClients ? 'text-[#F82254] hover:text-[#B3123A]' : 'text-gray-400'}`}
+                      title="Eliminar seleccionados"
+                    >
+                      <Trash2
+                        size={18}
+                        className={
+                          hasSelectedClients
+                            ? 'text-[#F82254] group-hover:text-[#B3123A]'
+                            : 'text-gray-400'
+                        }
+                      />
+                      <span
+                        className={
+                          hasSelectedClients
+                            ? 'text-[#F82254] group-hover:text-[#B3123A]'
+                            : 'text-gray-400'
+                        }
+                      >
+                        Eliminar
+                      </span>
+                    </button>
+                  </article>
+                  <aside className="flex items-center gap-3">
+                    <article className="relative">
+                      <Search
+                        className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
+                        size={18}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Buscar"
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="border-dark-blue text-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </article>
+                    <button
+                      className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
+                      onClick={handleNewClient}
+                    >
+                      <Plus size={18} />
+                      Nuevo cliente
+                    </button>
+                    <button
+                      onClick={canManageDebt ? handleManageDebt : undefined}
+                      disabled={!canManageDebt}
+                      aria-disabled={!canManageDebt}
+                      className={`flex items-center gap-2 rounded-md px-4 py-2 transition-colors ${canManageDebt ? 'bg-teal-600 text-white hover:bg-teal-700' : 'cursor-not-allowed border border-teal-200 bg-teal-50 text-teal-600 opacity-60'}`}
+                      title="Administrar deuda"
+                    >
+                      <img src="/icons/client/calculator.svg" alt="" />
+                      Administrar deuda
+                    </button>
+                  </aside>
+                </>
+              ) : null}
             </article>
           </header>
-
-          <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
-            <article className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-polar-mist">
-                  <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
-                    <th className="w-12 px-4 py-3">
-                      <Check />
-                    </th>
-                    <th>Nombre y Apellido</th>
-                    <th>Contacto</th>
-                    <th>Total deuda</th>
-                    <th>Modificación deuda</th>
-                    <th>
-                      <div className="flex items-center justify-between">
-                        <span>Total días deuda</span>
-                        <img className="h-6 w-6" src="/icons/alarma.svg" alt="" />
-                        {/* <Bell size={16} className="opacity-70" /> */}
-                      </div>
-                    </th>
-                    <th className="w-8">Editar</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
-                  {currentClients.map((client) => {
-                    const isSelected = selectedClientIds.has(client.id_client);
-                    const isInactive =
-                      client.is_active === false ||
-                      (deactivateClientMutation.isSuccess &&
-                        deactivateClientMutation.variables === client.id_client);
-                    const debtExists = hasDebt(client.total_debt);
-                    const days = client.total_debt_days ?? 0;
-                    const dot = debtColor(days);
-                    const daysDisplay = days ? String(days).padStart(3, '0') : '000';
-
-                    const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
-
-                    return (
-                      <tr
-                        key={client.id_client}
-                        className={`border-b-2 border-gray-200 transition-colors last:border-none hover:bg-gray-50 ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
-                      >
-                        <td className="px-5 py-3">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleClientSelection(client.id_client)}
-                            disabled={isInactive}
-                            className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
-                          />
-                        </td>
-
-                        <td
-                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
-                        >
-                          <span
-                            className={`cursor-pointer ${isInactive ? 'pointer-events-none opacity-50' : 'text-gray-900 hover:underline'}`}
-                            onClick={() => !isInactive && setViewClientId(client.id_client)}
-                          >
-                            {client.name_client}
-                          </span>
-                        </td>
-
-                        <td
-                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
-                        >
-                          {client.telephone_client || client.email_client}
-                        </td>
-
-                        <td
-                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
-                        >
-                          {currencyPipe(client.total_debt)}
-                        </td>
-
-                        <td
-                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
-                        >
-                          {formatDate(client.debt_modified_at)}
-                        </td>
-
-                        <td
-                          className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span
-                              className={
-                                debtExists
-                                  ? isInactive
-                                    ? 'opacity-50'
-                                    : 'text-gray-900'
-                                  : 'text-neutral-400'
-                              }
-                            >
-                              {daysDisplay}
-                            </span>
-                            <span
-                              title={days ? `${days} días` : 'Sin deuda'}
-                              className={`inline-block h-6 w-6 rounded-full ${dot} ${isInactive ? 'opacity-50' : ''}`}
-                            />
-                          </div>
-                        </td>
-
-                        <td
-                          className={`w-fit border-l-2 border-gray-200 text-center ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
-                        >
-                          <button
-                            onClick={() => {
-                              if (!isInactive) {
-                                setEditingClient(client);
-                                setIsModalOpen(true);
-                              }
-                            }}
-                            className={`text-glacial-blue py-3 transition-colors hover:text-blue-500 ${isInactive ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
-                            disabled={isInactive}
-                          >
-                            <Edit size={24} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </article>
-
-            {filteredClients.length === 0 && searchTerm && (
-              <div className="py-8 text-center text-gray-500">
-                No se encontraron clientes que coincidan con "{searchTerm}"
+          {/* Tabla o estado vacío */}
+          {!Array.isArray(clients) || clients.length === 0 ? (
+            <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+              <EmptyClientsState onAddClient={handleNewClient} />
+            </main>
+          ) : currentClients.length === 0 ? (
+            <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+              <div className="flex w-full flex-col items-center justify-center py-12">
+                <p className="mb-2 text-lg text-gray-500">
+                  No se encontraron resultados para tu búsqueda.
+                </p>
+                <p className="text-sm text-gray-400">
+                  Intenta con otro término o limpia el filtro.
+                </p>
               </div>
-            )}
-          </main>
+            </main>
+          ) : (
+            <>
+              <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+                <article className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-polar-mist">
+                      <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                        <th className="w-12 px-4 py-3">
+                          <Check />
+                        </th>
+                        <th>Nombre y Apellido</th>
+                        <th>Contacto</th>
+                        <th>Total deuda</th>
+                        <th>Modificación deuda</th>
+                        <th>
+                          <div className="flex items-center justify-between">
+                            <span>Total días deuda</span>
+                            <img className="h-6 w-6" src="/icons/alarma.svg" alt="" />
+                          </div>
+                        </th>
+                        <th className="w-8">Editar</th>
+                      </tr>
+                    </thead>
 
-          {totalPages > 1 && (
-            <article className="flex justify-center py-3">
-              <nav className="flex items-center justify-between">
-                <ul className="text-dark-blue flex items-center gap-2">
-                  <li>
-                    <button
-                      className={`py-2 ${
-                        currentPage === 1
-                          ? 'cursor-not-allowed text-neutral-400/70'
-                          : 'cursor-pointer hover:text-blue-600'
-                      }`}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft size={32} />
-                    </button>
-                  </li>
+                    <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
+                      {currentClients.map((client) => {
+                        const isSelected = selectedClientIds.has(client.id_client);
+                        const isInactive =
+                          client.is_active === false ||
+                          (deactivateClientMutation.isSuccess &&
+                            deactivateClientMutation.variables === client.id_client);
+                        const debtExists = hasDebt(client.total_debt);
+                        const days = client.total_debt_days ?? 0;
+                        const dot = debtColor(days);
+                        const daysDisplay = days ? String(days).padStart(3, '0') : '000';
 
-                  {getPageNumbers().map((n) => (
-                    <li key={n}>
-                      <button
-                        className={`rounded-md px-3 py-2 text-lg transition-colors ${
-                          currentPage === n
-                            ? 'font-semibold'
-                            : 'hover:text-dark-blue cursor-pointer text-neutral-400/70'
-                        }`}
-                        onClick={() => handlePageChange(n)}
-                      >
-                        {n}
-                      </button>
-                    </li>
-                  ))}
+                        const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
 
-                  <li>
-                    <button
-                      className={`py-2 ${
-                        currentPage === totalPages
-                          ? 'cursor-not-allowed text-neutral-400/70'
-                          : 'cursor-pointer hover:text-blue-600'
-                      }`}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <ChevronRight size={32} />
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </article>
+                        return (
+                          <tr
+                            key={client.id_client}
+                            className={`border-b-2 border-gray-200 transition-colors hover:bg-gray-50 ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
+                          >
+                            <td className="px-5 py-3">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleClientSelection(client.id_client)}
+                                disabled={isInactive}
+                                className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                              />
+                            </td>
+
+                            <td
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                            >
+                              <span
+                                className={`cursor-pointer ${isInactive ? 'pointer-events-none opacity-50' : 'text-gray-900 hover:underline'}`}
+                                onClick={() => !isInactive && setViewClientId(client.id_client)}
+                              >
+                                {client.name_client}
+                              </span>
+                            </td>
+
+                            <td
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                            >
+                              {client.telephone_client || client.email_client}
+                            </td>
+
+                            <td
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
+                            >
+                              {currencyPipe(client.total_debt)}
+                            </td>
+
+                            <td
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
+                            >
+                              {formatDate(client.debt_modified_at)}
+                            </td>
+
+                            <td
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={
+                                    debtExists
+                                      ? isInactive
+                                        ? 'opacity-50'
+                                        : 'text-gray-900'
+                                      : 'text-neutral-400'
+                                  }
+                                >
+                                  {daysDisplay}
+                                </span>
+                                <span
+                                  title={days ? `${days} días` : 'Sin deuda'}
+                                  className={`inline-block h-6 w-6 rounded-full ${dot} ${isInactive ? 'opacity-50' : ''}`}
+                                />
+                              </div>
+                            </td>
+
+                            <td
+                              className={`w-fit border-l-2 border-gray-200 text-center ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
+                            >
+                              <button
+                                onClick={() => {
+                                  if (!isInactive) {
+                                    setEditingClient(client);
+                                    setIsModalOpen(true);
+                                  }
+                                }}
+                                className={`text-glacial-blue py-3 transition-colors hover:text-blue-500 ${isInactive ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                                disabled={isInactive}
+                              >
+                                <Edit size={24} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </article>
+              </main>
+              {totalPages > 1 && (
+                <article className="flex justify-center py-3">
+                  <nav className="flex items-center justify-between">
+                    <ul className="text-dark-blue flex items-center gap-2">
+                      <li>
+                        <button
+                          className={`py-2 ${
+                            currentPage === 1
+                              ? 'cursor-not-allowed text-neutral-400/70'
+                              : 'cursor-pointer hover:text-blue-600'
+                          }`}
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft size={32} />
+                        </button>
+                      </li>
+                      {getPageNumbers().map((n) => (
+                        <li key={n}>
+                          <button
+                            className={`rounded-md px-3 py-2 text-lg transition-colors ${
+                              currentPage === n
+                                ? 'font-semibold'
+                                : 'hover:text-dark-blue cursor-pointer text-neutral-400/70'
+                            }`}
+                            onClick={() => handlePageChange(n)}
+                          >
+                            {n}
+                          </button>
+                        </li>
+                      ))}
+                      <li>
+                        <button
+                          className={`py-2 ${
+                            currentPage === totalPages
+                              ? 'cursor-not-allowed text-neutral-400/70'
+                              : 'cursor-pointer hover:text-blue-600'
+                          }`}
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          <ChevronRight size={32} />
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </article>
+              )}
+              <div className="flex items-center pt-4 pb-2 pl-2">
+                <DebtLegend />
+              </div>
+            </>
           )}
-
-          <DebtLegend />
         </article>
 
         <ClientFormModal
@@ -525,21 +526,7 @@ const ClientsTable: React.FC = () => {
           isOpen={!!deleteClientId && deleteClientId.length > 0}
           clientName={deleteClientName}
           onCancel={() => setDeleteClientId(null)}
-          onConfirm={async () => {
-            if (deleteClientId && deleteClientId.length > 0) {
-              await Promise.all(deleteClientId.map((id) => deleteClientMutation.mutateAsync(id)));
-              // Invalidate queries once after all deletions
-              queryClient.invalidateQueries({ queryKey: ['clients'] });
-              const token = sessionStorage.getItem('token');
-              const id_user = sessionStorage.getItem('userId');
-              if (id_user && token) {
-                queryClient.invalidateQueries({ queryKey: ['clients', Number(id_user), token] });
-              }
-              setDeleteClientId(null);
-              setShowDeleteSuccess(true);
-              setTimeout(() => setShowDeleteSuccess(false), 1800);
-            }
-          }}
+          onConfirm={handleDeleteClients}
           isDeleting={deleteClientMutation.isPending}
         />
 
