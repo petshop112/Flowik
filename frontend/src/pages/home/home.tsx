@@ -105,7 +105,7 @@ const renderCustomLegend = (props: any) => {
             alignItems: 'center',
             gap: 4,
             fontFamily: "'Albert Sans', sans-serif",
-            color: '#999999', // Cambia a tu color favorito si deseas
+            color: '#999999',
             fontWeight: 400,
             fontSize: 16,
           }}
@@ -134,6 +134,8 @@ const Home = () => {
 
   // filtering data from the db to get the top 7 and top 10 for producto movement and stock
   const topStockBajo = [...stockBajoData].sort((a, b) => a.stock - b.stock).slice(0, 10);
+
+  const topProductosData = [...productosData].sort((a, b) => b.ventas - a.ventas).slice(0, 7);
 
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
@@ -281,10 +283,10 @@ const Home = () => {
               </div>
             </div>
             {/* GRÁFICO con Recharts */}
-            <div style={{ width: '100%', height: 374 }}>
+            <div style={{ width: '100%', height: 329 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={productosData}
+                  data={topProductosData}
                   layout="vertical"
                   margin={{ top: 8, right: 0, left: 100, bottom: 10 }}
                   barCategoryGap={16}
@@ -326,7 +328,7 @@ const Home = () => {
                   />
                   <Bar
                     dataKey="ventas"
-                    fill="#BBD7FF"
+                    fill="#CDDBFE"
                     barSize={18}
                     radius={[5, 5, 5, 5]}
                     label={{
