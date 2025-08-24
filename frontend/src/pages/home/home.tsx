@@ -122,29 +122,46 @@ const Home = () => {
 
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {/* cuadrito de deuda de clientes */}
-        <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white p-6 shadow">
-          <span className="text-secondary text-sm font-semibold">Deuda de Clientes</span>
-          <span className="mt-3 mb-1 text-4xl font-bold">$156.026</span>
-          <ul className="mt-4 space-y-1 text-sm">
-            <li className="flex items-center">
-              <span className="mr-3 inline-block h-3 w-3 rounded bg-cyan-400" /> Deudas nuevas{' '}
-              <span className="ml-auto font-semibold text-cyan-600">$69.950</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mr-3 inline-block h-3 w-3 rounded bg-orange-400" /> Deudas antiguas{' '}
-              <span className="ml-auto font-semibold text-orange-600">$100.715</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mr-3 inline-block h-3 w-3 rounded bg-indigo-400" /> Deudas cobros{' '}
-              <span className="ml-auto font-semibold text-indigo-600">$42.715</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mr-3 inline-block h-3 w-3 rounded bg-green-400" /> Superavit/Deficit{' '}
-              <span className="ml-auto font-semibold text-green-600">-$27.235</span>
-            </li>
-          </ul>
+      <div className="grid grid-cols-3 gap-6">
+        {/* COLUMNA 1 */}
+        <div className="flex flex-col gap-4">
+          {/* Cartita DEUDA TOTAAL */}
+          <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white p-6 shadow">
+            <span className="text-primary mb-1 text-xl font-semibold text-[#042D95]">
+              Deuda de Clientes
+            </span>
+            <span className="mb-2 text-xs text-[#6b7280]">Suma de saldos pendientes</span>
+            <div className="mt-4 flex">
+              <CurrencyDollarIcon className="mr-2 h-9 w-9 text-[#82D8E0]" />
+              <span className="text-4xl font-semibold text-[#042D95]">156.026</span>
+            </div>
+          </div>
+          {/* Cartita detalle NUMERICO DE LA DEUDA DEL CUATRIMESTRE */}
+          <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white px-6 py-4 shadow">
+            <ul className="space-y-3 text-[1rem] font-medium">
+              <li className="flex items-center gap-2 text-[#042D95]">
+                <span className="inline-block h-3 w-3 rounded bg-[#82D8E0]" />
+                Deudas nuevas
+                <span className="ml-auto text-2xl font-semibold text-[#048995]">$69.950</span>
+              </li>
+              <li className="flex items-center gap-2 text-[#042D95]">
+                <span className="inline-block h-3 w-3 rounded bg-[#FE9B38]" />
+                Deudas antiguas
+                <span className="ml-auto text-2xl font-semibold text-[#048995]">$100.715</span>
+              </li>
+              <li className="flex items-center gap-2 text-[#042D95]">
+                <span className="inline-block h-3 w-3 rounded bg-[#5685FA]" />
+                Deudas cobros
+                <span className="text-[#048995]] ml-auto text-2xl font-semibold text-[#048995]">
+                  $42.715
+                </span>
+              </li>
+              <li className="flex items-center gap-2 text-[#042D95]">
+                Superavit/Deficit
+                <span className="ml-auto text-2xl font-semibold text-[#048995]">-$27.235</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="dark:bg-card col-span-2 flex flex-col rounded-xl border border-[#82D8E0] bg-white p-4 shadow">
@@ -159,7 +176,6 @@ const Home = () => {
               <select className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs">
                 <option className="font-bold">1º Cuatrimestre</option>
               </select>
-              {/* Flecha SVG superpuesta */}
               <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                   <path
