@@ -15,14 +15,6 @@ import {
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 
-// Mock dataaa
-const deudaData = [
-  { mes: 'Enero', 'Deudas nuevas': 69950, 'Deudas antiguas': 100715, 'Deudas cobros': 42715 },
-  { mes: 'Febrero', 'Deudas nuevas': 89950, 'Deudas antiguas': 110715, 'Deudas cobros': 32715 },
-  { mes: 'Marzo', 'Deudas nuevas': 49950, 'Deudas antiguas': 40715, 'Deudas cobros': 62715 },
-  { mes: 'Abril', 'Deudas nuevas': 29950, 'Deudas antiguas': 150715, 'Deudas cobros': 22715 },
-];
-
 const data = [
   {
     name: 'Enero',
@@ -49,11 +41,7 @@ const data = [
     deudasCobros: 40000,
   },
 ];
-const coloresDeuda = {
-  'Deudas nuevas': '#06b6d4',
-  'Deudas antiguas': '#fb923c',
-  'Deudas cobros': '#6366f1',
-};
+
 const productosData = [
   { producto: 'Pedigree Adulto Razas Pequeñas 3kg', ventas: 45, stock: 2 },
   { producto: 'Eukanuba Cachorro', ventas: 40, stock: 500 },
@@ -400,7 +388,9 @@ const Home = () => {
                   <td className="px-4 py-4 text-sm font-medium">Unidades vendidas</td>
                   <td className="px-4 py-4 text-2xl font-bold">{activeProd.ventas}</td>
                   <td className="font-mediu px-4 py-4 text-sm">Disponibles en stock (uds)</td>
-                  <td className="px-4 py-4 text-2xl font-bold">{activeProd?.stock ?? '-'}</td>
+                  <td className="px-4 py-4 text-2xl font-bold">
+                    {stockActiveProd ? stockActiveProd.stock.toFixed(0) : '—'}
+                  </td>
                 </tr>
               </tbody>
             </table>
