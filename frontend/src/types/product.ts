@@ -71,3 +71,13 @@ export interface ProductUpdateData extends Omit<Product, 'id' | 'providers'> {
   description: string;
   providersIds?: string[];
 }
+
+export interface ProductValidationErrors {
+  name?: string;
+  description?: string;
+  category?: string;
+  sellPrice?: string;
+  expiration?: string;
+}
+
+export type ProductValidatableFields = keyof ProductValidationErrors;
