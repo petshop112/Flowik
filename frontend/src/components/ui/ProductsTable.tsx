@@ -213,7 +213,7 @@ const ProductsTable: React.FC = () => {
     if (!products) return [];
 
     let filtered = products;
-    if (searchTerm.trim().length >= 3) {
+    if (searchTerm.trim().length >= 2) {
       filtered = products.filter(
         (product: Product) =>
           product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
