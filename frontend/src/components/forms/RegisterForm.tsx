@@ -22,11 +22,21 @@ const validationSchema = Yup.object({
   firstName: Yup.string()
     .min(2, 'El nombre debe tener al menos 2 caracteres')
     .max(50, 'El nombre no debe superar los 50 caracteres')
-    .required('El nombre es obligatorio'),
+    .required('El nombre es obligatorio')
+    .test(
+      'no-leading-space',
+      'El nombre no debe comenzar con un espacio',
+      (value: string | undefined) => (value ? !/^\s/.test(value) : true)
+    ),
   lastName: Yup.string()
     .min(2, 'El apellido debe tener al menos 2 caracteres')
     .max(50, 'El apellido no debe superar los 50 caracteres')
-    .required('El apellido es obligatorio'),
+    .required('El apellido es obligatorio')
+    .test(
+      'no-leading-space',
+      'El apellido no debe comenzar con un espacio',
+      (value: string | undefined) => (value ? !/^\s/.test(value) : true)
+    ),
   email: Yup.string()
     .email('Correo electrónico inválido')
     .matches(
@@ -70,6 +80,7 @@ const validationSchema = Yup.object({
     .matches(/\d/, 'Debe contener al menos un caracter numérico')
     .matches(/[A-Z]/, 'Debe contener al menos una letra mayúscula')
     .matches(/[a-z]/, 'Debe contener al menos una letra minúscula')
+    // .matches(/[!@#$%^&*(),.?":{}|<>_-]/, 'Debe contener al menos un caracter especial')
     .required('La contraseña es obligatoria'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')
