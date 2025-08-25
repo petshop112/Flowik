@@ -68,7 +68,7 @@ const ClientsTable: React.FC = () => {
     viewClientId ?? undefined
   );
   const deleteClientMutation = useDeleteClient(id_user);
-  const deactivateClientMutation = useDeactivateClient();
+  const deactivateClientMutation = useDeactivateClient(id_user);
   const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<Set<number>>(new Set());
@@ -151,13 +151,14 @@ const ClientsTable: React.FC = () => {
   const handleDeactivate = async () => {
     if (!hasSelectedClients) return;
     try {
-      for (const id of selectedClientIds) {
+      const ids = Array.from(selectedClientIds);
+      for (const id of ids) {
         await deactivateClientMutation.mutateAsync(id);
       }
       setSelectedClientIds(new Set());
-      await queryClient.invalidateQueries({ queryKey: ['clients'] });
+      await queryClient.invalidateQueries({ queryKey: ['clients', id_user] });
     } catch (err) {
-      console.error('Error al desactivar clientes:', err);
+      console.error('Error al cambiar estado de clientes:', err);
     }
   };
 
@@ -206,6 +207,14 @@ const ClientsTable: React.FC = () => {
 
   const hasClients = clients && clients.length > 0;
 
+  const selected = Array.from(selectedClientIds);
+  const selectedClients = (clients ?? []).filter((c) => selected.includes(c.id_client));
+  const allInactive =
+    selectedClients.length > 0 && selectedClients.every((c) => c.isActive === false);
+  const allActive =
+    selectedClients.length > 0 && selectedClients.every((c) => c.isActive !== false);
+  const actionLabel = allInactive ? 'Activar' : allActive ? 'Desactivar' : 'Activar/Desactivar';
+
   if (isLoading) {
     return (
       <section className="bg-custom-mist h-full w-full p-6">
@@ -252,14 +261,20 @@ const ClientsTable: React.FC = () => {
                       onClick={hasSelectedClients ? handleDeactivate : undefined}
                       disabled={!hasSelectedClients || isDeactivating}
                       className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}`}
-                      title="Desactivar seleccionados"
+                      title={actionLabel}
                     >
                       <ToggleRight
                         size={18}
                         className={hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}
                       />
                       <span className={hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}>
-                        {isDeactivating ? 'Desactivando...' : 'Desactivar'}
+                        {isDeactivating
+                          ? allInactive
+                            ? 'Desactivando...'
+                            : allActive
+                              ? 'Activando...'
+                              : 'Cambiando estado...'
+                          : actionLabel}
                       </span>
                     </button>
                     <button
@@ -380,10 +395,7 @@ const ClientsTable: React.FC = () => {
                     <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
                       {currentClients.map((client) => {
                         const isSelected = selectedClientIds.has(client.id_client);
-                        const isInactive =
-                          client.is_active === false ||
-                          (deactivateClientMutation.isSuccess &&
-                            deactivateClientMutation.variables === client.id_client);
+                        const isInactive = client.isActive === false;
                         const debtExists = hasDebt(client.total_debt);
                         const days = client.total_debt_days ?? 0;
                         const dot = debtColor(days);
@@ -394,14 +406,13 @@ const ClientsTable: React.FC = () => {
                         return (
                           <tr
                             key={client.id_client}
-                            className={`border-b-2 border-gray-200 transition-colors hover:bg-gray-50 ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
+                            className={`border-b-2 border-gray-200 transition-colors hover:bg-gray-50`}
                           >
                             <td className="px-5 py-3">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => toggleClientSelection(client.id_client)}
-                                disabled={isInactive}
                                 className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                               />
                             </td>
@@ -546,16 +557,24 @@ const ClientsTable: React.FC = () => {
           client={editingClient}
         />
 
-        {viewClientId && (
-          <ClientFormModal
-            isOpen={!!viewClientId}
-            onClose={() => setViewClientId(null)}
-            onSave={() => {}}
-            client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
-            readOnly={true}
-            isSaving={isLoadingViewClient}
-          />
-        )}
+        {viewClientId &&
+          (isLoadingViewClient ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+              <div className="flex w-full max-w-md flex-col items-center rounded-lg bg-white p-8 shadow-xl">
+                <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                <p className="text-gray-600">Cargando cliente...</p>
+              </div>
+            </div>
+          ) : (
+            <ClientFormModal
+              isOpen={!!viewClientId}
+              onClose={() => setViewClientId(null)}
+              onSave={() => {}}
+              client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
+              readOnly={true}
+              isSaving={false}
+            />
+          ))}
 
         <DeleteClientModal
           isOpen={!!deleteClientId && deleteClientId.length > 0}
