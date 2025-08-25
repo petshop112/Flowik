@@ -562,7 +562,6 @@ const ClientsTable: React.FC = () => {
           clientName={deleteClientName}
           onCancel={() => setDeleteClientId(null)}
           onConfirm={handleDeleteClients}
-          // isDeleting={deleteClientMutation.isPending}
         />
 
         {showDeleteSuccess && (
