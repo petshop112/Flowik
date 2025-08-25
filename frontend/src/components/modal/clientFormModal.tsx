@@ -1,4 +1,3 @@
-// src/components/modal/ClientFormModal.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Client, ClientFormValues } from '../../types/clients';
 import {
@@ -17,21 +16,6 @@ type Props = {
   readOnly?: boolean;
   clientesLista?: Client[];
 };
-
-function splitName(full?: string): { firstName: string; lastName: string } {
-  const s = (full ?? '').trim();
-  if (!s) return { firstName: '', lastName: '' };
-  const parts = s.split(/\s+/);
-  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
-  return {
-    firstName: parts.slice(0, -1).join(' '),
-    lastName: parts.slice(-1).join(' '),
-  };
-}
-
-function joinName(first: string, last: string) {
-  return [first.trim(), last.trim()].filter(Boolean).join(' ');
-}
 
 const emptyForm: Form = {
   firstName: '',
@@ -53,10 +37,12 @@ const ClientFormModal: React.FC<Props> = ({
 }) => {
   const initialForm: Form = useMemo(() => {
     if (!client) return emptyForm;
-    const { firstName, lastName } = splitName(client.name_client);
+    const s = (client.name_client ?? '').trim();
+    if (!s) return { ...emptyForm };
+    const parts = s.split(/\s+/);
     return {
-      firstName,
-      lastName,
+      firstName: parts[0] || '',
+      lastName: parts.length > 1 ? parts.slice(1).join(' ') : '',
       telephone_client: client.telephone_client ?? '',
       email_client: client.email_client ?? '',
       document_type: client.document_type ?? '',
@@ -78,20 +64,39 @@ const ClientFormModal: React.FC<Props> = ({
 
   const fieldRefs = useRef<Partial<Record<keyof Form, HTMLInputElement | null>>>({});
 
+  const cachedInitialRef = useRef<Form | null>(null);
+
   useEffect(() => {
-    if (isOpen) {
-      setForm(initialForm);
-      setErrors({});
-      setTouched({
-        firstName: false,
-        lastName: false,
-        telephone_client: false,
-        email_client: false,
-        document_type: false,
-        direction_client: false,
-      });
+    if (!isOpen) {
+      cachedInitialRef.current = null;
+      return;
     }
-  }, [isOpen, initialForm]);
+
+    if (!cachedInitialRef.current) {
+      const c = client ?? null;
+      const s = (c?.name_client ?? '').trim();
+      const parts = s.split(/\s+/);
+      cachedInitialRef.current = {
+        firstName: parts[0] || '',
+        lastName: parts.length > 1 ? parts.slice(1).join(' ') : '',
+        telephone_client: c?.telephone_client ?? '',
+        email_client: c?.email_client ?? '',
+        document_type: c?.document_type ?? '',
+        direction_client: c?.direction_client ?? '',
+      };
+    }
+
+    setForm(cachedInitialRef.current!);
+    setErrors({});
+    setTouched({
+      firstName: false,
+      lastName: false,
+      telephone_client: false,
+      email_client: false,
+      document_type: false,
+      direction_client: false,
+    });
+  }, [isOpen, client]);
 
   if (!isOpen) return null;
 
@@ -158,7 +163,7 @@ const ClientFormModal: React.FC<Props> = ({
 
     // payload para el backend
     const payload: ClientFormValues = {
-      name_client: joinName(form.firstName, form.lastName),
+      name_client: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
       telephone_client: form.telephone_client.trim(),
       email_client: form.email_client.trim(),
       document_type: form.document_type?.trim() || '',
