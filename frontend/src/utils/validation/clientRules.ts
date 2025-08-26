@@ -45,14 +45,14 @@ export function validateField(name: keyof Errors, form: Form, errors: Errors): E
     case 'document_type': {
       const v = (form.document_type || '').trim();
       if (isEmpty(v)) error = 'El documento es obligatorio.';
-      else if (!digitsBetween(v, 7, 11)) error = 'Entre 7 y 11 números.';
+      else if (!digitsBetween(v, 8, 11)) error = 'Entre 8 y 11 números.';
       break;
     }
     case 'direction_client': {
       const v = (form.direction_client || '').trim();
       if (isEmpty(v)) error = 'La dirección es obligatoria.';
       else if (!lengthBetween(v, 10, 100)) error = 'Entre 10 y 100 caracteres.';
-      else if (!/^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ ,.\-#]+$/.test(v))
+      else if (!/^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ -]+$/.test(v))
         error = 'No se permiten caracteres especiales.';
       break;
     }

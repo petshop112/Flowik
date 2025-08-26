@@ -154,6 +154,8 @@ const ClientsTable: React.FC = () => {
       setShowSuccessModal(true);
       setIsModalOpen(false);
       setEditingClient(null);
+    } catch (error: any) {
+      setFormError(error?.message || 'Error inesperado al guardar');
     } finally {
       setIsSaving(false);
     }
