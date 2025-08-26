@@ -42,7 +42,6 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, title, des
           <h2 className="text-lg font-semibold text-gray-900" style={{ marginBottom: id ? 0 : 8 }}>
             {title}
           </h2>
-          {id && <div className="mb-2 text-base font-semibold text-gray-900">ID – {id}</div>}
           <p
             className="text-center text-gray-500"
             style={{
