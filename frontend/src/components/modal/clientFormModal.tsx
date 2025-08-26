@@ -15,6 +15,7 @@ type Props = {
   client?: Client | null;
   readOnly?: boolean;
   clientesLista?: Client[];
+  formError: string;
 };
 
 const emptyForm: Form = {
@@ -34,6 +35,7 @@ const ClientFormModal: React.FC<Props> = ({
   client,
   readOnly = false,
   clientesLista,
+  formError,
 }) => {
   const initialForm: Form = useMemo(() => {
     if (!client) return emptyForm;
@@ -178,7 +180,7 @@ const ClientFormModal: React.FC<Props> = ({
       <div className="w-full max-w-5xl rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between px-8 py-6">
           <h2 className="text-[20px] font-semibold text-gray-900">
-            {readOnly ? 'ID – Ver Cliente' : client ? 'ID – Editar Cliente' : 'ID – Nuevo Cliente'}
+            {readOnly ? 'Ver Cliente' : client ? 'Editar Cliente' : 'Nuevo Cliente'}
           </h2>
           <button
             onClick={onClose}
@@ -354,6 +356,9 @@ const ClientFormModal: React.FC<Props> = ({
           {/* Mostrar error de duplicado en el formulario */}
           {duplicateError && (
             <div className="mb-4 text-center font-semibold text-red-600">{duplicateError}</div>
+          )}
+          {formError && (
+            <div className="mb-4 text-center font-semibold text-red-600">{formError}</div>
           )}
 
           {/* Botones */}

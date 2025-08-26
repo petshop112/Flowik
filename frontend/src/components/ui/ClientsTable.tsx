@@ -61,6 +61,7 @@ const ClientsTable: React.FC = () => {
   const [deleteClientName, setDeleteClientName] = useState<string>('');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [isDeletingUI, setIsDeletingUI] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const createClientMutation = useCreateClient();
   const editClientMutation = useEditClient();
@@ -78,7 +79,7 @@ const ClientsTable: React.FC = () => {
   const filteredClients = useMemo(() => {
     if (!clients) return [];
     if (!searchTerm.trim()) return clients;
-    if (searchTerm.trim().length < 3) return clients;
+    if (searchTerm.trim().length < 2) return clients;
     return clients.filter(
       (client: Client) =>
         client.name_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,6 +122,19 @@ const ClientsTable: React.FC = () => {
   };
 
   const handleSaveClient = async (values: ClientFormValues) => {
+    if (!editingClient) {
+      const alreadyExists = clients?.some(
+        (c) =>
+          c.name_client.trim().toLowerCase() === values.name_client.trim().toLowerCase() ||
+          c.document_type.trim().toLowerCase() === values.document_type.trim().toLowerCase()
+      );
+      if (alreadyExists) {
+        setFormError('Ya existe un cliente con ese nombre o documento.');
+        setIsSaving(false);
+        setTimeout(() => setFormError(''), 2500);
+        return;
+      }
+    }
     try {
       setIsSaving(true);
       let result;
@@ -145,7 +159,6 @@ const ClientsTable: React.FC = () => {
     }
   };
 
-  // Usa el estado de la mutación para feedback persistente
   const isDeactivating = deactivateClientMutation.isPending;
 
   const handleDeactivate = async () => {
@@ -170,17 +183,14 @@ const ClientsTable: React.FC = () => {
   const handleDeleteClients = async () => {
     if (!deleteClientId?.length || isDeletingUI) return;
 
-    // guardo los IDs actuales y cierro el modal YA
     const ids = [...deleteClientId];
     setIsDeletingUI(true);
-    setDeleteClientId(null); //cierra el modal de confirmación
+    setDeleteClientId(null);
     setSelectedClientIds(new Set());
 
-    // muestro éxito optimista YA
     setShowDeleteSuccess(true);
 
     try {
-      // ejecuto los deletes en paralelo
       const results = await Promise.allSettled(
         ids.map((id) => deleteClientMutation.mutateAsync(id))
       );
@@ -192,11 +202,9 @@ const ClientsTable: React.FC = () => {
         setShowDeleteSuccess(false);
         alert('No se pudo eliminar uno o más clientes. Intenta nuevamente.');
       } else {
-        // si todo OK, dejo visible hasta que el back me devuelve el getall y cierra
         setShowDeleteSuccess(false);
       }
     } catch (e) {
-      // si algo raro explota
       setShowDeleteSuccess(false);
       alert('Error al eliminar cliente. Intenta nuevamente.');
       console.error('Error al eliminar cliente:', e);
@@ -213,7 +221,7 @@ const ClientsTable: React.FC = () => {
     selectedClients.length > 0 && selectedClients.every((c) => c.isActive === false);
   const allActive =
     selectedClients.length > 0 && selectedClients.every((c) => c.isActive !== false);
-  const actionLabel = allInactive ? 'Activar' : allActive ? 'Desactivar' : 'Activar/Desactivar';
+  const actionLabel = allInactive ? 'Activar' : allActive ? 'Desactivar' : 'Desactivar';
 
   if (isLoading) {
     return (
@@ -539,58 +547,61 @@ const ClientsTable: React.FC = () => {
                   </nav>
                 </article>
               )}
-              <div className="flex items-center pt-4 pb-2 pl-2">
+              <div className="fixed-bottom flex items-center pt-4 pb-2 pl-2">
                 <DebtLegend />
               </div>
             </>
           )}
-        </article>
 
-        <ClientFormModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingClient(null);
-          }}
-          onSave={handleSaveClient}
-          isSaving={isSaving || createClientMutation.isPending}
-          client={editingClient}
-        />
-
-        {viewClientId &&
-          (isLoadingViewClient ? (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-              <div className="flex w-full max-w-md flex-col items-center rounded-lg bg-white p-8 shadow-xl">
-                <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-                <p className="text-gray-600">Cargando cliente...</p>
-              </div>
-            </div>
-          ) : (
-            <ClientFormModal
-              isOpen={!!viewClientId}
-              onClose={() => setViewClientId(null)}
-              onSave={() => {}}
-              client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
-              readOnly={true}
-              isSaving={false}
-            />
-          ))}
-
-        <DeleteClientModal
-          isOpen={!!deleteClientId && deleteClientId.length > 0}
-          clientName={deleteClientName}
-          onCancel={() => setDeleteClientId(null)}
-          onConfirm={handleDeleteClients}
-        />
-
-        {showDeleteSuccess && (
-          <SuccessModal
-            isOpen={showDeleteSuccess}
-            onClose={() => setShowDeleteSuccess(false)}
-            title="¡Cliente eliminado!"
-            description="Ya no aparecerá en la tabla ni en el buscador."
+          <ClientFormModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditingClient(null);
+              setFormError('');
+            }}
+            onSave={handleSaveClient}
+            isSaving={isSaving || createClientMutation.isPending}
+            client={editingClient}
+            formError={formError || ''}
           />
-        )}
+
+          {viewClientId &&
+            (isLoadingViewClient ? (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+                <div className="flex w-full max-w-md flex-col items-center rounded-lg bg-white p-8 shadow-xl">
+                  <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                  <p className="text-gray-600">Cargando cliente...</p>
+                </div>
+              </div>
+            ) : (
+              <ClientFormModal
+                isOpen={!!viewClientId}
+                onClose={() => setViewClientId(null)}
+                onSave={() => {}}
+                client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
+                readOnly={true}
+                isSaving={false}
+                formError={''}
+              />
+            ))}
+
+          <DeleteClientModal
+            isOpen={!!deleteClientId && deleteClientId.length > 0}
+            clientName={deleteClientName}
+            onCancel={() => setDeleteClientId(null)}
+            onConfirm={handleDeleteClients}
+          />
+
+          {showDeleteSuccess && (
+            <SuccessModal
+              isOpen={showDeleteSuccess}
+              onClose={() => setShowDeleteSuccess(false)}
+              title="¡Cliente eliminado!"
+              description="Ya no aparecerá en la tabla ni en el buscador."
+            />
+          )}
+        </article>
       </section>
     </>
   );
