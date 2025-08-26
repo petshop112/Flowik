@@ -1,15 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Edit,
-  Trash2,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  Plus,
-  ToggleRight,
-} from 'lucide-react';
+import { Edit, Trash2, Search, ChevronLeft, ChevronRight, Plus, ToggleRight } from 'lucide-react';
 import {
   useGetAllClients,
   useCreateClient,
@@ -76,11 +67,32 @@ const ClientsTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const hasSelectedClients = selectedClientIds.size > 0;
+  //   if (!clients) return [];
+  //   // Reordena: activos primero, inactivos al final
+  //   let arr = [...clients].sort((a, b) => {
+  //     if (a.isActive === b.isActive) return 0;
+  //     return a.isActive ? -1 : 1;
+  //   });
+  //   if (!searchTerm.trim()) return clients;
+  //   if (searchTerm.trim().length < 2) return clients;
+  //   return clients.filter(
+  //     (client: Client) =>
+  //       client.name_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       client.email_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       client.telephone_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       client.document_type.toLowerCase().includes(searchTerm.toLowerCase())
+  //   );
+  // }, [clients, searchTerm]);
+
   const filteredClients = useMemo(() => {
     if (!clients) return [];
-    if (!searchTerm.trim()) return clients;
-    if (searchTerm.trim().length < 2) return clients;
-    return clients.filter(
+    let arr = [...clients].sort((a, b) => {
+      if (a.isActive === b.isActive) return 0;
+      return a.isActive ? -1 : 1;
+    });
+    if (!searchTerm.trim()) return arr;
+    if (searchTerm.trim().length < 2) return arr;
+    return arr.filter(
       (client: Client) =>
         client.name_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.email_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -385,8 +397,26 @@ const ClientsTable: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-polar-mist">
                       <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
-                        <th className="w-12 px-4 py-3">
-                          <Check />
+                        <th className="bg-polar-mist flex w-14 items-center rounded-tl-xl px-5 py-3">
+                          <input
+                            type="checkbox"
+                            checked={
+                              currentClients.length > 0 &&
+                              currentClients.every((c) => selectedClientIds.has(c.id_client))
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                // Selecciona todos los clientes visibles
+                                const ids = currentClients.map((c) => c.id_client);
+                                setSelectedClientIds(new Set(ids));
+                              } else {
+                                // Deselecciona todos
+                                setSelectedClientIds(new Set());
+                              }
+                            }}
+                            className="h-5 w-5 cursor-pointer rounded border-2 border-blue-400 text-blue-600 focus:ring-blue-500"
+                            style={{ minWidth: 20, minHeight: 20, width: 20, height: 20 }}
+                          />
                         </th>
                         <th>Nombre y Apellido</th>
                         <th>Contacto</th>
@@ -418,12 +448,13 @@ const ClientsTable: React.FC = () => {
                             key={client.id_client}
                             className={`border-b-2 border-gray-200 transition-colors hover:bg-gray-50`}
                           >
-                            <td className="px-5 py-3">
+                            <td className="flex w-14 items-center justify-center px-5 py-3">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => toggleClientSelection(client.id_client)}
-                                className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                                className="h-5 w-5 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                                style={{ minWidth: 20, minHeight: 20, width: 20, height: 20 }}
                               />
                             </td>
 

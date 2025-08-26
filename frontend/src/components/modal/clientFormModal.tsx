@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Client, ClientFormValues } from '../../types/clients';
+import { handleBackdropClick } from '../../constants/clickOut';
 import {
   validateField,
   validateAll,
@@ -176,7 +177,10 @@ const ClientFormModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+      onClick={(e) => handleBackdropClick(e, onClose)}
+    >
       <div className="w-full max-w-5xl rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between px-8 py-6">
           <h2 className="text-[20px] font-semibold text-gray-900">
@@ -353,7 +357,6 @@ const ClientFormModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Mostrar error de duplicado en el formulario */}
           {duplicateError && (
             <div className="mb-4 text-center font-semibold text-red-600">{duplicateError}</div>
           )}
@@ -361,7 +364,6 @@ const ClientFormModal: React.FC<Props> = ({
             <div className="mb-4 text-center font-semibold text-red-600">{formError}</div>
           )}
 
-          {/* Botones */}
           <div className="flex items-center justify-center gap-4 pt-2 pb-2">
             <button
               type="button"

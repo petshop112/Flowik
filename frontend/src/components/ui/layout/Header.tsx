@@ -43,7 +43,7 @@ export default function Header({ role = 'Administrador' }: HeaderProps) {
         <div className="relative flex h-14 items-center border-l border-[#5685FA] pl-13">
           <div className="-ml-6 flex items-center gap-3">
             <img
-              src="/icons/Avatars_Image.png"
+              src="/icons/Avatars_Image.svg"
               alt="Avatar"
               className="h-9 w-9 cursor-pointer rounded-full object-cover ring-2 ring-blue-100"
               onClick={() => setOpenMenu((prev) => !prev)}
