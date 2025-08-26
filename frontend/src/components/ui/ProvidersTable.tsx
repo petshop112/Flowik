@@ -10,7 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import type { Provider, ProviderFormValues } from '../../types/provider';
+import type { Provider /*, ProviderFormValues */ } from '../../types/provider';
 import EmptyProvidersState from './EmptyProvidersState';
 
 const itemsPerPage = 10;
@@ -30,6 +30,15 @@ const ProductsTable: React.FC = () => {
   const hasProviders = providers && providers.length > 0;
   const hasSelectedProviders = selectedProviderIds.size > 0;
   const deactivateProviderMutation = useDeactivateProvider();
+
+  console.log(deleteProviderId);
+  console.log(deleteProviderName);
+  console.log(isModalOpen);
+  console.log(editingProvider);
+  console.log(setSearchTerm);
+  console.log(viewProviderId);
+  console.log(isLoading);
+  console.log(deactivateProviderMutation);
 
   const selected = Array.from(selectedProviderIds);
   const selectedClients = (providers ?? []).filter((c) => selected.includes(c.id_provider));

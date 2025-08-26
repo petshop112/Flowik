@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { providerService } from '../api/providerService';
 import { getUserTokenFromStorage } from '../utils/storage';
-import type { Provider, ProviderFormValues } from '../types/provider';
+import type { Provider /*, ProviderFormValues */ } from '../types/provider';
 
 export const useGetAllProviders = () => {
   const token = getUserTokenFromStorage();
@@ -44,4 +44,5 @@ export const useDeactivateProvider = (id_user?: number) => {
   //     queryClient.invalidateQueries({ queryKey: key });
   //   },
   // });
+  console.log(id_user);
 };

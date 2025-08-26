@@ -11,3 +11,8 @@ export type Provider = ProviderFormValues & {
   id_provider: number;
   isActive?: boolean;
 };
+
+export type ProviderFormData = Omit<
+  Provider,
+  'direction_provider' | 'telephone_provider' | 'provider_description'
+>;
