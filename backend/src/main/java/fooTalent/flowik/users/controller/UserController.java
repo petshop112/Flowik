@@ -1,6 +1,6 @@
 package fooTalent.flowik.users.controller;
 
-import fooTalent.flowik.Auth.service.JwtService;
+import fooTalent.flowik.auth.services.JwtService;
 import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.users.dto.UserDto;
 import fooTalent.flowik.users.dto.UserUpdateRequest;
@@ -10,7 +10,6 @@ import fooTalent.flowik.users.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -2,6 +2,7 @@ package fooTalent.flowik.exceptions;
 
 import fooTalent.flowik.exceptions.dto.ErrorResponse;
 import fooTalent.flowik.exceptions.util.FieldValidationError;
+import fooTalent.flowik.exceptions.util.FileParseException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -123,5 +125,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), null));
+    }
+    @ExceptionHandler(FileParseException.class)
+    public ResponseEntity<ErrorResponse> handleFileParse(FileParseException ex) {
+        return ResponseEntity
+                .badRequest()
+                .body(buildErrorResponse(HttpStatus.BAD_REQUEST, "Error al procesar el archivo: " + ex.getMessage(), null));
+    }
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> handleMissingPart(MissingServletRequestPartException ex) {
+        return ResponseEntity
+                .badRequest()
+                .body(buildErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        "El archivo es requerido y no fue enviado (parte faltante: " + ex.getRequestPartName() + ")",
+                        null
+                ));
+    }
+    @ExceptionHandler(OpenAiQuotaExceededException.class)
+    public ResponseEntity<ErrorResponse> handleOpenAiQuota(OpenAiQuotaExceededException ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS) // 429
+                .body(buildErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), null));
     }
 }

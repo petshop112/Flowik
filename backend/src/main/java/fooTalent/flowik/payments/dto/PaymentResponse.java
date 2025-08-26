@@ -1,6 +1,6 @@
 package fooTalent.flowik.payments.dto;
 
-import fooTalent.flowik.payments.entity.Payment;
+import fooTalent.flowik.payments.entities.Payment;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

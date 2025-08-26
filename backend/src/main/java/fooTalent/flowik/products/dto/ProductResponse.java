@@ -1,7 +1,7 @@
 package fooTalent.flowik.products.dto;
 
-import fooTalent.flowik.products.entity.Product;
-import fooTalent.flowik.provider.entity.Provider;
+import fooTalent.flowik.products.entities.Product;
+import fooTalent.flowik.providers.entities.Provider;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -1,7 +1,7 @@
 package fooTalent.flowik.users.service;
 
-import fooTalent.flowik.Auth.dto.AuthResponse;
-import fooTalent.flowik.Auth.util.UserValidation;
+import fooTalent.flowik.auth.dto.AuthResponse;
+import fooTalent.flowik.auth.util.UserValidation;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
 import fooTalent.flowik.users.dto.UserDto;
 import fooTalent.flowik.users.dto.UserUpdateRequest;
