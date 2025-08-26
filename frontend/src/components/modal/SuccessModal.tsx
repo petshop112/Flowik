@@ -1,5 +1,6 @@
 import { X, CheckIcon } from 'lucide-react';
 import React from 'react';
+import { handleBackdropClick } from '../../constants/clickOut';
 
 export type SuccessModalProps = {
   isOpen: boolean;
@@ -11,8 +12,12 @@ export type SuccessModalProps = {
 
 const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, title, description, id }) => {
   if (!isOpen) return null;
+
   return (
-    <article className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <article
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={(e) => handleBackdropClick(e, onClose)}
+    >
       <article
         className="relative inline-flex w-full max-w-xl flex-col items-center justify-center overflow-y-auto"
         style={{
