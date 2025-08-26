@@ -1,9 +1,9 @@
 package fooTalent.flowik.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fooTalent.flowik.Auth.dto.CustomUserDetails;
-import fooTalent.flowik.Auth.service.CustomUserDetailService;
-import fooTalent.flowik.Auth.service.JwtAuthFilter;
+import fooTalent.flowik.auth.dto.CustomUserDetails;
+import fooTalent.flowik.auth.services.CustomUserDetailService;
+import fooTalent.flowik.auth.services.JwtAuthFilter;
 import fooTalent.flowik.exceptions.dto.ErrorResponse;
 import fooTalent.flowik.users.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;

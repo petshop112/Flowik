@@ -1,6 +1,6 @@
 package fooTalent.flowik.payments.Repository;
 
-import fooTalent.flowik.payments.entity.Payment;
+import fooTalent.flowik.payments.entities.Payment;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

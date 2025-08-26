@@ -1,11 +1,11 @@
 package fooTalent.flowik.payments.util;
 
-import fooTalent.flowik.client.entity.Client;
-import fooTalent.flowik.debt.entity.Debt;
-import fooTalent.flowik.debt.enums.StatusDebt;
-import fooTalent.flowik.debt.repositories.DebtRepository;
+import fooTalent.flowik.clients.entities.Client;
+import fooTalent.flowik.debts.entities.Debt;
+import fooTalent.flowik.debts.enums.StatusDebt;
+import fooTalent.flowik.debts.repositories.DebtRepository;
 import fooTalent.flowik.payments.Repository.PaymentRepository;
-import fooTalent.flowik.payments.entity.Payment;
+import fooTalent.flowik.payments.entities.Payment;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

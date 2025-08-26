@@ -3,7 +3,7 @@ package fooTalent.flowik.payments.controller;
 import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.payments.dto.PaymentRequest;
 import fooTalent.flowik.payments.dto.PaymentResponse;
-import fooTalent.flowik.payments.service.PaymentService;
+import fooTalent.flowik.payments.services.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
