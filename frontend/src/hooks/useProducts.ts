@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService } from '../api/productService';
 import { getUserTokenFromStorage } from '../utils/storage';
-import type { ProductUpdateData } from '../types/product';
+import type { AdjustProductPriceData, ProductUpdateData } from '../types/product';
 
 export const useGetAllProducts = () => {
   const token = getUserTokenFromStorage();
@@ -114,6 +114,24 @@ export const useDeactivateProduct = () => {
     onSuccess: (_, ids) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       ids.forEach((id) => {
+        queryClient.invalidateQueries({ queryKey: ['product', id] });
+      });
+    },
+  });
+};
+
+export const useAdjustProductPrices = () => {
+  const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: AdjustProductPriceData) => {
+      if (!token) throw new Error('No hay token de autenticación');
+      return productService.adjustProductPrices(data, token);
+    },
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      data.IDs.forEach((id) => {
         queryClient.invalidateQueries({ queryKey: ['product', id] });
       });
     },
