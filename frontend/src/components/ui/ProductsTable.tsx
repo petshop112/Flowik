@@ -4,7 +4,6 @@ import {
   Search,
   Plus,
   Edit,
-  Bell,
   Trash2,
   Calculator,
   ToggleRight,
@@ -19,15 +18,17 @@ import {
   useUpdateProduct,
   useDeleteProduct,
   useDeactivateProduct,
+  useAdjustProductPrices,
 } from '../../hooks/useProducts';
 import ProductFormModal from '../modal/ProductFormModal';
 import { InventoryLegend } from './InventoryLegend';
 import { getStockStatus, getStockColor } from '../../utils/product';
 import { useGetAllProviders } from '../../hooks/useProviders';
-import type { Product, ProductWithOptionalId } from '../../types/product';
+import type { AdjustProductPriceData, Product, ProductWithOptionalId } from '../../types/product';
 import EmptyProductsState from './EmptyProductsState';
 import DeleteProductModal from '../modal/DeleteProductModal';
 import SuccessModal from '../modal/SuccessModal';
+import AdjustPricesModal from '../modal/AdjustPricesModal';
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,6 +41,7 @@ const ProductsTable: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
+  const [isAdjustPricesModalOpen, setIsAdjustPricesModalOpen] = useState(false);
 
   const { data: products = [], isLoading, error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
@@ -52,6 +54,7 @@ const ProductsTable: React.FC = () => {
   const { mutateAsync: createProductMutation, isPending: isCreating } = useCreateProduct();
   const { mutateAsync: updateProductMutation, isPending: isUpdating } = useUpdateProduct();
   const isSavingProduct = isCreating || isUpdating;
+  const adjustPricesMutation = useAdjustProductPrices();
 
   const hasSelectedProducts = selectedProductIds.size > 0;
   const itemsPerPage = 10;
@@ -302,6 +305,40 @@ const ProductsTable: React.FC = () => {
     }
   };
 
+  const selectedProducts = useMemo(() => {
+    return products.filter((product: Product) => selectedProductIds.has(product.id));
+  }, [products, selectedProductIds]);
+
+  const handleOpenAdjustPricesModal = () => {
+    if (selectedProductIds.size > 0) {
+      setIsAdjustPricesModalOpen(true);
+    }
+  };
+
+  // Función para confirmar el cambio de precios
+  const handleAdjustPrices = async (data: AdjustProductPriceData) => {
+    try {
+      await adjustPricesMutation.mutateAsync(data);
+
+      setSelectedProductIds(new Set());
+      setIsAdjustPricesModalOpen(false);
+
+      setSuccessMessage({
+        title: '¡Precios actualizados!',
+        description: `Se han actualizado los precios de ${data.IDs.length} producto(s) correctamente.`,
+      });
+
+      setIsSuccessModalOpen(true);
+    } catch (error) {
+      setSuccessMessage({
+        title: '¡Error al actualizar precios!',
+        description: 'No se pudieron actualizar los precios. Intenta nuevamente.',
+      });
+      setIsSuccessModalOpen(true);
+      console.error('Error al ajustar precios:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <section className="bg-custom-mist h-full w-full p-6">
@@ -419,7 +456,15 @@ const ProductsTable: React.FC = () => {
 
                 {/* Cambiar Precio */}
                 {hasProducts && (
-                  <button className="bg-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-teal-700">
+                  <button
+                    onClick={handleOpenAdjustPricesModal}
+                    disabled={!hasSelectedProducts || adjustPricesMutation.isPending}
+                    className={`flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors ${
+                      hasSelectedProducts
+                        ? 'bg-deep-teal cursor-pointer hover:bg-teal-700'
+                        : 'cursor-not-allowed bg-gray-400'
+                    }`}
+                  >
                     <Calculator size={18} />
                     Cambiar Precio
                   </button>
@@ -447,7 +492,7 @@ const ProductsTable: React.FC = () => {
                         <th>Categoría</th>
                         <th>Stock unitario</th>
                         <th className="border-none">
-                          <Bell size={18} className="mx-auto" />
+                          <img className="h-6 w-6 max-w-6" src="/icons/alarma.svg" alt="" />
                         </th>
                         <th>Precio venta</th>
                         <th className="w-8">Editar</th>
@@ -581,6 +626,13 @@ const ProductsTable: React.FC = () => {
         onClose={() => setIsSuccessModalOpen(false)}
         title={successMessage.title}
         description={successMessage.description}
+      />
+      <AdjustPricesModal
+        isOpen={isAdjustPricesModalOpen}
+        onClose={() => setIsAdjustPricesModalOpen(false)}
+        onConfirm={handleAdjustPrices}
+        selectedProducts={selectedProducts}
+        isLoading={adjustPricesMutation.isPending}
       />
     </>
   );
