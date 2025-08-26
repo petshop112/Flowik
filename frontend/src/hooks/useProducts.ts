@@ -70,8 +70,14 @@ export const useUpdateProduct = () => {
       if (!token) throw new Error('No hay token de autenticación');
       return productService.updateProduct(id ?? 0, data, token);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+
+      if (variables.id) {
+        queryClient.invalidateQueries({ queryKey: ['product', variables.id] });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['product'] });
     },
   });
 };
@@ -86,8 +92,11 @@ export const useDeleteProduct = () => {
       if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a eliminar');
       return productService.deleteProduct(ids, token);
     },
-    onSuccess: () => {
+    onSuccess: (_, ids) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      ids.forEach((id) => {
+        queryClient.removeQueries({ queryKey: ['product', id] });
+      });
     },
   });
 };
@@ -102,8 +111,11 @@ export const useDeactivateProduct = () => {
       if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a desactivar');
       return productService.deactivateProduct(ids, token);
     },
-    onSuccess: () => {
+    onSuccess: (_, ids) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      ids.forEach((id) => {
+        queryClient.invalidateQueries({ queryKey: ['product', id] });
+      });
     },
   });
 };
