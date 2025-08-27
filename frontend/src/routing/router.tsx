@@ -12,6 +12,7 @@ import VerifyEmail from '../pages/auth/VerifyEmail';
 import NewPassword from '../pages/auth/NewPassword';
 import PasswordReset from '../pages/auth/PasswordReset';
 import DashboardLayoutRoute from '../components/ui/layout/DashboardLayoutRoute';
+import ProvidersPage from '../pages/providers/Providers';
 
 const router = createBrowserRouter([
   {
@@ -27,7 +28,7 @@ const router = createBrowserRouter([
               // { path: 'dashboard', element: <Dashboard /> },
               { path: 'products', element: <Products /> },
               { path: 'clients', element: <ClientsPage /> },
-              // { path: 'providers', element: <Providers /> },
+              { path: 'providers', element: <ProvidersPage /> },
             ],
           },
         ],

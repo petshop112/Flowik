@@ -3,18 +3,10 @@ import { X } from 'lucide-react';
 import type {
   ProductFormModalProps,
   ProductUpdateFormData,
+  ProductValidatableFields,
+  ProductValidationErrors,
   ProductWithOptionalId,
 } from '../../types/product';
-
-interface ValidationErrors {
-  name?: string;
-  description?: string;
-  category?: string;
-  sellPrice?: string;
-  expiration?: string;
-}
-
-type ValidatableFields = keyof ValidationErrors;
 
 const ProductFormModal: React.FC<ProductFormModalProps> = ({
   isOpen,
@@ -26,7 +18,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   categories = [],
   isSaving,
 }) => {
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [errors, setErrors] = useState<ProductValidationErrors>({});
   const [formData, setFormData] = useState<
     Omit<ProductUpdateFormData, 'id' | 'providers'> & { providerIds?: string[] }
   >({
@@ -102,7 +94,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, product]);
 
-  const validateField = (fieldName: ValidatableFields, value: string | number): boolean => {
+  const validateField = (fieldName: ProductValidatableFields, value: string | number): boolean => {
     const newErrors = { ...errors };
     const stringValue = String(value || '');
 
@@ -169,13 +161,13 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
     if (['name', 'description', 'category', 'sellPrice'].includes(field)) {
       setTimeout(() => {
-        validateField(field as ValidatableFields, value);
+        validateField(field as ProductValidatableFields, value);
       }, 100);
     }
   };
 
   const validateForm = (): boolean => {
-    const fields: ValidatableFields[] = ['name', 'description', 'category', 'sellPrice'];
+    const fields: ProductValidatableFields[] = ['name', 'description', 'category', 'sellPrice'];
     let isValid = true;
 
     fields.forEach((field) => {
@@ -246,7 +238,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           {/* Header */}
           <header className="flex items-center justify-between px-8 pt-12">
             <h2 className="text-2xl font-semibold text-gray-900">
-              {isEditMode ? `ID Producto - ${product?.id}` : 'Alta de Producto'}
+              {isEditMode ? `ID - Editar Producto` : 'Alta de Producto'}
             </h2>
             <article className="flex items-center gap-1 text-sm font-semibold">
               <p className="text-dark-blue">Última actualización:</p>

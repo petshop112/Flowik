@@ -1,4 +1,5 @@
 import React from 'react';
+import { Trash2 } from 'lucide-react';
 
 interface DeleteClientModalProps {
   isOpen: boolean;
@@ -21,14 +22,7 @@ const DeleteClientModal: React.FC<DeleteClientModalProps> = ({
       <div className="w-full max-w-md rounded-lg border border-red-300 bg-white p-8 shadow-xl">
         <div className="flex flex-col items-center">
           <div className="mb-4">
-            <span className="text-red-600">
-              <svg width="40" height="40" fill="none" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 2a1 1 0 0 1 1 1v1h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6V3a1 1 0 0 1 1-1zm7 6v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8h14zm-2 2H7v10h10V10z"
-                />
-              </svg>
-            </span>
+            <Trash2 size={30} className="text-[#C60633]" />
           </div>
           <h2 className="mb-2 text-xl font-bold text-gray-900">
             ¿Quieres eliminar a {clientName}?

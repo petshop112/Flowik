@@ -10,4 +10,5 @@ export type ClientFormValues = {
 // & interseccion
 export type Client = ClientFormValues & {
   id_client: number;
+  isActive?: boolean;
 };

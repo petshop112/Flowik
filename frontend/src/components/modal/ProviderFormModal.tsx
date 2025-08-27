@@ -1,72 +1,63 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Client, ClientFormValues } from '../../types/clients';
-import { handleBackdropClick } from '../../constants/clickOut';
-import {
-  validateField,
-  validateAll,
-  type Errors,
-  type Form,
-} from '../../utils/validation/clientRules';
+import type { Provider, ProviderFormValues } from '../../types/provider';
+import type { Form, Errors } from '../../utils/validation/providerRules';
+import { validateField, validateAll } from '../../utils/validation/providerRules';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (values: ClientFormValues) => void;
+  onSave: (values: ProviderFormValues) => void;
   isSaving?: boolean;
-  client?: Client | null;
+  provider?: Provider | null;
   readOnly?: boolean;
-  clientesLista?: Client[];
+  proveedoresLista?: Provider[];
   formError: string;
 };
 
 const emptyForm: Form = {
-  firstName: '',
-  lastName: '',
-  telephone_client: '',
-  email_client: '',
-  document_type: '',
-  direction_client: '',
+  name_provider: '',
+  cuit_provider: '',
+  direction_provider: '',
+  telephone_provider: '',
+  email_provider: '',
+  category_provider: '',
 };
 
-const ClientFormModal: React.FC<Props> = ({
+const ProviderFormModal: React.FC<Props> = ({
   isOpen,
   onClose,
   onSave,
   isSaving = false,
-  client,
+  provider,
   readOnly = false,
-  clientesLista,
+  proveedoresLista,
   formError,
 }) => {
   const initialForm: Form = useMemo(() => {
-    if (!client) return emptyForm;
-    const s = (client.name_client ?? '').trim();
-    if (!s) return { ...emptyForm };
-    const parts = s.split(/\s+/);
+    if (!provider) return emptyForm;
     return {
-      firstName: parts[0] || '',
-      lastName: parts.length > 1 ? parts.slice(1).join(' ') : '',
-      telephone_client: client.telephone_client ?? '',
-      email_client: client.email_client ?? '',
-      document_type: client.document_type ?? '',
-      direction_client: client.direction_client ?? '',
+      name_provider: provider.name_provider ?? '',
+      cuit_provider: provider.cuit_provider ?? '',
+      direction_provider: provider.direction_provider ?? '',
+      telephone_provider: provider.telephone_provider ?? '',
+      email_provider: provider.email_provider ?? '',
+      category_provider: provider.category_provider ?? '',
     };
-  }, [client]);
+  }, [provider]);
 
   const [form, setForm] = useState<Form>(initialForm);
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Record<keyof Form, boolean>>({
-    firstName: false,
-    lastName: false,
-    telephone_client: false,
-    email_client: false,
-    document_type: false,
-    direction_client: false,
+    name_provider: false,
+    cuit_provider: false,
+    direction_provider: false,
+    telephone_provider: false,
+    email_provider: false,
+    category_provider: false,
   });
   const [duplicateError, setDuplicateError] = useState('');
-
   const fieldRefs = useRef<Partial<Record<keyof Form, HTMLInputElement | null>>>({});
-
   const cachedInitialRef = useRef<Form | null>(null);
 
   useEffect(() => {
@@ -76,30 +67,28 @@ const ClientFormModal: React.FC<Props> = ({
     }
 
     if (!cachedInitialRef.current) {
-      const c = client ?? null;
-      const s = (c?.name_client ?? '').trim();
-      const parts = s.split(/\s+/);
+      const p = provider ?? null;
       cachedInitialRef.current = {
-        firstName: parts[0] || '',
-        lastName: parts.length > 1 ? parts.slice(1).join(' ') : '',
-        telephone_client: c?.telephone_client ?? '',
-        email_client: c?.email_client ?? '',
-        document_type: c?.document_type ?? '',
-        direction_client: c?.direction_client ?? '',
+        name_provider: p?.name_provider ?? '',
+        cuit_provider: p?.cuit_provider ?? '',
+        direction_provider: p?.direction_provider ?? '',
+        telephone_provider: p?.telephone_provider ?? '',
+        email_provider: p?.email_provider ?? '',
+        category_provider: p?.category_provider ?? '',
       };
     }
 
     setForm(cachedInitialRef.current!);
     setErrors({});
     setTouched({
-      firstName: false,
-      lastName: false,
-      telephone_client: false,
-      email_client: false,
-      document_type: false,
-      direction_client: false,
+      name_provider: false,
+      cuit_provider: false,
+      direction_provider: false,
+      telephone_provider: false,
+      email_provider: false,
+      category_provider: false,
     });
-  }, [isOpen, client]);
+  }, [isOpen, provider]);
 
   if (!isOpen) return null;
 
@@ -134,57 +123,56 @@ const ClientFormModal: React.FC<Props> = ({
     const allErrors = validateAll(form);
     setErrors(allErrors);
     setDuplicateError('');
+    console.log('Proveedor creado exitosamente');
 
     if (Object.keys(allErrors).length > 0) {
       setTouched({
-        firstName: true,
-        lastName: true,
-        telephone_client: true,
-        email_client: true,
-        document_type: true,
-        direction_client: true,
+        name_provider: true,
+        cuit_provider: true,
+        direction_provider: true,
+        telephone_provider: true,
+        email_provider: true,
+        category_provider: true,
       });
       focusFirstError(allErrors);
       return;
     }
 
-    // Validación mejorada de duplicados (excluye el propio cliente si está editando)
-    if (!readOnly && clientesLista) {
-      const email = form.email_client.trim().toLowerCase();
-      const dni = form.document_type?.trim().toLowerCase() || '';
-      const existe = clientesLista.some(
+    // Validación mejorada de duplicados (excluye el propio proveedor si está editando)
+    if (!readOnly && proveedoresLista) {
+      const email = form.email_provider.trim().toLowerCase();
+      const cuit = form.cuit_provider?.trim().toLowerCase() || '';
+      const existe = proveedoresLista.some(
         (c) =>
-          c.id_client !== client?.id_client &&
-          (c.email_client?.trim().toLowerCase() === email ||
-            c.document_type?.trim().toLowerCase() === dni)
+          c.id_provider !== provider?.id_provider &&
+          (c.email_provider?.trim().toLowerCase() === email ||
+            c.cuit_provider?.trim().toLowerCase() === cuit)
       );
       if (existe) {
-        setDuplicateError('Ya existe un usuario con ese email o documento.');
+        setDuplicateError('Ya existe un proveedor con ese email o CUIT.');
         return;
       }
     }
 
     // payload para el backend
-    const payload: ClientFormValues = {
-      name_client: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
-      telephone_client: form.telephone_client.trim(),
-      email_client: form.email_client.trim(),
-      document_type: form.document_type?.trim() || '',
-      direction_client: form.direction_client?.trim() || '',
+    const payload: ProviderFormValues = {
+      name_provider: form.name_provider.trim(),
+      cuit_provider: form.cuit_provider.trim(),
+      direction_provider: form.direction_provider.trim(),
+      telephone_provider: form.telephone_provider.trim(),
+      email_provider: form.email_provider.trim(),
+      category_provider: form.category_provider.trim() || '',
     };
 
     onSave(payload);
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
-      onClick={(e) => handleBackdropClick(e, onClose)}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
       <div className="w-full max-w-5xl rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between px-8 py-6">
           <h2 className="text-[20px] font-semibold text-gray-900">
-            {readOnly ? 'Ver Cliente' : client ? 'Editar Cliente' : 'Nuevo Cliente'}
+            {readOnly ? 'Ver Proveedor' : provider ? provider.name_provider : 'Nuevo Proveedor'}
           </h2>
           <button
             onClick={onClose}
@@ -200,81 +188,91 @@ const ClientFormModal: React.FC<Props> = ({
             type="button"
             className="border-b-2 border-[#3B82F6] px-1 pb-3 text-sm font-medium text-[#1E3A8A]"
           >
-            Detalles del cliente
+            Detalles del proveedor
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 px-8 py-8">
+          {/* Nombre + Teléfono */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Nombre</label>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Empresa*</label>
               <input
                 ref={(el) => {
-                  fieldRefs.current.firstName = el;
+                  fieldRefs.current.name_provider = el;
                 }}
                 type="text"
-                value={form.firstName}
-                onChange={handleChange('firstName')}
-                onBlur={() => handleBlur('firstName')}
+                value={form.name_provider}
+                onChange={handleChange('name_provider')}
+                onBlur={() => handleBlur('name_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="Nombre"
+                placeholder="Nombre de la empresa"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none ${
-                  errors.firstName && touched.firstName
+                  errors.name_provider && touched.name_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
                     : ''
                 }`}
               />
-              {errors.firstName && touched.firstName && (
-                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+              {errors.name_provider && touched.name_provider && (
+                <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+                  <InformationCircleIcon className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2} />
+                  <span>{errors.name_provider}</span>
+                </div>
               )}
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Teléfono</label>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Teléfono*</label>
               <input
                 ref={(el) => {
-                  fieldRefs.current.telephone_client = el;
+                  fieldRefs.current.telephone_provider = el;
                 }}
                 type="tel"
-                value={form.telephone_client}
-                onChange={handleChange('telephone_client')}
-                onBlur={() => handleBlur('telephone_client')}
+                value={form.telephone_provider}
+                onChange={handleChange('telephone_provider')}
+                onBlur={() => handleBlur('telephone_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="Número de teléfono"
+                placeholder="+57 6059284358"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
-                  errors.telephone_client && touched.telephone_client
+                  errors.telephone_provider && touched.telephone_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
                     : ''
                 }`}
               />
-              {errors.telephone_client && touched.telephone_client && (
-                <p className="mt-1 text-sm text-red-600">{errors.telephone_client}</p>
+              {errors.telephone_provider && touched.telephone_provider && (
+                <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+                  <InformationCircleIcon className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2} />
+                  <span>{errors.telephone_provider}</span>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Apellidos + Dirección */}
+          {/* Categoría + Dirección */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Apellidos</label>
+              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Categoría*</label>
               <input
                 ref={(el) => {
-                  fieldRefs.current.lastName = el;
+                  fieldRefs.current.category_provider = el;
                 }}
                 type="text"
-                value={form.lastName}
-                onChange={handleChange('lastName')}
-                onBlur={() => handleBlur('lastName')}
+                value={form.category_provider}
+                onChange={handleChange('category_provider')}
+                onBlur={() => handleBlur('category_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="Apellidos"
+                placeholder="Categoría"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
-                  errors.lastName && touched.lastName
+                  errors.category_provider && touched.category_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
                     : ''
                 }`}
               />
-              {errors.lastName && touched.lastName && (
-                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+              {errors.category_provider && touched.category_provider && (
+                <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+                  <InformationCircleIcon className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2} />
+                  <span>{errors.category_provider}</span>
+                </div>
               )}
             </div>
 
@@ -284,79 +282,89 @@ const ClientFormModal: React.FC<Props> = ({
               </label>
               <input
                 ref={(el) => {
-                  fieldRefs.current.direction_client = el;
+                  fieldRefs.current.direction_provider = el;
                 }}
                 type="text"
-                value={form.direction_client ?? ''}
-                onChange={handleChange('direction_client')}
-                onBlur={() => handleBlur('direction_client')}
+                value={form.direction_provider ?? ''}
+                onChange={handleChange('direction_provider')}
+                onBlur={() => handleBlur('direction_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="Dirección"
+                placeholder="Avda. Habaneras, 57, Mendoza"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
-                  errors.direction_client && touched.direction_client
+                  errors.direction_provider && touched.direction_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
                     : ''
                 }`}
               />
-              {errors.direction_client && touched.direction_client && (
-                <p className="mt-1 text-sm text-red-600">{errors.direction_client}</p>
+              {errors.direction_provider && touched.direction_provider && (
+                <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+                  <InformationCircleIcon className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2} />
+                  <span>{errors.direction_provider}</span>
+                </div>
               )}
             </div>
           </div>
 
-          {/* DNI + Correo */}
+          {/* CUIT + Correo */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
-                DNI <span className="font-normal text-[#8CA5E6]"></span>
+                CUIT* <span className="font-normal text-[#8CA5E6]"></span>
               </label>
               <input
                 ref={(el) => {
-                  fieldRefs.current.document_type = el;
+                  fieldRefs.current.cuit_provider = el;
                 }}
                 type="text"
-                value={form.document_type ?? ''}
-                onChange={handleChange('document_type')}
-                onBlur={() => handleBlur('document_type')}
+                value={form.cuit_provider ?? ''}
+                onChange={handleChange('cuit_provider')}
+                onBlur={() => handleBlur('cuit_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="DNI o CUIT"
+                placeholder="00-00000000-0"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
-                  errors.document_type && touched.document_type
+                  errors.cuit_provider && touched.cuit_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
                     : ''
                 }`}
               />
-              {errors.document_type && touched.document_type && (
-                <p className="mt-1 text-sm text-red-600">{errors.document_type}</p>
+              {errors.cuit_provider && touched.cuit_provider && (
+                <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+                  <InformationCircleIcon className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2} />
+                  <span>{errors.cuit_provider}</span>
+                </div>
               )}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
-                Correo Electrónico
+                Correo Electrónico*
               </label>
               <input
                 ref={(el) => {
-                  fieldRefs.current.email_client = el;
+                  fieldRefs.current.email_provider = el;
                 }}
                 type="email"
-                value={form.email_client}
-                onChange={handleChange('email_client')}
-                onBlur={() => handleBlur('email_client')}
+                value={form.email_provider}
+                onChange={handleChange('email_provider')}
+                onBlur={() => handleBlur('email_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="Email"
+                placeholder="empresa@correo.com"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
-                  errors.email_client && touched.email_client
+                  errors.email_provider && touched.email_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
                     : ''
                 }`}
               />
-              {errors.email_client && touched.email_client && (
-                <p className="mt-1 text-sm text-red-600">{errors.email_client}</p>
+              {errors.email_provider && touched.email_provider && (
+                <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+                  <InformationCircleIcon className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2} />
+                  <span>{errors.email_provider}</span>
+                </div>
               )}
             </div>
           </div>
 
+          {/* Mostrar error de duplicado en el formulario */}
           {duplicateError && (
             <div className="mb-4 text-center font-semibold text-red-600">{duplicateError}</div>
           )}
@@ -364,6 +372,7 @@ const ClientFormModal: React.FC<Props> = ({
             <div className="mb-4 text-center font-semibold text-red-600">{formError}</div>
           )}
 
+          {/* Botones */}
           <div className="flex items-center justify-center gap-4 pt-2 pb-2">
             <button
               type="button"
@@ -389,4 +398,4 @@ const ClientFormModal: React.FC<Props> = ({
   );
 };
 
-export default ClientFormModal;
+export default ProviderFormModal;
