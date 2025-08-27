@@ -483,7 +483,7 @@ const ProductsTable: React.FC = () => {
                 <article className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-polar-mist">
-                      <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                      <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal [&>th:first-child]:border-l-0">
                         <th className="w-12 px-4 py-3">
                           <Check />
                         </th>
