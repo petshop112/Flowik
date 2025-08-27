@@ -324,8 +324,8 @@ const ProductsTable: React.FC = () => {
       setIsAdjustPricesModalOpen(false);
 
       setSuccessMessage({
-        title: '¡Precios actualizados!',
-        description: `Se han actualizado los precios de ${data.IDs.length} producto(s) correctamente.`,
+        title: '¡Hecho!',
+        description: `Los precios se han actualizado con éxito.`,
       });
 
       setIsSuccessModalOpen(true);
@@ -475,12 +475,12 @@ const ProductsTable: React.FC = () => {
 
           {/* Tabla */}
           {!hasProducts ? (
-            <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+            <main className="border-sky-glimmer overflow-hidden rounded-xl border bg-white shadow-sm">
               <EmptyProductsState onAddProduct={handleNewProduct} />
             </main>
           ) : (
             <>
-              <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+              <main className="border-sky-glimmer overflow-hidden rounded-xl border bg-white shadow-sm">
                 <article className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-polar-mist">
@@ -498,7 +498,7 @@ const ProductsTable: React.FC = () => {
                         <th className="w-8">Editar</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="bg-white">
                       {currentProducts.map((product: Product) => {
                         const stockStatus = getStockStatus(product.amount);
                         const stockColor = getStockColor(stockStatus);
@@ -507,7 +507,7 @@ const ProductsTable: React.FC = () => {
                         return (
                           <tr
                             key={product.id}
-                            className={`${product.isActive ? 'hover:bg-gray-50' : 'bg-custom-mist text-neutral-400/80'} border-b-2 border-gray-200 transition-colors last:border-none`}
+                            className={`${product.isActive ? 'hover:bg-gray-50' : 'bg-custom-mist text-neutral-400/80'} border-pastel-blue border-b-2 transition-colors last:border-none`}
                           >
                             <td className="px-5 py-3">
                               <input
@@ -517,13 +517,13 @@ const ProductsTable: React.FC = () => {
                                 className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                               />
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               {product.name}
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               {product.category}
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               {product.amount}
                             </td>
                             <td>
@@ -531,10 +531,10 @@ const ProductsTable: React.FC = () => {
                                 className={`mx-auto h-4 w-4 rounded-full ${product.isActive ? stockColor : 'bg-neutral-400/80'}`}
                               ></div>
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               $ {product.sellPrice}
                             </td>
-                            <td className="w-fit border-l-2 border-gray-200 text-center">
+                            <td className="border-pastel-blue w-fit border-l-2 text-center">
                               <button
                                 onClick={() => handleEditProduct(product)}
                                 className={`${product.isActive ? 'text-glacial-blue hover:text-blue-500' : 'text-neutral-400/80 hover:text-neutral-500'} cursor-pointer py-3 transition-colors`}
