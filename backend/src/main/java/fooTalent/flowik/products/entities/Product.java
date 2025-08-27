@@ -62,6 +62,10 @@ public class Product {
     @PrePersist
     public void prePersist() {
         this.createdBy = SecurityUtil.getAuthenticatedEmail();
+        this.isActive = true;
+        if (this.buyDate == null) {
+            this.buyDate = LocalDate.now();
+        }
     }
 
     public Product(ProductRegister p, List<Provider> providers) {

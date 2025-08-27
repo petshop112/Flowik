@@ -10,7 +10,9 @@ public record ProviderResponse(
         String direction_provider,
         String telephone_provider,
         String email_provider,
-        String category_provider
+        String category_provider,
+        boolean isActive
+
 ){
     public ProviderResponse(Provider pr){
         this(
@@ -20,7 +22,8 @@ public record ProviderResponse(
                 (pr !=null)? pr.getDirection_provider():null,
                 (pr !=null)? pr.getTelephone_provider():null,
                 (pr !=null)? pr.getEmail_provider():null,
-                (pr !=null)? pr.getCategory_provider():null
+                (pr !=null)? pr.getCategory_provider():null,
+                (pr !=null)? pr.isActive():null
         );
     }
 }

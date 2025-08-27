@@ -1,11 +1,10 @@
 package fooTalent.flowik.providers.controller;
 
+import fooTalent.flowik.clients.entities.Client;
 import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
-import fooTalent.flowik.providers.dto.ProviderList;
-import fooTalent.flowik.providers.dto.ProviderRegister;
-import fooTalent.flowik.providers.dto.ProviderResponse;
-import fooTalent.flowik.providers.dto.ProviderUpdated;
+import fooTalent.flowik.products.entities.Product;
+import fooTalent.flowik.providers.dto.*;
 import fooTalent.flowik.providers.entities.Provider;
 import fooTalent.flowik.providers.repositories.ProviderRepository;
 import fooTalent.flowik.providers.services.ProviderService;
@@ -91,5 +90,37 @@ public class ProviderController {
 
         Provider updated = providerService.updateProvider(id_provider, providerUpdated);
         return ResponseEntity.ok(new ProviderResponse(updated));
+    }
+
+    @Operation(summary = "Desactivar múltiples proveedores (eliminado lógico) por IDs")
+    @PatchMapping
+    public ResponseEntity<Void> providerDeletelogic(@RequestBody ProviderIds providerIds){
+
+        String email = SecurityUtil.getAuthenticatedEmail();
+        List<Provider> provider = providerRepository.findAllById(providerIds.IDs());
+        if (provider.size() != providerIds.IDs().size()) {
+            throw new ResourceNotFoundException("Proveedor", "IDs", providerIds.IDs());
+        }
+            provider.forEach(p -> {
+                        if (!p.getCreatedBy().equals(email)) {
+                            throw new AccessDeniedException("No puedes modificar el estado de un proveedor que no creaste.");
+                        }
+                    });
+        providerService.deletelogic(providerIds.IDs());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Eliminar un proveedor por id")
+    @DeleteMapping("/{id_provider}")
+    public ResponseEntity<Void> deleteclient(@PathVariable Long id_provider){
+        String email = SecurityUtil.getAuthenticatedEmail();
+        Provider existingProvider = providerRepository.findById(id_provider)
+                .orElseThrow(() -> new ResourceNotFoundException("¨Proveedor no encontrado", "ID", id_provider));
+
+        if (!existingProvider.getCreatedBy().equals(email)) {
+            throw new AccessDeniedException("No puedes eliminar un cliente que no creaste.");
+        }
+        providerService.deleteProviderById(id_provider);
+        return ResponseEntity.noContent().build();
     }
 }

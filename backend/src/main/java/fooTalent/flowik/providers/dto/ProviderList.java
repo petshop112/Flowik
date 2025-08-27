@@ -10,7 +10,8 @@ public record ProviderList(
         String direction_provider,
         String telephone_provider,
         String email_provider,
-        String category_provider
+        String category_provider,
+        boolean isActive
 ){
     public ProviderList(Provider pr){
         this(
@@ -20,7 +21,8 @@ public record ProviderList(
                 pr.getDirection_provider(),
                 pr.getTelephone_provider(),
                 pr.getEmail_provider(),
-                pr.getCategory_provider()
+                pr.getCategory_provider(),
+                pr.isActive()
         );
     }
 }
