@@ -315,7 +315,6 @@ const ProductsTable: React.FC = () => {
     }
   };
 
-  // Función para confirmar el cambio de precios
   const handleAdjustPrices = async (data: AdjustProductPriceData) => {
     try {
       await adjustPricesMutation.mutateAsync(data);
