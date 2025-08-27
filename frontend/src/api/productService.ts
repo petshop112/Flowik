@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import type { ProductUpdateFormData } from '../types/product';
+import type { AdjustProductPriceData } from '../types/product';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -127,6 +128,25 @@ const deactivateProduct = async (ids: number[], token: string) => {
   }
 };
 
+const adjustProductPrices = async (data: AdjustProductPriceData, token: string) => {
+  try {
+    const response = await axios.patch(`${API_BASE_URL}products/`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      '[adjustProductPrices] Error fetching data:',
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
+  }
+};
+
 export const productService = {
   getAllProducts,
   getProductById,
@@ -134,4 +154,5 @@ export const productService = {
   updateProduct,
   deleteProduct,
   deactivateProduct,
+  adjustProductPrices,
 };

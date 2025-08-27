@@ -81,3 +81,15 @@ export interface ProductValidationErrors {
 }
 
 export type ProductValidatableFields = keyof ProductValidationErrors;
+
+export interface AdjustProductPriceData {
+  value: number;
+  adjustType: string;
+  adjustValue: string;
+  IDs: number[];
+}
+
+export interface ProductPriceToAdjust extends Product {
+  isValid?: boolean;
+  newPrice?: number | null;
+}
