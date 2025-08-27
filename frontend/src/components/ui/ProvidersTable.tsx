@@ -1,5 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { useGetAllProviders, useDeactivateProvider } from '../../hooks/useProviders';
+import {
+  useGetAllProviders,
+  useDeactivateProvider,
+  useEditProvider,
+  useCreateProvider,
+  useGetProviderById,
+} from '../../hooks/useProviders';
 import {
   ToggleRight,
   Trash2,
@@ -10,8 +16,11 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import type { Provider /*, ProviderFormValues */ } from '../../types/provider';
+import type { Provider, ProviderFormValues } from '../../types/provider';
 import EmptyProvidersState from './EmptyProvidersState';
+import ProviderFormModal from '../modal/ProviderFormModal';
+import SuccessModal from '../modal/SuccessModal';
+// import DeleteClientModal from '../modal/DeleteClientModal';
 
 const itemsPerPage = 10;
 
@@ -25,7 +34,17 @@ const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [viewProviderId, setViewProviderId] = useState<number | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
+  const [newProviderId, setNewProviderId] = useState<number | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const { data: viewProvider, isLoading: isLoadingViewProvider } = useGetProviderById(
+    viewProviderId ?? undefined
+  );
+  const editProviderMutation = useEditProvider();
+  const createProviderMutation = useCreateProvider();
   const { data: providers, isLoading } = useGetAllProviders();
   const hasProviders = providers && providers.length > 0;
   const hasSelectedProviders = selectedProviderIds.size > 0;
@@ -89,7 +108,7 @@ const ProductsTable: React.FC = () => {
     // }
   };
 
-  const handleNewClient = () => {
+  const handleNewProvider = () => {
     setEditingProvider(null);
     setIsModalOpen(true);
   };
@@ -106,8 +125,78 @@ const ProductsTable: React.FC = () => {
     });
   };
 
+  const handleSaveProvider = async (values: ProviderFormValues) => {
+    if (!editingProvider) {
+      const alreadyExists = providers?.some(
+        (c) =>
+          c.name_provider.trim().toLowerCase() === values.name_provider.trim().toLowerCase() ||
+          c.cuit_provider.trim().toLowerCase() === values.cuit_provider.trim().toLowerCase()
+      );
+      if (alreadyExists) {
+        setFormError('Ya existe un proveedor con ese email o CUIT.');
+        setIsSaving(false);
+        setTimeout(() => setFormError(''), 2500);
+        return;
+      }
+    }
+    try {
+      setIsSaving(true);
+      let result;
+      if (editingProvider) {
+        if (typeof editingProvider.id_provider !== 'number') throw new Error('No hay id_client');
+        result = await editProviderMutation.mutateAsync({
+          id_provider: editingProvider.id_provider,
+          values,
+        });
+        setLastActionWasEdit(true);
+        setNewProviderId(null);
+      } else {
+        result = await createProviderMutation.mutateAsync(values);
+        setLastActionWasEdit(false);
+        setNewProviderId(result?.id_provider ?? null);
+      }
+      setShowSuccessModal(true);
+      setIsModalOpen(false);
+      setEditingProvider(null);
+    } catch (error: any) {
+      setFormError(error?.message || 'Error inesperado al guardar');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <section className="bg-custom-mist h-full w-full p-6">
+        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
+          <div className="relative mb-4 h-12 w-12">
+            <div className="h-12 w-12 rounded-full border-4 border-gray-300"></div>
+            <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+          <p className="text-gray-600">Cargando proveedores...</p>
+        </article>
+      </section>
+    );
+  }
+
   return (
     <>
+      {showSuccessModal && (
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => {
+            setShowSuccessModal(false);
+            setNewProviderId(null);
+          }}
+          title={lastActionWasEdit ? '¡Cambios guardados!' : '¡Nuevo proveedor agregado!'}
+          description={
+            lastActionWasEdit
+              ? 'Los datos se han guardado correctamente.'
+              : 'La ficha del proveedor se ha dado de alta correctamente y ya está disponible en la lista de proveedores.'
+          }
+          {...(!lastActionWasEdit && newProviderId ? { id: newProviderId } : {})}
+        />
+      )}
       <section className="bg-custom-mist w-full p-6">
         <article className="mx-auto">
           <header className="mb-6">
@@ -194,7 +283,7 @@ const ProductsTable: React.FC = () => {
                     </article>
                     <button
                       className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
-                      // onClick={handleNewClient}
+                      onClick={handleNewProvider}
                     >
                       <Plus size={18} />
                       Nuevo provedor
@@ -208,7 +297,7 @@ const ProductsTable: React.FC = () => {
           {/* Tabla o página de vacío */}
           {!Array.isArray(providers) || providers.length === 0 ? (
             <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
-              <EmptyProvidersState onAddClient={handleNewClient} />
+              <EmptyProvidersState onAddClient={handleNewProvider} />
             </main>
           ) : currentProviders.length === 0 ? (
             <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
@@ -376,6 +465,55 @@ const ProductsTable: React.FC = () => {
               )}
             </>
           )}
+
+          <ProviderFormModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditingProvider(null);
+              setFormError('');
+            }}
+            onSave={handleSaveProvider}
+            isSaving={isSaving || createProviderMutation.isPending}
+            provider={editingProvider}
+            formError={formError || ''}
+          />
+
+          {viewProviderId &&
+            (isLoadingViewProvider ? (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+                <div className="flex w-full max-w-md flex-col items-center rounded-lg bg-white p-8 shadow-xl">
+                  <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                  <p className="text-gray-600">Cargando cliente...</p>
+                </div>
+              </div>
+            ) : (
+              <ProviderFormModal
+                isOpen={!!viewProviderId}
+                onClose={() => setViewProviderId(null)}
+                onSave={() => {}}
+                provider={Array.isArray(viewProvider) ? viewProvider[0] : viewProvider}
+                readOnly={true}
+                isSaving={false}
+                formError={''}
+              />
+            ))}
+
+          {/* <DeleteClientModal
+            isOpen={!!deleteClientId && deleteClientId.length > 0}
+            clientName={deleteClientName}
+            onCancel={() => setDeleteClientId(null)}
+            onConfirm={handleDeleteClients}
+          /> */}
+
+          {/* {showDeleteSuccess && (
+            <SuccessModal
+              isOpen={showDeleteSuccess}
+              onClose={() => setShowDeleteSuccess(false)}
+              title="¡Cliente eliminado!"
+              description="Ya no aparecerá en la tabla ni en el buscador."
+            />
+          )} */}
         </article>
       </section>
     </>
