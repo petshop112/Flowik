@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useGetAllProducts } from '../../hooks/useProducts';
+import type { Product } from '../../types/product';
 
 import {
   BarChart,
@@ -14,6 +16,7 @@ import {
 
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 const data = [
   {
@@ -52,22 +55,6 @@ const productosData = [
   { producto: 'Whiskas Razas grandes', ventas: 15, stock: 300 },
   { producto: 'ocho', ventas: 40, stock: 200 },
   { producto: 'nueve', ventas: 2, stock: 2 },
-];
-
-const stockBajoData = [
-  { producto: 'Pedigree Adulto Razas Pequeñas 3kg', stock: 0.0 },
-  { producto: 'Eukanuba Cachorro', stock: 1.0 },
-  { producto: 'Cat chow Grow', stock: 2.0 },
-  { producto: 'Otro más 4', stock: 2.0 },
-  { producto: 'Otro más 5', stock: 3.0 },
-  { producto: 'Otro más 6', stock: 3.0 },
-  { producto: 'Otro más 7', stock: 3.0 },
-  { producto: 'Otro más 8', stock: 4.0 },
-  { producto: 'Otro más 9', stock: 5.0 },
-  { producto: 'Otro más 10', stock: 5.0 },
-  { producto: 'Otro más 11', stock: 5.0 },
-  { producto: 'Otro más 12', stock: 900.0 },
-  { producto: 'Otro más 13', stock: 600.0 },
 ];
 
 const legendNames: Record<string, string> = {
@@ -117,6 +104,8 @@ const renderCustomLegend = (props: any) => {
 };
 
 const Home = () => {
+  const { data: products = [], isLoading, error } = useGetAllProducts();
+
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [sellingFilter, setSellingFilter] = useState<'mayor' | 'menor'>('mayor');
 
@@ -126,7 +115,7 @@ const Home = () => {
   );
 
   // filtering data from the db to get the top 7 and top 10 for producto movement and stock
-  const topStockBajo = [...stockBajoData].sort((a, b) => a.stock - b.stock).slice(0, 10);
+  const topStockBajo = [...products].sort((a, b) => a.amount - b.amount).slice(0, 10);
 
   const topProductosData = orderedProducts.slice(0, 7);
 
@@ -134,7 +123,7 @@ const Home = () => {
   const activeProd =
     topProductosData.find((p) => p.producto === selectedProduct) || topProductosData[0];
 
-  const stockActiveProd = stockBajoData.find((s) => s.producto === activeProd.producto);
+  const stockActiveProd = products.find((s: Product) => s.name === activeProd.producto);
 
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
@@ -298,7 +287,7 @@ const Home = () => {
                 <BarChart
                   data={topProductosData}
                   layout="vertical"
-                  margin={{ top: 8, right: 0, left: 100, bottom: 10 }}
+                  margin={{ top: 10, right: 27, left: 85, bottom: 0 }}
                   barCategoryGap={16}
                 >
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
@@ -308,8 +297,18 @@ const Home = () => {
                     ticks={[10, 20, 30, 40, 50]}
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 15, fill: '#94A3B8' }}
-                    tickFormatter={(v) => `${v}uds`}
+                    tick={({ x, y, payload }) => (
+                      <text
+                        x={x}
+                        y={y - 300}
+                        fill="#94A3B8"
+                        fontSize={15}
+                        textAnchor="middle"
+                        alignmentBaseline="middle"
+                      >
+                        {payload.value}uds
+                      </text>
+                    )}
                   />
                   <YAxis
                     dataKey="producto"
@@ -317,24 +316,28 @@ const Home = () => {
                     axisLine={false}
                     tickLine={false}
                     width={130}
-                    tick={({ y, payload }) => (
-                      <text
-                        x={12}
-                        y={y + 6}
-                        fill="#3056d3"
-                        fontWeight="bold"
-                        fontSize={12}
-                        textAnchor="start"
-                        alignmentBaseline="middle"
-                      >
-                        {payload.value}
-                      </text>
-                    )}
+                    tick={({ y, payload }) => {
+                      const truncate = (text: string, max: number) =>
+                        text.length > max ? text.slice(0, max - 3) + '...' : text;
+                      return (
+                        <text
+                          x={12}
+                          y={y + 6}
+                          fill="#3056d3"
+                          fontWeight="bold"
+                          fontSize={14}
+                          textAnchor="start"
+                          alignmentBaseline="middle"
+                        >
+                          {truncate(payload.value, 28)}
+                        </text>
+                      );
+                    }}
                   />
                   <Tooltip
                     formatter={(val: number) => [`${val} uds`, 'Ventas']}
                     labelFormatter={(label: string) => `Producto: ${label}`}
-                    contentStyle={{ fontSize: 14 }}
+                    contentStyle={{ fontSize: 16 }}
                   />
                   <Bar
                     dataKey="ventas"
@@ -389,7 +392,7 @@ const Home = () => {
                   <td className="px-4 py-4 text-2xl font-bold">{activeProd.ventas}</td>
                   <td className="font-mediu px-4 py-4 text-sm">Disponibles en stock (uds)</td>
                   <td className="px-4 py-4 text-2xl font-bold">
-                    {stockActiveProd ? stockActiveProd.stock.toFixed(0) : '—'}
+                    {stockActiveProd ? stockActiveProd.stock : '—'}
                   </td>
                 </tr>
               </tbody>
@@ -404,46 +407,52 @@ const Home = () => {
             Stock Bajo
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full overflow-hidden rounded-xl border border-gray-200 text-base">
-              <thead className="bg-polar-mist">
-                <tr>
-                  <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
-                    Nombre producto
-                  </th>
-                  <th className="px-4 py-2 text-left font-medium text-[#3056d3]">Stock unitario</th>
-                  <th className="px-2 py-2 text-center">
-                    <span
-                      className="inline-flex items-center"
-                      title="Producto sin stock disponible"
-                    >
-                      <svg
-                        height="20"
-                        width="20"
-                        className="ml-1 text-[#f82f69]"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <circle cx="12" cy="12" r="8" />
-                      </svg>
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
-                {topStockBajo.map((item, i) => (
-                  <tr key={i} className="transition hover:bg-gray-50">
-                    <td className="max-w-[220px] truncate px-4 py-2">{item.producto}</td>
-                    <td className="px-4 py-2">{item.stock.toFixed(3)}</td>
-                    <td className="px-2 py-2 text-center">
+            {isLoading ? (
+              <div className="py-8 text-center text-lg font-semibold text-blue-400">
+                Cargando productos de bajo stock...
+              </div>
+            ) : error ? (
+              <div className="py-8 text-center font-semibold text-red-500">
+                Error al cargar stock bajo
+              </div>
+            ) : (
+              <table className="w-full overflow-hidden rounded-xl border border-gray-200 text-base">
+                <thead className="bg-polar-mist">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
+                      Nombre producto
+                    </th>
+                    <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
+                      Stock unitario
+                    </th>
+                    <th className="px-2 py-2 text-center">
                       <span
-                        className="inline-block h-4 w-4 rounded-full bg-[#f82f69]"
-                        title="Stock bajo"
-                      />
-                    </td>
+                        className="inline-flex items-center"
+                        title="Producto sin stock disponible"
+                      >
+                        <ExclamationCircleIcon className="h-6 w-6 text-[#0F172A]" />
+                      </span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
+                  {topStockBajo.map((item, i) => (
+                    <tr key={i} className="transition hover:bg-gray-50">
+                      <td className="max-w-[220px] truncate px-4 py-2">{item.name}</td>
+                      <td className="px-4 py-2">
+                        {typeof item.amount === 'number' ? item.amount : '-'}
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span
+                          className="inline-block h-4 w-4 rounded-full bg-[#f82f69]"
+                          title="Stock bajo"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
