@@ -22,11 +22,10 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
   selectedProducts,
   isLoading,
 }) => {
-  // Estados para los valores de ajuste y el tipo de ajuste
   const [adjustValue, setAdjustValue] = useState<null | string>('');
   const [adjustType, setAdjustType] = useState<string>('');
   const [adjustValueType, setAdjustValueType] = useState<'Percent' | 'Money'>('Percent');
-  const [calculatedPrices, setCalculatedPrices] = useState<ProductPriceToAdjust[] | null>(null); // Nuevo estado para los precios calculados
+  const [calculatedPrices, setCalculatedPrices] = useState<ProductPriceToAdjust[] | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
@@ -39,18 +38,19 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
     }
   }, [isOpen, selectedProducts]);
 
-  const canCalculate = useMemo(() => {
+  const isFormValid = useMemo(() => {
     const value = adjustValue?.length ? parseFloat(adjustValue) : null;
-    return value !== null && !isNaN(value) && value >= 0;
-  }, [adjustValue]);
+    return value !== null && !isNaN(value) && value >= 0 && adjustType !== '';
+  }, [adjustValue, adjustType]);
 
   const handleCalculate = () => {
-    const value = adjustValue?.length ? parseFloat(adjustValue) : null;
-    if (value === null || isNaN(value) || value < 0) {
-      setErrors(['El valor de ajuste debe ser un número positivo.']);
+    if (!isFormValid) {
+      setErrors(['Por favor, ingresa un valor de ajuste y selecciona un tipo de ajuste.']);
       setCalculatedPrices(null);
       return;
     }
+
+    setErrors([]);
 
     const previews = selectedProducts.map((product) => {
       const currentPrice = Number(product.sellPrice);
@@ -117,7 +117,15 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
     const value = e.target.value;
     if (value === '' || (parseFloat(value) >= 0 && !isNaN(parseFloat(value)))) {
       setAdjustValue(value);
+      setCalculatedPrices(null);
+      setErrors([]);
     }
+  };
+
+  const handleAdjustTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setAdjustType(e.target.value);
+    setCalculatedPrices(null);
+    setErrors([]);
   };
 
   if (!isOpen) return null;
@@ -162,7 +170,11 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                 <select
                   name="adjustValueType"
                   value={adjustValueType}
-                  onChange={(e) => setAdjustValueType(e.target.value as 'Money' | 'Percent')}
+                  onChange={(e) => {
+                    setAdjustValueType(e.target.value as 'Money' | 'Percent');
+                    setCalculatedPrices(null);
+                    setErrors([]);
+                  }}
                   className="rounded-r-md border-l border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 focus:ring-0 focus:outline-none"
                 >
                   <option value="Money">$</option>
@@ -178,10 +190,12 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
               </label>
               <select
                 value={adjustType}
-                onChange={(e) => setAdjustType(e.target.value as 'Aumentar' | 'Descontar')}
+                onChange={handleAdjustTypeChange}
                 className="w-full flex-1 rounded-md border border-gray-300 px-3 py-2 focus:ring-0 focus:ring-offset-0 focus:outline-none"
               >
-                <option value="">Selecciona acción</option>
+                <option value="" disabled hidden>
+                  Selecciona acción
+                </option>
                 <option value="Aumentar">Aumentar</option>
                 <option value="Descontar">Descontar</option>
               </select>
@@ -191,9 +205,9 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
             <div className="flex items-end">
               <button
                 onClick={handleCalculate}
-                disabled={!canCalculate}
+                disabled={!isFormValid}
                 className={`flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  canCalculate
+                  isFormValid
                     ? 'bg-electric-blue border-electric-blue cursor-pointer text-white hover:bg-blue-500'
                     : 'text-sky-glimmer border-sky-glimmer bg-ice-glimmer cursor-not-allowed'
                 }`}
@@ -224,9 +238,9 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
 
           {/* Preview Table */}
           <div className="mb-6">
-            <div className="overflow-hidden border border-gray-200">
+            <div className="border-pastel-blue overflow-hidden border-2">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-polar-mist">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium tracking-wide">
                       Nombre de Producto
@@ -242,7 +256,7 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-pastel-blue divide-y bg-white">
                   {selectedProducts.map((product) => (
                     <tr
                       key={product.id}
@@ -254,14 +268,14 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                       }
                     >
                       <td className="px-4 py-3 text-sm text-gray-900">{product.name}</td>
-                      <td className="border-l-2 border-gray-200 px-4 py-3 text-sm text-gray-900">
+                      <td className="border-pastel-blue border-l-2 px-4 py-3 text-sm text-gray-900">
                         {product.category}
                       </td>
-                      <td className="border-l-2 border-gray-200 px-4 py-3 text-sm text-gray-900">
+                      <td className="border-pastel-blue border-l-2 px-4 py-3 text-sm text-gray-900">
                         ${Number(product.sellPrice).toFixed(2)}
                       </td>
                       <td
-                        className={`border-l-2 border-gray-200 px-4 py-3 text-sm ${
+                        className={`border-pastel-blue border-l-2 px-4 py-3 text-sm ${
                           calculatedPrices &&
                           calculatedPrices.find((p) => p.id === product.id)?.isValid
                             ? 'text-deep-teal'
@@ -269,7 +283,8 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                         } `}
                       >
                         {calculatedPrices &&
-                        calculatedPrices.find((p) => p.id === product.id)?.isValid
+                        calculatedPrices.find((p) => p.id === product.id)?.newPrice !== null &&
+                        calculatedPrices.find((p) => p.id === product.id)?.newPrice !== undefined
                           ? `$${calculatedPrices.find((p) => p.id === product.id)?.newPrice?.toFixed(2)}`
                           : '$00.000'}
                       </td>
