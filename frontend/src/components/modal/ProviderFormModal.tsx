@@ -172,7 +172,7 @@ const ProviderFormModal: React.FC<Props> = ({
       <div className="w-full max-w-5xl rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between px-8 py-6">
           <h2 className="text-[20px] font-semibold text-gray-900">
-            {readOnly ? 'Ver Proveedor' : provider ? 'Editar Proveedor' : 'Nuevo Proveedor'}
+            {readOnly ? 'Ver Proveedor' : provider ? provider.name_provider : 'Nuevo Proveedor'}
           </h2>
           <button
             onClick={onClose}

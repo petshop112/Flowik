@@ -25,12 +25,12 @@ const getAllProviders = async (token: string): Promise<Provider[]> => {
 };
 
 const editProvider = async (
-  id_user: number,
+  id_provider: number,
   payload: ProviderFormValues,
   token: string
 ): Promise<Provider> => {
   try {
-    const { data } = await axios.put(`${API_BASE_URL}provider/${id_user}`, payload, {
+    const { data } = await axios.put(`${API_BASE_URL}providers/${id_provider}`, payload, {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       withCredentials: true,
     });

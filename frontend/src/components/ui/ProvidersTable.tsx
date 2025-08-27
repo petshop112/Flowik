@@ -143,7 +143,7 @@ const ProductsTable: React.FC = () => {
       setIsSaving(true);
       let result;
       if (editingProvider) {
-        if (typeof editingProvider.id_provider !== 'number') throw new Error('No hay id_client');
+        if (typeof editingProvider.id_provider !== 'number') throw new Error('No hay id_provider');
         result = await editProviderMutation.mutateAsync({
           id_provider: editingProvider.id_provider,
           values,
@@ -191,7 +191,7 @@ const ProductsTable: React.FC = () => {
           title={lastActionWasEdit ? '¡Cambios guardados!' : '¡Nuevo proveedor agregado!'}
           description={
             lastActionWasEdit
-              ? 'Los datos se han guardado correctamente.'
+              ? 'La ficha del proveedor se ha modificado exitosamente.'
               : 'La ficha del proveedor se ha dado de alta correctamente y ya está disponible en la lista de proveedores.'
           }
           {...(!lastActionWasEdit && newProviderId ? { id: newProviderId } : {})}
@@ -484,7 +484,7 @@ const ProductsTable: React.FC = () => {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
                 <div className="flex w-full max-w-md flex-col items-center rounded-lg bg-white p-8 shadow-xl">
                   <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-                  <p className="text-gray-600">Cargando cliente...</p>
+                  <p className="text-gray-600">Cargando proveedor...</p>
                 </div>
               </div>
             ) : (
