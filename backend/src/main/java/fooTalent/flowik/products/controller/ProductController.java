@@ -197,34 +197,87 @@ public class ProductController {
         }
 
         String prompt = """
-        Analiza el siguiente contenido de archivo (puede provenir de PDF, Excel o CSV) y devuélvelo en formato JSON con dos listas:
-
-        - `validos`: productos que cumplen con las validaciones.
-        - `invalidos`: productos que no cumplen y sus errores.
-
-        Campos esperados por producto:
-        - name: obligatorio, entre 3 y 50 caracteres.
-        - description: obligatorio, entre 10 y 255 caracteres.
-        - category: obligatoria, entre 3 y 50 caracteres.
-        - amount: número entero >= 0.
-        - sellPrice: decimal >= 0.00, hasta 10 enteros y 2 decimales.
-
-        No incluyas providerIds en la respuesta porque se asignará externamente.
-
-        Devuelve únicamente un JSON válido con esta estructura:
-        {
-          "validos": [ { "name": "...", "description": "...", "category": "...", "amount": 0, "sellPrice": 0.00 }, ... ],
-          "invalidos": [ { "fila": X, "errores": ["mensaje de error 1", "mensaje de error 2"] }, ... ]
-        }
-
-        Aquí está el contenido del archivo:
-        """ + contenido;
+            Analiza el contenido del siguiente archivo (PDF, Excel o CSV) y devuélvelo en formato JSON **exactamente** así:
+            
+            {
+              "validos": [
+                {
+                  "name": "...",
+                  "description": "...",
+                  "category": "...",
+                  "amount": 0,
+                  "sellPrice": 0.00
+                },
+                ...
+              ],
+              "invalidos": [
+                {
+                  "row": 0,
+                  "errors": ["campo: mensaje de error"]
+                },
+                ...
+              ]
+            }
+            
+            Instrucciones importantes:
+            
+            1. Los productos válidos deben cumplir las siguientes reglas:
+               - name: obligatorio, 3-50 caracteres
+               - description: obligatorio, 10-255 caracteres
+               - category: obligatorio, 3-50 caracteres
+               - amount: entero >= 0
+               - sellPrice: decimal >= 0.00, hasta 10 enteros y 2 decimales, **sin símbolos de moneda**
+            
+            2. Los productos inválidos deben listar la fila exacta (`row`) y los errores (`errors`) indicando específicamente el campo que no cumple.
+            
+            3. Los nombres de columnas pueden variar; intenta inferir cuál corresponde a cada campo según su contenido:
+               - name: columnas como "nombre de producto", "producto", "marca", o si no hay indicador claro, la que parezca el nombre del producto.
+               - description: columnas como "características", "especificaciones", o si no hay indicador claro, la que describa al producto.
+               - category: columnas como "tipo de producto", "clase de producto", "grupo de productos", "rubro de producto", o si no hay indicador claro, considera la que agrupe productos similares por función o uso general.
+               - amount: columnas como "cantidad", "stock", "inventario", o si no hay indicador claro, la que represente un número de unidades (sin kilos, gramos ni litros).
+               - sellPrice: columnas como "precio de venta", "precio sugerido", "valor de venta", "precio de mercado", o si no hay indicador claro, la que parezca un precio. **Si tiene símbolo de moneda, ignorarlo y devolver solo el número decimal.**
+               
+               Si no puedes inferir un campo, inclúyelo en los errores de esa fila con el mensaje: `"campo: no se pudo inferir"`.
+            
+            4. **No agregues símbolos de moneda, signos $, etiquetas de código, comillas invertidas, ni texto adicional. Devuelve únicamente el JSON limpio.**
+            
+            Aquí está el contenido del archivo:
+            """ + contenido;
 
         String rawJson = openAiServiceWrapper.analizerProducts(prompt);
 
+        String cleanedJson = extractJson(rawJson);
+
         ObjectMapper mapper = new ObjectMapper();
-        ProductValidationResponse aiResponse = mapper.readValue(rawJson, ProductValidationResponse.class);
+        ProductValidationResponse aiResponse = mapper.readValue(cleanedJson, ProductValidationResponse.class);
+
         productService.saveValidProducts(aiResponse.getValid(), provider);
+
         return ResponseEntity.ok(aiResponse);
+    }
+    private String extractJson(String response) {
+        if (response == null) return "";
+
+        String trimmed = response.trim();
+
+        if (trimmed.startsWith("```")) {
+            int start = trimmed.indexOf("{");
+            int end = trimmed.lastIndexOf("}");
+            if (start >= 0 && end > start) {
+                return trimmed.substring(start, end + 1).trim();
+            }
+        }
+
+        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+            return trimmed;
+        }
+
+        int start = trimmed.indexOf("{");
+        int end = trimmed.lastIndexOf("}");
+        if (start >= 0 && end > start) {
+            return trimmed.substring(start, end + 1).trim();
+        }
+
+        return trimmed;
     }
 }

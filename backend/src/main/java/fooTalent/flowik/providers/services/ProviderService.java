@@ -15,11 +15,11 @@ public interface ProviderService {
 
     boolean existProvider(Long id);
 
-    Provider updateProvider(Provider provider);
-
     Provider updateProvider(Long id, ProviderUpdated providerUpdated);
 
     void deleteProviderById(Long id);
 
     List<Provider> getProvidersByIds(List<Long> providerIds);
+
+    void deletelogic(List<Long> providerIDs);
 }

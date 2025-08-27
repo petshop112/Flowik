@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +23,8 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client createClient(Client client){
-        if (clientRepository.findByNameAndDni(client.getName_client(), client.getDocument_type()).isPresent()) {
-            throw new DuplicateResourceException("Ya existe un cliente con el mismo nombre y DNI");
+        if (clientRepository.findByDni(client.getDocument_type()).isPresent()) {
+            throw new DuplicateResourceException("Ya existe un cliente con el mismo DNI");
         }
         return clientRepository.save(client);
         }
@@ -61,6 +63,13 @@ public class ClientServiceImpl implements ClientService {
         if (clientUpdate.document_type() != null && !clientUpdate.document_type().isBlank()) {
             if (!clientUpdate.document_type().matches("^[0-9]{8,11}$")) {
                 throw new BadRequestException("El documento debe tener entre 8 y 11 caracteres numéricos.");
+            }
+            Optional<Client> existingClient = clientRepository.findByDocument_type(clientUpdate.document_type());
+
+            if (existingClient
+                    .filter(p -> !Objects.equals(p.getId_client(), id))
+                    .isPresent()) {
+                throw new BadRequestException("Ya existe un cliente con el mismo número de documento.");
             }
             client.setDocument_type(clientUpdate.document_type());
             anyUpdate = true;

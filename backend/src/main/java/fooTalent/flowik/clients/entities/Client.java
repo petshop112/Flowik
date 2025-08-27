@@ -28,7 +28,7 @@ public class Client {
     @Column(nullable= false, length=100)
     private String name_client;
 
-    @Column(nullable= false, length=50)
+    @Column(nullable= false, length=50, unique = true)
     private String document_type;
 
     @Column(nullable = false, length = 20)

@@ -9,12 +9,13 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @Entity
 @Table(name = "provider")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Provider {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id_provider;
@@ -22,7 +23,7 @@ public class Provider {
     @Column(nullable = false, length = 50)
     private String name_provider;
 
-    @Column(nullable = false, length = 25)
+    @Column(nullable = false, length = 25, unique = true)
     private String cuit_provider;
 
     @Column(length = 100)
@@ -43,10 +44,13 @@ public class Provider {
     @Column(nullable = false, updatable = false, length = 150)
     private String createdBy;
 
+    @Column(nullable = false)
+    private boolean isActive;
 
     @PrePersist
     public void prePersist() {
         this.createdBy = SecurityUtil.getAuthenticatedEmail();
+        this.isActive = true;
     }
 
     public Provider(ProviderRegister dto) {
@@ -57,28 +61,5 @@ public class Provider {
         this.email_provider = dto.email_provider();
         this.category_provider = dto.category_provider();
     }
-
-     public void updateFromDto(ProviderUpdated dto) {
-        if (dto.name_provider() != null) {
-            this.name_provider = dto.name_provider();
-        }
-        if (dto.cuit_provider() != null){
-            this.cuit_provider = dto.cuit_provider();
-        }
-        if (dto.direction_provider() != null) {
-            this.direction_provider = dto.direction_provider();
-        }
-        if (dto.telephone_provider() != null) {
-            this.telephone_provider = dto.telephone_provider();
-        }
-        if (dto.email_provider() != null){
-            this.email_provider = dto.email_provider();
-        }
-        if (dto.category_provider() != null) {
-            this.category_provider = dto.category_provider();
-        }
-    }
-
-
 
 }
