@@ -23,7 +23,7 @@ public class Notification {
 
     @Column(name = "generation_date")
     private LocalDate generationDate;
-    private boolean read;
+    private boolean readNotification;
 
     @Enumerated(EnumType.STRING)
     private NotificationType type;
