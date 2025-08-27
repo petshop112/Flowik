@@ -226,10 +226,10 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
 
           {/* Preview Table */}
           <div className="mb-4">
-            <div className="border-pastel-blue overflow-hidden border-b-2">
+            <div className="border-sky-glimmer overflow-hidden rounded-lg border">
               <table className="w-full table-fixed">
                 <thead className="bg-polar-mist text-left text-sm font-medium tracking-wide">
-                  <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                  <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal [&>th:first-child]:border-l-0">
                     <th>Nombre de Producto</th>
                     <th>Categoría</th>
                     <th>Precio Anterior</th>
@@ -247,7 +247,7 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                           : ''
                       }
                     >
-                      <td className="border-pastel-blue truncate overflow-hidden border-l-2 px-4 py-3 text-nowrap text-gray-900">
+                      <td className="truncate overflow-hidden px-4 py-3 text-nowrap text-gray-900">
                         {product.name}
                       </td>
                       <td className="border-pastel-blue border-l-2 px-4 py-3 text-gray-900">
@@ -257,7 +257,7 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                         ${Number(product.sellPrice).toFixed(2)}
                       </td>
                       <td
-                        className={`border-pastel-blue border-r-2 border-l-2 px-4 py-3 ${
+                        className={`border-pastel-blue border-l-2 px-4 py-3 ${
                           calculatedPrices &&
                           calculatedPrices.find((p) => p.id === product.id)?.isValid
                             ? 'text-deep-teal'
