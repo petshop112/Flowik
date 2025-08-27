@@ -88,3 +88,8 @@ export interface AdjustProductPriceData {
   adjustValue: string;
   IDs: number[];
 }
+
+export interface ProductPriceToAdjust extends Product {
+  isValid?: boolean;
+  newPrice?: number | null;
+}
