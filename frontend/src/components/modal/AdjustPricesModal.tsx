@@ -1,19 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { X, Calculator } from 'lucide-react';
-import type { AdjustProductPriceData, Product } from '../../types/product';
-
-interface ProductPriceToAdjust extends Product {
-  isValid?: boolean;
-  newPrice?: number | null;
-}
-
-interface AdjustPricesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (data: AdjustProductPriceData) => Promise<void>;
-  selectedProducts: Product[];
-  isLoading: boolean;
-}
+import type { AdjustProductPriceData, ProductPriceToAdjust } from '../../types/product';
+import type { AdjustPricesModalProps } from '../../types/modal';
 
 const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
   isOpen,
@@ -132,9 +120,9 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
 
   return (
     <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl">
+      <div className="relative max-h-[90vh] w-full max-w-[58rem] overflow-y-auto rounded-lg bg-white shadow-xl">
         {/* Header */}
-        <header className="flex items-center justify-between px-8 pt-12">
+        <header className="flex items-center justify-between px-9 pt-12">
           <h2 className="text-2xl font-semibold text-gray-900">Cambiar Precio</h2>
           <article className="flex items-center gap-1 text-sm font-semibold">
             <p className="text-dark-blue">Última actualización:</p>
@@ -150,8 +138,8 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
         </header>
 
         {/* Form */}
-        <main className="p-6">
-          <div className="mb-6 grid max-w-xl grid-cols-1 items-stretch gap-4 md:grid-cols-3">
+        <main className="px-8 pt-4 pb-2">
+          <div className="mb-8 grid max-w-[34rem] grid-cols-1 items-stretch gap-5 text-sm md:grid-cols-3">
             {/* Valor de ajuste */}
             <div className="flex h-full flex-col">
               <label className="text-dark-blue mb-2 block text-sm font-semibold">
@@ -162,7 +150,7 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="00.00"
+                  placeholder="00.000"
                   value={adjustValue || ''}
                   onChange={handleValueChange}
                   className="w-full px-3 py-2 focus:ring-0 focus:outline-none"
@@ -237,26 +225,18 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
           )}
 
           {/* Preview Table */}
-          <div className="mb-6">
-            <div className="border-pastel-blue overflow-hidden border-2">
-              <table className="w-full">
-                <thead className="bg-polar-mist">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium tracking-wide">
-                      Nombre de Producto
-                    </th>
-                    <th className="border-l-2 border-white px-4 py-3 text-left text-xs font-medium tracking-wide">
-                      Categoría
-                    </th>
-                    <th className="border-l-2 border-white px-4 py-3 text-left text-xs font-medium tracking-wide">
-                      Precio Anterior
-                    </th>
-                    <th className="border-l-2 border-white px-4 py-3 text-left text-xs font-medium tracking-wide">
-                      Precio Nuevo
-                    </th>
+          <div className="mb-4">
+            <div className="border-pastel-blue overflow-hidden border-b-2">
+              <table className="w-full table-fixed">
+                <thead className="bg-polar-mist text-left text-sm font-medium tracking-wide">
+                  <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                    <th>Nombre de Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio Anterior</th>
+                    <th>Precio Nuevo</th>
                   </tr>
                 </thead>
-                <tbody className="divide-pastel-blue divide-y bg-white">
+                <tbody className="divide-pastel-blue divide-y bg-white text-sm">
                   {selectedProducts.map((product) => (
                     <tr
                       key={product.id}
@@ -267,15 +247,17 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
                           : ''
                       }
                     >
-                      <td className="px-4 py-3 text-sm text-gray-900">{product.name}</td>
-                      <td className="border-pastel-blue border-l-2 px-4 py-3 text-sm text-gray-900">
+                      <td className="border-pastel-blue truncate overflow-hidden border-l-2 px-4 py-3 text-nowrap text-gray-900">
+                        {product.name}
+                      </td>
+                      <td className="border-pastel-blue border-l-2 px-4 py-3 text-gray-900">
                         {product.category}
                       </td>
-                      <td className="border-pastel-blue border-l-2 px-4 py-3 text-sm text-gray-900">
+                      <td className="border-pastel-blue border-l-2 px-4 py-3 text-gray-900">
                         ${Number(product.sellPrice).toFixed(2)}
                       </td>
                       <td
-                        className={`border-pastel-blue border-l-2 px-4 py-3 text-sm ${
+                        className={`border-pastel-blue border-r-2 border-l-2 px-4 py-3 ${
                           calculatedPrices &&
                           calculatedPrices.find((p) => p.id === product.id)?.isValid
                             ? 'text-deep-teal'
@@ -297,20 +279,33 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
         </main>
 
         {/* Footer */}
-        <footer className="flex justify-end gap-3 px-6 py-4">
+        <footer className="flex justify-center gap-4 pb-8 text-sm [&>button]:px-10 [&>button]:py-[8px] [&>button]:transition-colors">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+            className="text-electric-blue border-electric-blue cursor-pointer rounded-sm border bg-white hover:bg-gray-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={isLoading || !calculatedPrices || errors.length > 0}
-            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+            className={`rounded-sm text-white ${
+              !calculatedPrices || errors.length > 0
+                ? 'cursor-not-allowed bg-gray-400'
+                : 'bg-electric-blue cursor-pointer hover:bg-blue-500'
+            }`}
           >
-            {isLoading ? 'Guardando...' : 'Guardar'}
+            {isLoading ? (
+              <span className="animate-pulse">
+                Guardando
+                <span className="inline-block animate-pulse delay-100">.</span>
+                <span className="inline-block animate-pulse delay-200">.</span>
+                <span className="inline-block animate-pulse delay-300">.</span>
+              </span>
+            ) : (
+              'Guardar'
+            )}
           </button>
         </footer>
       </div>
