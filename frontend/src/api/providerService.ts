@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../lib/baseurl';
 import type { Provider, ProviderFormValues } from '../types/provider';
 
 const getAllProviders = async (token: string): Promise<Provider[]> => {
+  console.log(token);
   try {
     const { data } = await axios.get(`${API_BASE_URL}providers`, {
       headers: {
