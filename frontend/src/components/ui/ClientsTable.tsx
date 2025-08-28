@@ -19,6 +19,9 @@ import { formatDate } from '../../utils/formatDate';
 import { debtColor } from '../../utils/debtColors';
 import EmptyClientsState from './EmptyClientsState';
 import DebtFormModal from '../modal/DebtFormModal';
+import { useSelector } from 'react-redux';
+import { selectAuth } from '../../features/auth/authSlice';
+import { useClientsDebtTotals } from '../../hooks/useClientsDebtTotals';
 
 type ClientWithDebt = Client & {
   total_debt?: number | string;
@@ -39,6 +42,7 @@ function getUserId() {
 const itemsPerPage = 10;
 
 const ClientsTable: React.FC = () => {
+  const { token } = useSelector(selectAuth);
   const queryClient = useQueryClient();
   const id_user = getUserId();
   const { data: clients, isLoading } = useGetAllClients(id_user);
@@ -108,6 +112,11 @@ const ClientsTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentClients = filteredClients.slice(startIndex, endIndex) as ClientWithDebt[];
+  const currentClientIds = currentClients.map((c) => c.id_client);
+  const { data: clientDebtTotals, isLoading: loadingDebtTotals } = useClientsDebtTotals(
+    currentClientIds,
+    token
+  );
 
   // Ajusta la página si el total de páginas cambia tras eliminar clientes
   React.useEffect(() => {
@@ -477,37 +486,32 @@ const ClientsTable: React.FC = () => {
                             </td>
 
                             <td
-                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
                             >
-                              {currencyPipe(client.total_debt)}
+                              {loadingDebtTotals
+                                ? 'Cargando...'
+                                : currencyPipe(clientDebtTotals?.[client.id_client]?.total ?? 0)}
                             </td>
-
-                            <td
-                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
-                            >
-                              {formatDate(client.debt_modified_at)}
-                            </td>
-
                             <td
                               className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
                             >
-                              <div className="flex items-center justify-between">
-                                <span
-                                  className={
-                                    debtExists
-                                      ? isInactive
-                                        ? 'opacity-50'
-                                        : 'text-gray-900'
-                                      : 'text-neutral-400'
-                                  }
-                                >
-                                  {daysDisplay}
-                                </span>
-                                <span
-                                  title={days ? `${days} días` : 'Sin deuda'}
-                                  className={`inline-block h-6 w-6 rounded-full ${dot} ${isInactive ? 'opacity-50' : ''}`}
-                                />
-                              </div>
+                              {loadingDebtTotals
+                                ? '...'
+                                : (() => {
+                                    const fecha = formatDate(
+                                      clientDebtTotals?.[client.id_client]?.lastModified
+                                    );
+                                    return fecha === '00/00/0000' || fecha === '' || !fecha
+                                      ? '-'
+                                      : fecha;
+                                  })()}
+                            </td>
+                            <td
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                            >
+                              {loadingDebtTotals
+                                ? '...'
+                                : (clientDebtTotals?.[client.id_client]?.maxDays ?? 0)}
                             </td>
 
                             <td
