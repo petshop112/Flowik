@@ -550,7 +550,7 @@ const ProductsTable: React.FC = () => {
 
                 {filteredProducts.length === 0 && searchTerm && (
                   <div className="py-8 text-center text-gray-500">
-                    No se encontraron productos que coincidan con "{searchTerm}"
+                    No se encontraron productos que coincidan con "{searchTerm.trim()}"
                   </div>
                 )}
               </main>
