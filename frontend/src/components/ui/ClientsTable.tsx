@@ -14,10 +14,14 @@ import ClientFormModal from '../modal/clientFormModal';
 import { DebtLegend } from './DebtLegend';
 import SuccessModal from '../modal/SuccessModal';
 import DeleteClientModal from '../modal/DeleteClientModal';
-import { currencyPipe, toNumber } from '../../utils/pipe/currency.pipe';
+import { currencyPipe } from '../../utils/pipe/currency.pipe';
 import { formatDate } from '../../utils/formatDate';
-import { debtColor } from '../../utils/debtColors';
+//import { debtColor } from '../../utils/debtColors';
 import EmptyClientsState from './EmptyClientsState';
+import DebtFormModal from '../modal/DebtFormModal';
+import { useSelector } from 'react-redux';
+import { selectAuth } from '../../features/auth/authSlice';
+import { useClientsDebtTotals } from '../../hooks/useClientsDebtTotals';
 
 type ClientWithDebt = Client & {
   total_debt?: number | string;
@@ -26,9 +30,9 @@ type ClientWithDebt = Client & {
   is_active?: boolean;
 };
 
-function hasDebt(v?: number | string) {
-  return toNumber(v) > 0;
-}
+// function hasDebt(v?: number | string) {
+//   return toNumber(v) > 0;
+// }
 
 function getUserId() {
   const storedId = sessionStorage.getItem('userId');
@@ -38,6 +42,7 @@ function getUserId() {
 const itemsPerPage = 10;
 
 const ClientsTable: React.FC = () => {
+  const { token } = useSelector(selectAuth);
   const queryClient = useQueryClient();
   const id_user = getUserId();
   const { data: clients, isLoading } = useGetAllClients(id_user);
@@ -53,6 +58,7 @@ const ClientsTable: React.FC = () => {
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [isDeletingUI, setIsDeletingUI] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
 
   const createClientMutation = useCreateClient();
   const editClientMutation = useEditClient();
@@ -106,6 +112,11 @@ const ClientsTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentClients = filteredClients.slice(startIndex, endIndex) as ClientWithDebt[];
+  const currentClientIds = currentClients.map((c) => c.id_client);
+  const { data: clientDebtTotals, isLoading: loadingDebtTotals } = useClientsDebtTotals(
+    currentClientIds,
+    token
+  );
 
   // Ajusta la página si el total de páginas cambia tras eliminar clientes
   React.useEffect(() => {
@@ -190,8 +201,7 @@ const ClientsTable: React.FC = () => {
   };
 
   const handleManageDebt = () => {
-    // TODO: abrir modal de deuda / navegar
-    console.log('Administrar deuda');
+    setIsDebtModalOpen(true);
   };
 
   const handleDeleteClients = async () => {
@@ -436,12 +446,9 @@ const ClientsTable: React.FC = () => {
                       {currentClients.map((client) => {
                         const isSelected = selectedClientIds.has(client.id_client);
                         const isInactive = client.isActive === false;
-                        const debtExists = hasDebt(client.total_debt);
-                        const days = client.total_debt_days ?? 0;
-                        const dot = debtColor(days);
-                        const daysDisplay = days ? String(days).padStart(3, '0') : '000';
+                        //const days = client.total_debt_days ?? 0;
 
-                        const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
+                        //const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
 
                         return (
                           <tr
@@ -476,37 +483,33 @@ const ClientsTable: React.FC = () => {
                             </td>
 
                             <td
-                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
                             >
-                              {currencyPipe(client.total_debt)}
+                              {loadingDebtTotals
+                                ? 'Cargando...'
+                                : currencyPipe(clientDebtTotals?.[client.id_client]?.total ?? 0)}
                             </td>
-
-                            <td
-                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : mutedCell}`}
-                            >
-                              {formatDate(client.debt_modified_at)}
-                            </td>
-
                             <td
                               className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
                             >
-                              <div className="flex items-center justify-between">
-                                <span
-                                  className={
-                                    debtExists
-                                      ? isInactive
-                                        ? 'opacity-50'
-                                        : 'text-gray-900'
-                                      : 'text-neutral-400'
-                                  }
-                                >
-                                  {daysDisplay}
-                                </span>
-                                <span
-                                  title={days ? `${days} días` : 'Sin deuda'}
-                                  className={`inline-block h-6 w-6 rounded-full ${dot} ${isInactive ? 'opacity-50' : ''}`}
-                                />
-                              </div>
+                              {loadingDebtTotals
+                                ? '...'
+                                : (() => {
+                                    const fecha = formatDate(
+                                      clientDebtTotals?.[client.id_client]?.lastModified ??
+                                        undefined
+                                    );
+                                    return fecha === '00/00/0000' || fecha === '' || !fecha
+                                      ? '-'
+                                      : fecha;
+                                  })()}
+                            </td>
+                            <td
+                              className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
+                            >
+                              {loadingDebtTotals
+                                ? '...'
+                                : (clientDebtTotals?.[client.id_client]?.maxDays ?? 0)}
                             </td>
 
                             <td
@@ -635,6 +638,11 @@ const ClientsTable: React.FC = () => {
             />
           )}
         </article>
+        <DebtFormModal
+          isOpen={isDebtModalOpen}
+          onClose={() => setIsDebtModalOpen(false)}
+          selectedClientIds={Array.from(selectedClientIds)}
+        />
       </section>
     </>
   );
