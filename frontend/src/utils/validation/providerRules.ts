@@ -15,7 +15,7 @@ export type Form = {
   category_provider: string;
 };
 
-export type Errors = Partial<Record<keyof Form, string>>;
+export type Errors = Partial<Record<keyof Form, string>> & { server?: string };
 
 export function validateField(name: keyof Errors, form: Form, errors: Errors): Errors {
   const next = { ...errors };

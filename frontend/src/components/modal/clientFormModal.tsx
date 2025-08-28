@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Client, ClientFormValues } from '../../types/clients';
 import { handleBackdropClick } from '../../constants/clickOut';
+import { emptyForm } from '../../constants/emptyForm';
 import {
   validateField,
   validateAll,
@@ -19,15 +20,6 @@ type Props = {
   formError: string;
 };
 
-const emptyForm: Form = {
-  firstName: '',
-  lastName: '',
-  telephone_client: '',
-  email_client: '',
-  document_type: '',
-  direction_client: '',
-};
-
 const ClientFormModal: React.FC<Props> = ({
   isOpen,
   onClose,
@@ -35,7 +27,6 @@ const ClientFormModal: React.FC<Props> = ({
   isSaving = false,
   client,
   readOnly = false,
-  clientesLista,
   formError,
 }) => {
   const initialForm: Form = useMemo(() => {
@@ -62,10 +53,13 @@ const ClientFormModal: React.FC<Props> = ({
     email_client: false,
     document_type: false,
     direction_client: false,
+    notes: false,
   });
   const [duplicateError, setDuplicateError] = useState('');
 
-  const fieldRefs = useRef<Partial<Record<keyof Form, HTMLInputElement | null>>>({});
+  const fieldRefs = useRef<
+    Partial<Record<keyof Form, HTMLInputElement | HTMLTextAreaElement | null>>
+  >({});
 
   const cachedInitialRef = useRef<Form | null>(null);
 
@@ -86,6 +80,7 @@ const ClientFormModal: React.FC<Props> = ({
         email_client: c?.email_client ?? '',
         document_type: c?.document_type ?? '',
         direction_client: c?.direction_client ?? '',
+        notes: c?.notes ?? '',
       };
     }
 
@@ -98,6 +93,7 @@ const ClientFormModal: React.FC<Props> = ({
       email_client: false,
       document_type: false,
       direction_client: false,
+      notes: false,
     });
   }, [isOpen, client]);
 
@@ -143,25 +139,10 @@ const ClientFormModal: React.FC<Props> = ({
         email_client: true,
         document_type: true,
         direction_client: true,
+        notes: true,
       });
       focusFirstError(allErrors);
       return;
-    }
-
-    // Validación mejorada de duplicados (excluye el propio cliente si está editando)
-    if (!readOnly && clientesLista) {
-      const email = form.email_client.trim().toLowerCase();
-      const dni = form.document_type?.trim().toLowerCase() || '';
-      const existe = clientesLista.some(
-        (c) =>
-          c.id_client !== client?.id_client &&
-          (c.email_client?.trim().toLowerCase() === email ||
-            c.document_type?.trim().toLowerCase() === dni)
-      );
-      if (existe) {
-        setDuplicateError('Ya existe un usuario con ese email o documento.');
-        return;
-      }
     }
 
     // payload para el backend
@@ -171,6 +152,7 @@ const ClientFormModal: React.FC<Props> = ({
       email_client: form.email_client.trim(),
       document_type: form.document_type?.trim() || '',
       direction_client: form.direction_client?.trim() || '',
+      notes: form.notes?.trim() || '',
     };
 
     onSave(payload);
@@ -253,7 +235,6 @@ const ClientFormModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Apellidos + Dirección */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Apellidos</label>
@@ -279,8 +260,8 @@ const ClientFormModal: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
-                Dirección <span className="font-normal text-[#8CA5E6]"></span>
+              <label className="mb-1 block text-sm font-semibold text-[#042D95]">
+                Dirección <span className="font-bold text-[#042D95]"> (Opcional)</span>
               </label>
               <input
                 ref={(el) => {
@@ -355,6 +336,31 @@ const ClientFormModal: React.FC<Props> = ({
                 <p className="mt-1 text-sm text-red-600">{errors.email_client}</p>
               )}
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
+              Notas <span className="font-bold text-[#042D95]"> (Opcional)</span>
+            </label>
+            <textarea
+              ref={(el) => {
+                fieldRefs.current.notes = el;
+              }}
+              value={form.notes ?? ''}
+              onChange={handleChange('notes')}
+              onBlur={() => handleBlur('notes')}
+              disabled={readOnly || isSaving}
+              placeholder="Notas adicionales sobre el cliente"
+              className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
+                errors.notes && touched.notes
+                  ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
+                  : ''
+              }`}
+              rows={3}
+            />
+            {errors.notes && touched.notes && (
+              <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
+            )}
           </div>
 
           {duplicateError && (

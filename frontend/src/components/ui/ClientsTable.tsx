@@ -16,7 +16,7 @@ import SuccessModal from '../modal/SuccessModal';
 import DeleteClientModal from '../modal/DeleteClientModal';
 import { currencyPipe } from '../../utils/pipe/currency.pipe';
 import { formatDate } from '../../utils/formatDate';
-//import { debtColor } from '../../utils/debtColors';
+import { debtColor } from '../../utils/debtColors';
 import EmptyClientsState from './EmptyClientsState';
 import DebtFormModal from '../modal/DebtFormModal';
 import { useSelector } from 'react-redux';
@@ -73,22 +73,6 @@ const ClientsTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const hasSelectedClients = selectedClientIds.size > 0;
-  //   if (!clients) return [];
-  //   // Reordena: activos primero, inactivos al final
-  //   let arr = [...clients].sort((a, b) => {
-  //     if (a.isActive === b.isActive) return 0;
-  //     return a.isActive ? -1 : 1;
-  //   });
-  //   if (!searchTerm.trim()) return clients;
-  //   if (searchTerm.trim().length < 2) return clients;
-  //   return clients.filter(
-  //     (client: Client) =>
-  //       client.name_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       client.email_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       client.telephone_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       client.document_type.toLowerCase().includes(searchTerm.toLowerCase())
-  //   );
-  // }, [clients, searchTerm]);
 
   const filteredClients = useMemo(() => {
     if (!clients) return [];
@@ -147,12 +131,10 @@ const ClientsTable: React.FC = () => {
   const handleSaveClient = async (values: ClientFormValues) => {
     if (!editingClient) {
       const alreadyExists = clients?.some(
-        (c) =>
-          c.name_client.trim().toLowerCase() === values.name_client.trim().toLowerCase() ||
-          c.document_type.trim().toLowerCase() === values.document_type.trim().toLowerCase()
+        (c) => c.document_type.trim().toLowerCase() === values.document_type.trim().toLowerCase()
       );
       if (alreadyExists) {
-        setFormError('Ya existe un cliente con ese nombre o documento.');
+        setFormError('Ya existe un cliente asociado a ese DNI.');
         setIsSaving(false);
         setTimeout(() => setFormError(''), 2500);
         return;
@@ -416,8 +398,8 @@ const ClientsTable: React.FC = () => {
                             }
                             onChange={(e) => {
                               if (e.target.checked) {
-                                // Selecciona todos los clientes visibles
-                                const ids = currentClients.map((c) => c.id_client);
+                                // Selecciono todos los clientes filtrados (todas las paginas)
+                                const ids = filteredClients.map((c) => c.id_client);
                                 setSelectedClientIds(new Set(ids));
                               } else {
                                 // Deselecciona todos
@@ -446,9 +428,9 @@ const ClientsTable: React.FC = () => {
                       {currentClients.map((client) => {
                         const isSelected = selectedClientIds.has(client.id_client);
                         const isInactive = client.isActive === false;
-                        //const days = client.total_debt_days ?? 0;
+                        // const days = client.total_debt_days ?? 0;
 
-                        //const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
+                        // const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
 
                         return (
                           <tr
@@ -504,12 +486,25 @@ const ClientsTable: React.FC = () => {
                                       : fecha;
                                   })()}
                             </td>
+
                             <td
                               className={`border-l-2 border-gray-200 px-4 text-sm ${isInactive ? 'opacity-50' : ''}`}
                             >
-                              {loadingDebtTotals
-                                ? '...'
-                                : (clientDebtTotals?.[client.id_client]?.maxDays ?? 0)}
+                              {loadingDebtTotals ? (
+                                '...'
+                              ) : (
+                                <span className="flex w-full items-center justify-between">
+                                  <span className="leading-none">
+                                    {(clientDebtTotals?.[client.id_client]?.maxDays ?? 0)
+                                      .toString()
+                                      .padStart(3, '0')}
+                                  </span>
+                                  <span
+                                    className={`inline-block h-6 w-6 rounded-full border border-gray-200 ${debtColor(clientDebtTotals?.[client.id_client]?.maxDays ?? 0)}`}
+                                    title={`Estado de deuda: ${clientDebtTotals?.[client.id_client]?.maxDays ?? 0} días`}
+                                  />
+                                </span>
+                              )}
                             </td>
 
                             <td
