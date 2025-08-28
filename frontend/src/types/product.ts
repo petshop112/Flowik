@@ -78,6 +78,7 @@ export interface ProductValidationErrors {
   category?: string;
   sellPrice?: string;
   expiration?: string;
+  amount?: string;
 }
 
 export type ProductValidatableFields = keyof ProductValidationErrors;
