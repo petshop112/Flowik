@@ -132,9 +132,14 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
       case 'sellPrice':
         {
-          const price = parseFloat(stringValue) || 0;
+          const stringPrice = String(value).replace(',', '.');
+          const price = parseFloat(stringPrice) || 0;
+          const priceRegex = /^\d{1,8}(?:\.\d{1,2})?$/;
+
           if (price < 0.01) {
             newErrors.sellPrice = 'El precio debe ser mayor o igual a 0.01.';
+          } else if (!priceRegex.test(stringPrice)) {
+            newErrors.sellPrice = 'El precio debe tener hasta 8 dígitos enteros y 2 decimales.';
           } else {
             delete newErrors.sellPrice;
           }
