@@ -14,9 +14,9 @@ import ClientFormModal from '../modal/clientFormModal';
 import { DebtLegend } from './DebtLegend';
 import SuccessModal from '../modal/SuccessModal';
 import DeleteClientModal from '../modal/DeleteClientModal';
-import { currencyPipe, toNumber } from '../../utils/pipe/currency.pipe';
+import { currencyPipe } from '../../utils/pipe/currency.pipe';
 import { formatDate } from '../../utils/formatDate';
-import { debtColor } from '../../utils/debtColors';
+//import { debtColor } from '../../utils/debtColors';
 import EmptyClientsState from './EmptyClientsState';
 import DebtFormModal from '../modal/DebtFormModal';
 import { useSelector } from 'react-redux';
@@ -30,9 +30,9 @@ type ClientWithDebt = Client & {
   is_active?: boolean;
 };
 
-function hasDebt(v?: number | string) {
-  return toNumber(v) > 0;
-}
+// function hasDebt(v?: number | string) {
+//   return toNumber(v) > 0;
+// }
 
 function getUserId() {
   const storedId = sessionStorage.getItem('userId');
@@ -446,12 +446,9 @@ const ClientsTable: React.FC = () => {
                       {currentClients.map((client) => {
                         const isSelected = selectedClientIds.has(client.id_client);
                         const isInactive = client.isActive === false;
-                        const debtExists = hasDebt(client.total_debt);
-                        const days = client.total_debt_days ?? 0;
-                        const dot = debtColor(days);
-                        const daysDisplay = days ? String(days).padStart(3, '0') : '000';
+                        //const days = client.total_debt_days ?? 0;
 
-                        const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
+                        //const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
 
                         return (
                           <tr
@@ -499,7 +496,8 @@ const ClientsTable: React.FC = () => {
                                 ? '...'
                                 : (() => {
                                     const fecha = formatDate(
-                                      clientDebtTotals?.[client.id_client]?.lastModified
+                                      clientDebtTotals?.[client.id_client]?.lastModified ??
+                                        undefined
                                     );
                                     return fecha === '00/00/0000' || fecha === '' || !fecha
                                       ? '-'

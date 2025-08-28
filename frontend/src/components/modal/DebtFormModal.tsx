@@ -17,8 +17,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
   const [clientInfo, setClientInfo] = useState<{ name_client?: string } | null>(null);
   const [mount, setMount] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [historic, setHistoric] = useState<any[]>([]);
   const [loadingDebts, setLoadingDebts] = useState(false);
 
