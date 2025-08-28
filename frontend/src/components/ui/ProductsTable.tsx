@@ -43,7 +43,7 @@ const ProductsTable: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
   const [isAdjustPricesModalOpen, setIsAdjustPricesModalOpen] = useState(false);
 
-  const { data: products = [], isLoading, error } = useGetAllProducts();
+  const { data: products = [], error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
     editingProductId || 0
   );
@@ -238,48 +238,38 @@ const ProductsTable: React.FC = () => {
     });
   }, [products, searchTerm]);
 
-  const allSelectedAreActive = useMemo(() => {
-    if (selectedProductIds.size === 0) return false;
-
-    return Array.from(selectedProductIds).every((id) => {
-      const product = products.find((p: Product) => p.id === id);
-      return product ? product.isActive : false;
-    });
-  }, [selectedProductIds, products]);
-
-  const allSelectedAreInactive = useMemo(() => {
-    if (selectedProductIds.size === 0) return false;
-
-    return Array.from(selectedProductIds).every((id) => {
-      const product = products.find((p: Product) => p.id === id);
-      return product ? !product.isActive : false;
-    });
-  }, [selectedProductIds, products]);
-
   const handleToggleProductStatus = async () => {
-    if (selectedProductIds.size === 0) return;
+    if (selectedProductIds.size === 0 || selectedProductsState.disabled) return;
 
     const idsArray = Array.from(selectedProductIds);
 
     try {
-      if (allSelectedAreActive) {
-        await deactivateProductMutation.mutateAsync(idsArray);
+      await deactivateProductMutation.mutateAsync(idsArray);
+
+      if (selectedProductsState.action === 'activate') {
+        setSuccessMessage({
+          title: '¡Activación completada!',
+          description:
+            'Los productos seleccionados han sido reactivados y aparecerán al inicio de la tabla.',
+        });
+      } else {
         setSuccessMessage({
           title: '¡Desactivación completada!',
           description:
-            'Los elementos seleccionados se mostrarán al final de la tabla. Para encontrarlos, usa el buscador y reactívalos.',
-        });
-      } else if (allSelectedAreInactive) {
-        await deactivateProductMutation.mutateAsync(idsArray);
-        setSuccessMessage({
-          title: '¡Activación completada!',
-          description: 'Los productos seleccionados han sido reactivados.',
+            'Los productos seleccionados se mostrarán al final de la tabla. Para encontrarlos, usa el buscador.',
         });
       }
 
       setSelectedProductIds(new Set());
     } catch (error) {
-      console.error('Error al cambiar el estado de los productos:', error);
+      setSuccessMessage({
+        title: '¡Error!',
+        description: `No se pudo ${selectedProductsState.action === 'activate' ? 'activar' : 'desactivar'} los productos. Intenta nuevamente.`,
+      });
+      console.error(
+        `Error al ${selectedProductsState.action === 'activate' ? 'activar' : 'desactivar'} productos:`,
+        error
+      );
     } finally {
       setIsSuccessModalOpen(true);
     }
@@ -338,19 +328,54 @@ const ProductsTable: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <section className="bg-custom-mist h-full w-full p-6">
-        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
-          <div className="relative mb-4 h-12 w-12">
-            <div className="h-12 w-12 rounded-full border-4 border-gray-300"></div>
-            <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          </div>
-          <p className="text-gray-600">Cargando productos...</p>
-        </article>
-      </section>
-    );
-  }
+  const selectedProductsState = useMemo(() => {
+    if (selectedProductIds.size === 0) {
+      return {
+        action: null,
+        buttonText: 'Desactivar',
+        disabled: true,
+        hasMixedStates: false,
+      };
+    }
+
+    const selectedProducts = products.filter((p: Product) => selectedProductIds.has(p.id));
+    const activeProducts = selectedProducts.filter((p) => p.isActive);
+    const inactiveProducts = selectedProducts.filter((p) => !p.isActive);
+
+    if (activeProducts.length > 0 && inactiveProducts.length > 0) {
+      return {
+        action: null,
+        buttonText: 'Elige Activar o Desactivar',
+        disabled: true,
+        hasMixedStates: true,
+      };
+    }
+
+    if (activeProducts.length > 0 && inactiveProducts.length === 0) {
+      return {
+        action: 'deactivate',
+        buttonText: 'Desactivar',
+        disabled: false,
+        hasMixedStates: false,
+      };
+    }
+
+    if (inactiveProducts.length > 0 && activeProducts.length === 0) {
+      return {
+        action: 'activate',
+        buttonText: 'Activar',
+        disabled: false,
+        hasMixedStates: false,
+      };
+    }
+
+    return {
+      action: null,
+      buttonText: 'Activar/Desactivar',
+      disabled: true,
+      hasMixedStates: false,
+    };
+  }, [selectedProductIds, products]);
 
   if (error && !error.message.includes('404')) {
     return (
@@ -381,37 +406,37 @@ const ProductsTable: React.FC = () => {
             {/* Barra de acciones */}
             <article className="flex flex-wrap items-center justify-between gap-3">
               {hasProducts ? (
-                <article
-                  className={`flex items-center gap-2 [&>button]:font-semibold ${
-                    hasSelectedProducts ? '[&>button]:cursor-pointer' : ''
-                  } `}
-                >
+                <article className="flex items-center gap-2 [&>button]:font-semibold">
                   <button
                     onClick={handleToggleProductStatus}
-                    disabled={!hasSelectedProducts || deactivateProductMutation.isPending}
-                    className={`${
-                      hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
-                    } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
+                    disabled={selectedProductsState.disabled || deactivateProductMutation.isPending}
+                    className={`flex items-center gap-2 rounded-md px-3 py-2 font-semibold transition-colors ${
+                      selectedProductsState.disabled || selectedProductsState.hasMixedStates
+                        ? 'text-gray-400'
+                        : 'text-deep-teal cursor-pointer hover:bg-cyan-50'
+                    } ${selectedProductsState.hasMixedStates ? 'cursor-not-allowed' : ''}`}
                   >
                     <ToggleRight
                       size={18}
-                      className={`${hasSelectedProducts ? 'text-tropical-cyan' : 'text-gray-400'}`}
+                      className={`${
+                        selectedProductsState.disabled || selectedProductsState.hasMixedStates
+                          ? 'text-gray-400'
+                          : 'text-tropical-cyan'
+                      }`}
                     />
-                    {allSelectedAreActive
-                      ? deactivateProductMutation.isPending
-                        ? 'Desactivando...'
-                        : 'Desactivar'
-                      : allSelectedAreInactive
-                        ? deactivateProductMutation.isPending
-                          ? 'Activando...'
-                          : 'Activar'
-                        : 'Activar/Desactivar'}
+                    {deactivateProductMutation.isPending
+                      ? selectedProductsState.action === 'activate'
+                        ? 'Activando...'
+                        : 'Desactivando...'
+                      : selectedProductsState.buttonText}
                   </button>
                   <button
                     onClick={handleOpenDeleteModal}
                     disabled={!hasSelectedProducts || deleteProductMutation.isPending}
                     className={`${
-                      hasSelectedProducts ? 'text-deep-teal hover:bg-cyan-50' : 'text-gray-400'
+                      hasSelectedProducts
+                        ? 'text-deep-teal cursor-pointer hover:bg-cyan-50'
+                        : 'text-gray-400'
                     } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
                   >
                     <Trash2
