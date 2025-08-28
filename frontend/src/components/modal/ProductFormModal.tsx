@@ -392,7 +392,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
               </div>
 
-              <div className="">
+              <div>
                 <label className="text-dark-blue mb-2 block text-sm font-medium">
                   Precio de venta*
                 </label>
