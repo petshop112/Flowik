@@ -11,10 +11,12 @@ import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   newPassword: Yup.string()
-    .min(8, 'Mínimo 8 caracteres')
+    .min(8, 'La contraseña debe tener mínimo 8 caracteres')
     .max(16, 'La contraseña no debe superar los 16 caracteres')
-    .matches(/\d/, 'Contener 1 numeral')
-    .matches(/^[A-Z]/, 'Primera letra en mayúscula')
+    .matches(/\d/, 'Debe contener al menos un caracter numérico')
+    .matches(/[A-Z]/, 'Debe contener al menos una letra mayúscula')
+    .matches(/[a-z]/, 'Debe contener al menos una letra minúscula')
+    .matches(/[!@#$%^&*(),.?":{}|<>_-]/, 'Debe contener al menos un caracter especial')
     .required('La contraseña es obligatoria'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('newPassword')], 'Las contraseñas no coinciden')
