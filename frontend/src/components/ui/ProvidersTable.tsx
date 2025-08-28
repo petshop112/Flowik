@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useGetAllProviders,
   useDeactivateProvider,
   useEditProvider,
   useCreateProvider,
   useGetProviderById,
+  useDeleteProvider,
 } from '../../hooks/useProviders';
 import {
   ToggleRight,
@@ -20,12 +22,12 @@ import type { Provider, ProviderFormValues } from '../../types/provider';
 import EmptyProvidersState from './EmptyProvidersState';
 import ProviderFormModal from '../modal/ProviderFormModal';
 import SuccessModal from '../modal/SuccessModal';
-// import DeleteClientModal from '../modal/DeleteClientModal';
+import DeleteProviderModal from '../modal/DeleteProviderModal';
 
 const itemsPerPage = 10;
 
 const ProductsTable: React.FC = () => {
-  // const queryProvider = useQueryClient();
+  const queryProvider = useQueryClient();
   const [selectedProviderIds, setSelectedProviderIds] = useState<Set<number>>(new Set());
   const [deleteProviderId, setDeleteProviderId] = useState<number[] | null>(null);
   const [deleteProviderName, setDeleteProviderName] = useState<string>('');
@@ -39,25 +41,26 @@ const ProductsTable: React.FC = () => {
   const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [newProviderId, setNewProviderId] = useState<number | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isDeletingUI, setIsDeletingUI] = useState(false);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   const { data: viewProvider, isLoading: isLoadingViewProvider } = useGetProviderById(
     viewProviderId ?? undefined
   );
+
+  function getUserId() {
+    const storedId = sessionStorage.getItem('userId');
+    return storedId ? Number(storedId) : undefined;
+  }
+  const id_user = getUserId();
+
   const editProviderMutation = useEditProvider();
   const createProviderMutation = useCreateProvider();
+  const deleteProviderMutation = useDeleteProvider(id_user);
   const { data: providers, isLoading } = useGetAllProviders();
   const hasProviders = providers && providers.length > 0;
   const hasSelectedProviders = selectedProviderIds.size > 0;
   const deactivateProviderMutation = useDeactivateProvider();
-
-  console.log(deleteProviderId);
-  console.log(deleteProviderName);
-  console.log(isModalOpen);
-  console.log(editingProvider);
-  console.log(setSearchTerm);
-  console.log(viewProviderId);
-  console.log(isLoading);
-  console.log(deactivateProviderMutation);
 
   const selected = Array.from(selectedProviderIds);
   const selectedClients = (providers ?? []).filter((c) => selected.includes(c.id_provider));
@@ -78,7 +81,7 @@ const ProductsTable: React.FC = () => {
     );
   }, [providers, searchTerm]);
 
-  const sortedProviders = [...(providers ?? [])].sort((a, b) => {
+  const sortedProviders = [...(filteredProviders ?? [])].sort((a, b) => {
     if (a.isActive === b.isActive) return 0;
     return a.isActive ? -1 : 1;
   });
@@ -89,8 +92,8 @@ const ProductsTable: React.FC = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentProviders = sortedProviders.slice(startIndex, endIndex);
 
-  // const isDeactivating = deactivateProviderMutation.isPending;
-  // Ajusta la página si el total de páginas cambia tras eliminar providers
+  const isDeactivating = deactivateProviderMutation.isPending;
+
   React.useEffect(() => {
     const total = filteredProviders.length;
     const pages = Math.max(1, Math.ceil(total / itemsPerPage));
@@ -99,16 +102,14 @@ const ProductsTable: React.FC = () => {
 
   const handleDeactivate = async () => {
     if (!hasSelectedProviders) return;
-    // try {
-    //   const ids = Array.from(selectedProviderIds);
-    //   for (const id of ids) {
-    //     await deactivateProviderMutation.mutateAsync(id);
-    //   }
-    //   setSelectedProviderIds(new Set());
-    //   await queryProvider.invalidateQueries({ queryKey: ['clients', id_user] });
-    // } catch (err) {
-    //   console.error('Error al cambiar estado de clientes:', err);
-    // }
+    try {
+      const ids = Array.from(selectedProviderIds);
+      await deactivateProviderMutation.mutateAsync(ids);
+      setSelectedProviderIds(new Set());
+      await queryProvider.invalidateQueries({ queryKey: ['providers', id_user] });
+    } catch (err) {
+      console.error('Error al cambiar estado de proveedores:', err);
+    }
   };
 
   const handleNewProvider = () => {
@@ -129,19 +130,6 @@ const ProductsTable: React.FC = () => {
   };
 
   const handleSaveProvider = async (values: ProviderFormValues) => {
-    // if (!editingProvider) {
-    //   const alreadyExists = providers?.some(
-    //     (c) =>
-    //       c.name_provider.trim().toLowerCase() === values.name_provider.trim().toLowerCase() ||
-    //       c.cuit_provider.trim().toLowerCase() === values.cuit_provider.trim().toLowerCase()
-    //   );
-    //   if (alreadyExists) {
-    //     setFormError('Ya existe un proveedor con ese email o CUIT.');
-    //     setIsSaving(false);
-    //     setTimeout(() => setFormError(''), 2500);
-    //     return;
-    //   }
-    // }
     try {
       setIsSaving(true);
       let result;
@@ -166,6 +154,39 @@ const ProductsTable: React.FC = () => {
       setFormError(backendMsg || 'Error inesperado al guardar');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteProviders = async () => {
+    if (!deleteProviderId?.length || isDeletingUI) return;
+
+    const ids = [...deleteProviderId];
+    setIsDeletingUI(true);
+    setDeleteProviderId(null);
+    setSelectedProviderIds(new Set());
+
+    setShowDeleteSuccess(true);
+
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => deleteProviderMutation.mutateAsync(id))
+      );
+
+      await queryProvider.invalidateQueries({ queryKey: ['providers', id_user] });
+
+      const hasError = results.some((r) => r.status === 'rejected');
+      if (hasError) {
+        setShowDeleteSuccess(false);
+        alert('No se pudo eliminar uno o más clientes. Intenta nuevamente.');
+      } else {
+        setShowDeleteSuccess(false);
+      }
+    } catch (e) {
+      setShowDeleteSuccess(false);
+      alert('Error al eliminar cliente. Intenta nuevamente.');
+      console.error('Error al eliminar cliente:', e);
+    } finally {
+      setIsDeletingUI(false);
     }
   };
 
@@ -213,7 +234,7 @@ const ProductsTable: React.FC = () => {
                   >
                     <button
                       onClick={hasSelectedProviders ? handleDeactivate : undefined}
-                      // disabled={!hasSelectedProviders || isDeactivating}
+                      disabled={!hasSelectedProviders || isDeactivating}
                       className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedProviders ? 'text-deep-teal' : 'text-gray-400'}`}
                       title={actionLabel}
                     >
@@ -222,14 +243,13 @@ const ProductsTable: React.FC = () => {
                         className={hasSelectedProviders ? 'text-tropical-cyan' : 'text-gray-400'}
                       />
                       <span className={hasSelectedProviders ? 'text-deep-teal' : 'text-gray-400'}>
-                        {/* {isDeactivating
+                        {isDeactivating
                           ? allInactive
-                            ? 'Desactivando...'
+                            ? 'Activando...'
                             : allActive
-                              ? 'Activando...'
+                              ? 'Desactivando...'
                               : 'Cambiando estado...'
-                          : actionLabel} */}
-                        Desactivar
+                          : actionLabel}
                       </span>
                     </button>
                     <button
@@ -241,7 +261,7 @@ const ProductsTable: React.FC = () => {
                               ? providers?.find(
                                   (c) => c.id_provider === Array.from(selectedProviderIds)[0]
                                 )?.name_provider || ''
-                              : `${Array.from(selectedProviderIds).length} clientes seleccionados`
+                              : `${Array.from(selectedProviderIds).length} proveedores seleccionados`
                           );
                         }
                       }}
@@ -503,21 +523,21 @@ const ProductsTable: React.FC = () => {
               />
             ))}
 
-          {/* <DeleteClientModal
-            isOpen={!!deleteClientId && deleteClientId.length > 0}
-            clientName={deleteClientName}
-            onCancel={() => setDeleteClientId(null)}
-            onConfirm={handleDeleteClients}
-          /> */}
+          <DeleteProviderModal
+            isOpen={!!deleteProviderId && deleteProviderId.length > 0}
+            providerName={deleteProviderName}
+            onCancel={() => setDeleteProviderId(null)}
+            onConfirm={handleDeleteProviders}
+          />
 
-          {/* {showDeleteSuccess && (
+          {showDeleteSuccess && (
             <SuccessModal
               isOpen={showDeleteSuccess}
               onClose={() => setShowDeleteSuccess(false)}
               title="¡Proveedor eliminado!"
               description="Ya no aparecerá en la tabla ni en el buscador."
             />
-          )} */}
+          )}
         </article>
       </section>
     </>

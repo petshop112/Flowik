@@ -1,10 +1,4 @@
-import {
-  isEmpty,
-  onlyLettersAndSpaces,
-  // isEmail,
-  //   digitsBetween,
-  lengthBetween,
-} from './validatorForm';
+import { isEmpty, onlyLettersAndSpaces, lengthBetween } from './validatorForm';
 
 export type Form = {
   name_provider: string;
@@ -40,10 +34,15 @@ export function validateField(name: keyof Errors, form: Form, errors: Errors): E
     case 'direction_provider': {
       const v = form.direction_provider.trim();
       if (v.length > 0) {
-        if (!lengthBetween(v, 10, 100)) error = 'La direción debe tener entre 10 y 100 caracteres.';
+        if (!lengthBetween(v, 10, 100)) {
+          error = 'La dirección debe tener entre 10 y 100 caracteres.';
+        } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\-#/º]+$/.test(v)) {
+          error = 'La dirección contiene caracteres no permitidos.';
+        }
       }
       break;
     }
+
     case 'telephone_provider': {
       const v = form.telephone_provider.trim();
       if (isEmpty(v)) error = 'El teléfono es obligatorio.';

@@ -120,7 +120,6 @@ const ProviderFormModal: React.FC<Props> = ({
 
     const allErrors = validateAll(form);
     setErrors(allErrors);
-    console.log('Proveedor creado exitosamente');
 
     if (Object.keys(allErrors).length > 0) {
       setTouched({
@@ -213,7 +212,7 @@ const ProviderFormModal: React.FC<Props> = ({
                 onChange={handleChange('telephone_provider')}
                 onBlur={() => handleBlur('telephone_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="+57 6059284358"
+                placeholder="576059284358"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
                   errors.telephone_provider && touched.telephone_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
@@ -301,7 +300,7 @@ const ProviderFormModal: React.FC<Props> = ({
                 onChange={handleChange('cuit_provider')}
                 onBlur={() => handleBlur('cuit_provider')}
                 disabled={readOnly || isSaving}
-                placeholder="00-00000000-0"
+                placeholder="00000000000"
                 className={`w-full rounded-md border border-[#DFE7FF] bg-white px-3 py-2 text-[15px] outline-none focus:border-[#AFC6FF] focus:ring-2 focus:ring-[#BFD3FF] ${
                   errors.cuit_provider && touched.cuit_provider
                     ? 'border-red-300 ring-red-200 focus:border-red-300 focus:ring-red-200'
