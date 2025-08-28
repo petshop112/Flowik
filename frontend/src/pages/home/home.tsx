@@ -99,7 +99,7 @@ const Home = () => {
   const activeProd =
     topProductosData.find((p) => p.producto === selectedProduct) || topProductosData[0];
 
-  const stockActiveProd = products.find((s: Product) => s.name === activeProd.producto);
+  const stockActiveProd = products.find((s) => s.name === activeProd.producto);
 
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
@@ -396,7 +396,7 @@ const Home = () => {
                   <td className="px-4 py-4 text-2xl font-bold">{activeProd.ventas}</td>
                   <td className="font-mediu px-4 py-4 text-sm">Disponibles en stock (uds)</td>
                   <td className="px-4 py-4 text-2xl font-bold">
-                    {stockActiveProd ? stockActiveProd.stock : '—'}
+                    {stockActiveProd ? stockActiveProd.amount : '—'}
                   </td>
                 </tr>
               </tbody>
