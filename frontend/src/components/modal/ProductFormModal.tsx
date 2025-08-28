@@ -145,6 +145,19 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           }
         }
         break;
+
+      case 'amount':
+        {
+          const amountValue = String(value);
+          if (amountValue.length > 9) {
+            newErrors.amount = 'El stock no puede superar los 9 dígitos.';
+          } else if (Number(amountValue) < 0) {
+            newErrors.amount = 'El stock no puede ser un número negativo.';
+          } else {
+            delete newErrors.amount;
+          }
+        }
+        break;
       default:
         break;
     }
@@ -164,7 +177,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       [field]: true,
     }));
 
-    if (['name', 'description', 'category', 'sellPrice'].includes(field)) {
+    if (['name', 'description', 'category', 'sellPrice', 'amount'].includes(field)) {
       setTimeout(() => {
         validateField(field as ProductValidatableFields, value);
       }, 100);
@@ -172,7 +185,13 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   };
 
   const validateForm = (): boolean => {
-    const fields: ProductValidatableFields[] = ['name', 'description', 'category', 'sellPrice'];
+    const fields: ProductValidatableFields[] = [
+      'name',
+      'description',
+      'category',
+      'sellPrice',
+      'amount',
+    ];
     let isValid = true;
 
     fields.forEach((field) => {
@@ -370,6 +389,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     isEditMode ? 'text-gray-500' : ''
                   } w-full rounded-sm border border-gray-300 px-3 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500`}
                 />
+                {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
               </div>
 
               <div className="">
