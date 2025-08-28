@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { selectAuth } from '../../features/auth/authSlice';
 import { useDebtDashboardTotals } from '../../hooks/useDebtDashboardTotals';
 import { useDebtChartData } from '../../hooks/useDebtChartData';
+import { useGetAllProducts } from '../../hooks/useProducts';
 
 import {
   BarChart,
@@ -18,6 +19,7 @@ import {
 
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 const productosData = [
   { producto: 'Pedigree Adulto Razas Pequeñas 3kg', ventas: 45, stock: 2 },
