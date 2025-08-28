@@ -70,13 +70,11 @@ const ProductsTable: React.FC = () => {
   const filteredProviders = useMemo(() => {
     if (!providers) return [];
     if (!searchTerm.trim()) return providers;
-    if (searchTerm.trim().length < 3) return providers;
+    if (searchTerm.trim().length < 2) return providers;
     return providers.filter(
       (provider: Provider) =>
         provider.name_provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.email_provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.telephone_provider.toLowerCase().includes(searchTerm.toLowerCase())
-      // provider.document_type.toLowerCase().includes(searchTerm.toLowerCase())
+        provider.cuit_provider.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [providers, searchTerm]);
 
@@ -87,7 +85,7 @@ const ProductsTable: React.FC = () => {
   const currentProviders = filteredProviders.slice(startIndex, endIndex);
 
   // const isDeactivating = deactivateProviderMutation.isPending;
-  // Ajusta la página si el total de páginas cambia tras eliminar clientes
+  // Ajusta la página si el total de páginas cambia tras eliminar providers
   React.useEffect(() => {
     const total = filteredProviders.length;
     const pages = Math.max(1, Math.ceil(total / itemsPerPage));
@@ -273,11 +271,11 @@ const ProductsTable: React.FC = () => {
                       <input
                         type="text"
                         placeholder="Buscar"
-                        // value={searchTerm}
-                        // onChange={(e) => {
-                        //   setSearchTerm(e.target.value);
-                        //   setCurrentPage(1);
-                        // }}
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
                         className="border-dark-blue text-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </article>
@@ -510,7 +508,7 @@ const ProductsTable: React.FC = () => {
             <SuccessModal
               isOpen={showDeleteSuccess}
               onClose={() => setShowDeleteSuccess(false)}
-              title="¡Cliente eliminado!"
+              title="¡Proveedor eliminado!"
               description="Ya no aparecerá en la tabla ni en el buscador."
             />
           )} */}
