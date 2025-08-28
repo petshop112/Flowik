@@ -54,6 +54,7 @@ const ClientsTable: React.FC = () => {
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [isDeletingUI, setIsDeletingUI] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
 
   const createClientMutation = useCreateClient();
   const editClientMutation = useEditClient();
@@ -635,6 +636,11 @@ const ClientsTable: React.FC = () => {
             />
           )}
         </article>
+        <DebtFormModal
+          isOpen={isDebtModalOpen}
+          onClose={() => setIsDebtModalOpen(false)}
+          selectedClientIds={Array.from(selectedClientIds)}
+        />
       </section>
     </>
   );

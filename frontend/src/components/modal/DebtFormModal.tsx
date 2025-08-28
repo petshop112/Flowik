@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { debtService } from '../../api/debtService';
+import { useSelector } from 'react-redux';
+import { selectAuth } from '../../features/auth/authSlice';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 
 interface DebtFormModalProps {
@@ -8,35 +11,67 @@ interface DebtFormModalProps {
 }
 
 const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selectedClientIds }) => {
-  const [monto, setMonto] = useState('');
-  // Aquí podrías tener un array de deudas, etc.
-  const [deudas, setDeudas] = useState<
+  const { token } = useSelector(selectAuth);
+  const [mount, setMount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [historic, setHistoric] = useState<any[]>([]);
+  const [loadingDebts, setLoadingDebts] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && selectedClientIds.length === 1) {
+      setLoadingDebts(true);
+      debtService
+        .getDebtsByClient(selectedClientIds[0], token!)
+        .then(setHistoric)
+        .catch(() => setHistoric([]))
+        .finally(() => setLoadingDebts(false));
+    }
+  }, [isOpen, selectedClientIds, token]);
+
+  const [debt, setDebt] = useState<
     Array<{
       fecha: string;
-      monto: string;
+      mount: string;
       modificacion: string;
       resto: string;
       dias: string;
     }>
-  >([
-    // Ejemplo vacío por default
-    // { fecha: '01/01/2024', monto: '$000.000', modificacion: '01/01/2024', resto: '$000.000', dias: '000' }
-  ]);
+  >([]);
 
   if (!isOpen) return null;
 
-  const handleAgregarDeuda = () => {
-    setDeudas((prev) => [
+  const handleAddDebt = () => {
+    setDebt((prev) => [
       ...prev,
       {
         fecha: new Date().toLocaleDateString(),
-        monto,
+        mount,
         modificacion: new Date().toLocaleDateString(),
-        resto: monto,
+        resto: mount,
         dias: '000',
       },
     ]);
-    setMonto('');
+    setMount('');
+  };
+
+  const handleSaveDebt = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await Promise.all(
+        selectedClientIds.map((id) => debtService.createDebt(id, { mount: Number(mount) }, token!))
+      );
+      setSuccess(true);
+      setMount('');
+      setDebt([]);
+      onClose();
+    } catch (e: any) {
+      setError(e?.message || 'Error al guardar deuda');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,7 +96,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           <button
             type="button"
             className="border-b-2 border-transparent pb-2 text-base font-medium text-gray-400"
-            // Puedes agregar lógica de tabs si lo necesitás
+            // las tabs ponlo aquiii
           >
             Detalles del cliente
           </button>
@@ -86,7 +121,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               </span>
             </div>
           </div>
-          {/* INPUT MONTO + AGREGAR */}
+          {/* INPUT mount + AGREGAR */}
           <div className="flex items-end gap-2">
             <div className="flex flex-col items-start">
               <label className="mb-1 text-xs font-semibold text-blue-900">Monto</label>
@@ -94,8 +129,8 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                 <input
                   type="number"
                   className="w-30 border-none bg-transparent px-3 py-1.5 text-right text-lg"
-                  value={monto}
-                  onChange={(e) => setMonto(e.target.value)}
+                  value={mount}
+                  onChange={(e) => setMount(e.target.value)}
                   placeholder="000.000"
                 />
                 <span className="ml-2">
@@ -104,31 +139,24 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               </div>
             </div>
             <button
-              onClick={handleAgregarDeuda}
+              onClick={handleAddDebt}
               className="ml-2 rounded-md bg-[#5685FA] px-3 py-1.5 font-medium text-white transition hover:bg-blue-600"
-              disabled={!monto}
               type="button"
             >
               Agregar deuda
             </button>
+            
           </div>
         </div>
 
-        {/* BOTONES INACTIVOS */}
         <div className="flex gap-2 px-8 pb-2">
-          <button
-            disabled
-            className="flex cursor-not-allowed items-center gap-1 text-sm text-gray-300"
-          >
+          <button className="flex items-center gap-1 text-sm">
             <svg width={18} height={18} fill="none">
               <circle cx={9} cy={9} r={7} stroke="#d2d2d2" strokeWidth={2} />
             </svg>
             Desactivar
           </button>
-          <button
-            disabled
-            className="flex cursor-not-allowed items-center gap-1 text-sm text-gray-300"
-          >
+          <button className="flex items-center gap-1 text-sm">
             <svg width={18} height={18} fill="none">
               <rect x={4} y={7} width={10} height={4} fill="#d2d2d2" />
             </svg>
@@ -142,7 +170,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             <thead className="bg-blue-50">
               <tr>
                 <th className="px-2 py-2">
-                  <input type="checkbox" disabled />
+                  <input type="checkbox" />
                 </th>
                 <th className="px-2 py-2">Fecha deuda</th>
                 <th className="px-2 py-2">Deuda</th>
@@ -157,23 +185,29 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               </tr>
             </thead>
             <tbody>
-              {deudas.length === 0 ? (
+              {loadingDebts ? (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-blue-400">
+                    Cargando historial...
+                  </td>
+                </tr>
+              ) : historic.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-6 text-center text-blue-200">
                     No hay deudas registradas.
                   </td>
                 </tr>
               ) : (
-                deudas.map((d, idx) => (
-                  <tr key={idx} className="border-t border-blue-50">
+                historic.map((d, idx) => (
+                  <tr key={d.debtId ?? idx} className="border-t border-blue-50">
                     <td className="px-2 py-2">
                       <input type="checkbox" />
                     </td>
-                    <td className="px-2 py-2">{d.fecha}</td>
-                    <td className="px-2 py-2">${d.monto}</td>
-                    <td className="px-2 py-2">{d.modificacion}</td>
-                    <td className="px-2 py-2">${d.resto}</td>
-                    <td className="px-2 py-2">{d.dias}</td>
+                    <td className="px-2 py-2">{d.debt_date}</td>
+                    <td className="px-2 py-2">${d.mount}</td>
+                    <td className="px-2 py-2">{d.modification_date || d.modificacion}</td>
+                    <td className="px-2 py-2">${d.rest_amount ?? d.resto}</td>
+                    <td className="px-2 py-2">dd{d.status ?? '---'}</td>
                   </tr>
                 ))
               )}
@@ -193,10 +227,9 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           <button
             className="h-11 rounded-md bg-blue-600 px-8 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
             type="button"
-            // Aquí deberías agregar la lógica para guardar cambios
-            disabled
+            onClick={handleSaveDebt}
           >
-            Guardar
+            {loading ? 'Guardando...' : 'Guardar'}
           </button>
         </div>
       </div>
