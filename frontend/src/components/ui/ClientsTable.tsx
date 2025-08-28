@@ -1,15 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Edit,
-  Trash2,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  Plus,
-  ToggleRight,
-} from 'lucide-react';
+import { Edit, Trash2, Search, ChevronLeft, ChevronRight, Plus, ToggleRight } from 'lucide-react';
 import {
   useGetAllClients,
   useCreateClient,
@@ -61,25 +52,48 @@ const ClientsTable: React.FC = () => {
   const [deleteClientId, setDeleteClientId] = useState<number[] | null>(null);
   const [deleteClientName, setDeleteClientName] = useState<string>('');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
-  const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
+  const [isDeletingUI, setIsDeletingUI] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
   const createClientMutation = useCreateClient();
   const editClientMutation = useEditClient();
   const { data: viewClient, isLoading: isLoadingViewClient } = useGetClientById(
     viewClientId ?? undefined
   );
-  const deleteClientMutation = useDeleteClient();
-  const deactivateClientMutation = useDeactivateClient();
+  const deleteClientMutation = useDeleteClient(id_user);
+  const deactivateClientMutation = useDeactivateClient(id_user);
   const [lastActionWasEdit, setLastActionWasEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
   const hasSelectedClients = selectedClientIds.size > 0;
+  //   if (!clients) return [];
+  //   // Reordena: activos primero, inactivos al final
+  //   let arr = [...clients].sort((a, b) => {
+  //     if (a.isActive === b.isActive) return 0;
+  //     return a.isActive ? -1 : 1;
+  //   });
+  //   if (!searchTerm.trim()) return clients;
+  //   if (searchTerm.trim().length < 2) return clients;
+  //   return clients.filter(
+  //     (client: Client) =>
+  //       client.name_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       client.email_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       client.telephone_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       client.document_type.toLowerCase().includes(searchTerm.toLowerCase())
+  //   );
+  // }, [clients, searchTerm]);
+
   const filteredClients = useMemo(() => {
     if (!clients) return [];
-    if (!searchTerm.trim()) return clients;
-    if (searchTerm.trim().length < 3) return clients;
-    return clients.filter(
+    let arr = [...clients].sort((a, b) => {
+      if (a.isActive === b.isActive) return 0;
+      return a.isActive ? -1 : 1;
+    });
+    if (!searchTerm.trim()) return arr;
+    if (searchTerm.trim().length < 2) return arr;
+    return arr.filter(
       (client: Client) =>
         client.name_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.email_client.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,6 +107,14 @@ const ClientsTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentClients = filteredClients.slice(startIndex, endIndex) as ClientWithDebt[];
+
+  // Ajusta la página si el total de páginas cambia tras eliminar clientes
+  React.useEffect(() => {
+    const total = filteredClients.length;
+    const pages = Math.max(1, Math.ceil(total / itemsPerPage));
+    if (currentPage > pages) setCurrentPage(pages);
+  }, [filteredClients.length, currentPage]);
+
   const canManageDebt = hasSelectedClients;
 
   const getPageNumbers = () => Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -113,6 +135,19 @@ const ClientsTable: React.FC = () => {
   };
 
   const handleSaveClient = async (values: ClientFormValues) => {
+    if (!editingClient) {
+      const alreadyExists = clients?.some(
+        (c) =>
+          c.name_client.trim().toLowerCase() === values.name_client.trim().toLowerCase() ||
+          c.document_type.trim().toLowerCase() === values.document_type.trim().toLowerCase()
+      );
+      if (alreadyExists) {
+        setFormError('Ya existe un cliente con ese nombre o documento.');
+        setIsSaving(false);
+        setTimeout(() => setFormError(''), 2500);
+        return;
+      }
+    }
     try {
       setIsSaving(true);
       let result;
@@ -132,21 +167,26 @@ const ClientsTable: React.FC = () => {
       setShowSuccessModal(true);
       setIsModalOpen(false);
       setEditingClient(null);
+    } catch (error: any) {
+      setFormError(error?.message || 'Error inesperado al guardar');
     } finally {
       setIsSaving(false);
     }
   };
 
+  const isDeactivating = deactivateClientMutation.isPending;
+
   const handleDeactivate = async () => {
     if (!hasSelectedClients) return;
     try {
-      for (const id of selectedClientIds) {
+      const ids = Array.from(selectedClientIds);
+      for (const id of ids) {
         await deactivateClientMutation.mutateAsync(id);
       }
       setSelectedClientIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      await queryClient.invalidateQueries({ queryKey: ['clients', id_user] });
     } catch (err) {
-      console.error('Error al desactivar clientes:', err);
+      console.error('Error al cambiar estado de clientes:', err);
     }
   };
 
@@ -155,22 +195,47 @@ const ClientsTable: React.FC = () => {
   };
 
   const handleDeleteClients = async () => {
-    if (!deleteClientId || deleteClientId.length === 0) return;
+    if (!deleteClientId?.length || isDeletingUI) return;
+
+    const ids = [...deleteClientId];
+    setIsDeletingUI(true);
+    setDeleteClientId(null);
+    setSelectedClientIds(new Set());
+
+    setShowDeleteSuccess(true);
+
     try {
-      await Promise.all(deleteClientId.map((id) => deleteClientMutation.mutateAsync(id)));
-      await queryClient.invalidateQueries({ queryKey: ['clients'] });
-      setDeleteClientId(null);
-      setSelectedClientIds(new Set());
-      setShowDeleteSuccess(true);
-      setTimeout(() => setShowDeleteSuccess(false), 1800);
-    } catch (error) {
+      const results = await Promise.allSettled(
+        ids.map((id) => deleteClientMutation.mutateAsync(id))
+      );
+
+      await queryClient.invalidateQueries({ queryKey: ['clients', id_user] });
+
+      const hasError = results.some((r) => r.status === 'rejected');
+      if (hasError) {
+        setShowDeleteSuccess(false);
+        alert('No se pudo eliminar uno o más clientes. Intenta nuevamente.');
+      } else {
+        setShowDeleteSuccess(false);
+      }
+    } catch (e) {
       setShowDeleteSuccess(false);
       alert('Error al eliminar cliente. Intenta nuevamente.');
-      console.error('Error al eliminar cliente:', error);
+      console.error('Error al eliminar cliente:', e);
+    } finally {
+      setIsDeletingUI(false);
     }
   };
 
   const hasClients = clients && clients.length > 0;
+
+  const selected = Array.from(selectedClientIds);
+  const selectedClients = (clients ?? []).filter((c) => selected.includes(c.id_client));
+  const allInactive =
+    selectedClients.length > 0 && selectedClients.every((c) => c.isActive === false);
+  const allActive =
+    selectedClients.length > 0 && selectedClients.every((c) => c.isActive !== false);
+  const actionLabel = allInactive ? 'Activar' : allActive ? 'Desactivar' : 'Desactivar';
 
   if (isLoading) {
     return (
@@ -216,16 +281,22 @@ const ClientsTable: React.FC = () => {
                   >
                     <button
                       onClick={hasSelectedClients ? handleDeactivate : undefined}
-                      disabled={!hasSelectedClients}
+                      disabled={!hasSelectedClients || isDeactivating}
                       className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}`}
-                      title="Desactivar seleccionados"
+                      title={actionLabel}
                     >
                       <ToggleRight
                         size={18}
                         className={hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}
                       />
                       <span className={hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}>
-                        Desactivar
+                        {isDeactivating
+                          ? allInactive
+                            ? 'Desactivando...'
+                            : allActive
+                              ? 'Activando...'
+                              : 'Cambiando estado...'
+                          : actionLabel}
                       </span>
                     </button>
                     <button
@@ -326,8 +397,26 @@ const ClientsTable: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-polar-mist">
                       <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
-                        <th className="w-12 px-4 py-3">
-                          <Check />
+                        <th className="bg-polar-mist flex w-14 items-center rounded-tl-xl px-5 py-3">
+                          <input
+                            type="checkbox"
+                            checked={
+                              currentClients.length > 0 &&
+                              currentClients.every((c) => selectedClientIds.has(c.id_client))
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                // Selecciona todos los clientes visibles
+                                const ids = currentClients.map((c) => c.id_client);
+                                setSelectedClientIds(new Set(ids));
+                              } else {
+                                // Deselecciona todos
+                                setSelectedClientIds(new Set());
+                              }
+                            }}
+                            className="h-5 w-5 cursor-pointer rounded border-2 border-blue-400 text-blue-600 focus:ring-blue-500"
+                            style={{ minWidth: 20, minHeight: 20, width: 20, height: 20 }}
+                          />
                         </th>
                         <th>Nombre y Apellido</th>
                         <th>Contacto</th>
@@ -346,10 +435,7 @@ const ClientsTable: React.FC = () => {
                     <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
                       {currentClients.map((client) => {
                         const isSelected = selectedClientIds.has(client.id_client);
-                        const isInactive =
-                          client.is_active === false ||
-                          (deactivateClientMutation.isSuccess &&
-                            deactivateClientMutation.variables === client.id_client);
+                        const isInactive = client.isActive === false;
                         const debtExists = hasDebt(client.total_debt);
                         const days = client.total_debt_days ?? 0;
                         const dot = debtColor(days);
@@ -360,15 +446,15 @@ const ClientsTable: React.FC = () => {
                         return (
                           <tr
                             key={client.id_client}
-                            className={`border-b-2 border-gray-200 transition-colors hover:bg-gray-50 ${isInactive ? 'pointer-events-none opacity-50' : ''}`}
+                            className={`border-b-2 border-gray-200 transition-colors hover:bg-gray-50`}
                           >
-                            <td className="px-5 py-3">
+                            <td className="flex w-14 items-center justify-center px-5 py-3">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => toggleClientSelection(client.id_client)}
-                                disabled={isInactive}
-                                className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                                className="h-5 w-5 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                                style={{ minWidth: 20, minHeight: 20, width: 20, height: 20 }}
                               />
                             </td>
 
@@ -494,56 +580,61 @@ const ClientsTable: React.FC = () => {
                   </nav>
                 </article>
               )}
-              <div className="flex items-center pt-4 pb-2 pl-2">
+              <div className="fixed-bottom flex items-center pt-4 pb-2 pl-2">
                 <DebtLegend />
               </div>
             </>
           )}
-        </article>
 
-        <ClientFormModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingClient(null);
-          }}
-          onSave={handleSaveClient}
-          isSaving={isSaving || createClientMutation.isPending}
-          client={editingClient}
-        />
-
-        {viewClientId && (
           <ClientFormModal
-            isOpen={!!viewClientId}
-            onClose={() => setViewClientId(null)}
-            onSave={() => {}}
-            client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
-            readOnly={true}
-            isSaving={isLoadingViewClient}
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditingClient(null);
+              setFormError('');
+            }}
+            onSave={handleSaveClient}
+            isSaving={isSaving || createClientMutation.isPending}
+            client={editingClient}
+            formError={formError || ''}
           />
-        )}
 
-        <DeleteClientModal
-          isOpen={!!deleteClientId && deleteClientId.length > 0}
-          clientName={deleteClientName}
-          onCancel={() => setDeleteClientId(null)}
-          onConfirm={handleDeleteClients}
-          isDeleting={deleteClientMutation.isPending}
-        />
+          {viewClientId &&
+            (isLoadingViewClient ? (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+                <div className="flex w-full max-w-md flex-col items-center rounded-lg bg-white p-8 shadow-xl">
+                  <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                  <p className="text-gray-600">Cargando cliente...</p>
+                </div>
+              </div>
+            ) : (
+              <ClientFormModal
+                isOpen={!!viewClientId}
+                onClose={() => setViewClientId(null)}
+                onSave={() => {}}
+                client={Array.isArray(viewClient) ? viewClient[0] : viewClient}
+                readOnly={true}
+                isSaving={false}
+                formError={''}
+              />
+            ))}
 
-        {showDeleteSuccess && (
-          <SuccessModal
-            isOpen={showDeleteSuccess}
-            onClose={() => setShowDeleteSuccess(false)}
-            title="¡Cliente eliminado!"
-            description="Ya no aparecerá en la tabla ni en el buscador."
+          <DeleteClientModal
+            isOpen={!!deleteClientId && deleteClientId.length > 0}
+            clientName={deleteClientName}
+            onCancel={() => setDeleteClientId(null)}
+            onConfirm={handleDeleteClients}
           />
-        )}
-        <DebtFormModal
-          isOpen={isDebtModalOpen}
-          onClose={() => setIsDebtModalOpen(false)}
-          selectedClientIds={Array.from(selectedClientIds)}
-        />
+
+          {showDeleteSuccess && (
+            <SuccessModal
+              isOpen={showDeleteSuccess}
+              onClose={() => setShowDeleteSuccess(false)}
+              title="¡Cliente eliminado!"
+              description="Ya no aparecerá en la tabla ni en el buscador."
+            />
+          )}
+        </article>
       </section>
     </>
   );

@@ -4,7 +4,6 @@ import {
   Search,
   Plus,
   Edit,
-  Bell,
   Trash2,
   Calculator,
   ToggleRight,
@@ -19,15 +18,17 @@ import {
   useUpdateProduct,
   useDeleteProduct,
   useDeactivateProduct,
+  useAdjustProductPrices,
 } from '../../hooks/useProducts';
 import ProductFormModal from '../modal/ProductFormModal';
 import { InventoryLegend } from './InventoryLegend';
 import { getStockStatus, getStockColor } from '../../utils/product';
 import { useGetAllProviders } from '../../hooks/useProviders';
-import type { Product, ProductWithOptionalId } from '../../types/product';
+import type { AdjustProductPriceData, Product, ProductWithOptionalId } from '../../types/product';
 import EmptyProductsState from './EmptyProductsState';
 import DeleteProductModal from '../modal/DeleteProductModal';
 import SuccessModal from '../modal/SuccessModal';
+import AdjustPricesModal from '../modal/AdjustPricesModal';
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,6 +41,7 @@ const ProductsTable: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
+  const [isAdjustPricesModalOpen, setIsAdjustPricesModalOpen] = useState(false);
 
   const { data: products = [], isLoading, error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
@@ -52,6 +54,7 @@ const ProductsTable: React.FC = () => {
   const { mutateAsync: createProductMutation, isPending: isCreating } = useCreateProduct();
   const { mutateAsync: updateProductMutation, isPending: isUpdating } = useUpdateProduct();
   const isSavingProduct = isCreating || isUpdating;
+  const adjustPricesMutation = useAdjustProductPrices();
 
   const hasSelectedProducts = selectedProductIds.size > 0;
   const itemsPerPage = 10;
@@ -213,7 +216,7 @@ const ProductsTable: React.FC = () => {
     if (!products) return [];
 
     let filtered = products;
-    if (searchTerm.trim().length >= 3) {
+    if (searchTerm.trim().length >= 2) {
       filtered = products.filter(
         (product: Product) =>
           product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -299,6 +302,39 @@ const ProductsTable: React.FC = () => {
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+    }
+  };
+
+  const selectedProducts = useMemo(() => {
+    return products.filter((product: Product) => selectedProductIds.has(product.id));
+  }, [products, selectedProductIds]);
+
+  const handleOpenAdjustPricesModal = () => {
+    if (selectedProductIds.size > 0) {
+      setIsAdjustPricesModalOpen(true);
+    }
+  };
+
+  const handleAdjustPrices = async (data: AdjustProductPriceData) => {
+    try {
+      await adjustPricesMutation.mutateAsync(data);
+
+      setSelectedProductIds(new Set());
+      setIsAdjustPricesModalOpen(false);
+
+      setSuccessMessage({
+        title: '¡Hecho!',
+        description: `Los precios se han actualizado con éxito.`,
+      });
+
+      setIsSuccessModalOpen(true);
+    } catch (error) {
+      setSuccessMessage({
+        title: '¡Error al actualizar precios!',
+        description: 'No se pudieron actualizar los precios. Intenta nuevamente.',
+      });
+      setIsSuccessModalOpen(true);
+      console.error('Error al ajustar precios:', error);
     }
   };
 
@@ -419,7 +455,15 @@ const ProductsTable: React.FC = () => {
 
                 {/* Cambiar Precio */}
                 {hasProducts && (
-                  <button className="bg-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-teal-700">
+                  <button
+                    onClick={handleOpenAdjustPricesModal}
+                    disabled={!hasSelectedProducts || adjustPricesMutation.isPending}
+                    className={`flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors ${
+                      hasSelectedProducts
+                        ? 'bg-deep-teal cursor-pointer hover:bg-teal-700'
+                        : 'cursor-not-allowed bg-gray-400'
+                    }`}
+                  >
                     <Calculator size={18} />
                     Cambiar Precio
                   </button>
@@ -430,16 +474,16 @@ const ProductsTable: React.FC = () => {
 
           {/* Tabla */}
           {!hasProducts ? (
-            <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+            <main className="border-sky-glimmer overflow-hidden rounded-xl border bg-white shadow-sm">
               <EmptyProductsState onAddProduct={handleNewProduct} />
             </main>
           ) : (
             <>
-              <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+              <main className="border-sky-glimmer overflow-hidden rounded-xl border bg-white shadow-sm">
                 <article className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-polar-mist">
-                      <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                      <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal [&>th:first-child]:border-l-0">
                         <th className="w-12 px-4 py-3">
                           <Check />
                         </th>
@@ -447,13 +491,13 @@ const ProductsTable: React.FC = () => {
                         <th>Categoría</th>
                         <th>Stock unitario</th>
                         <th className="border-none">
-                          <Bell size={18} className="mx-auto" />
+                          <img className="h-6 w-6 max-w-6" src="/icons/alarma.svg" alt="" />
                         </th>
                         <th>Precio venta</th>
                         <th className="w-8">Editar</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="bg-white">
                       {currentProducts.map((product: Product) => {
                         const stockStatus = getStockStatus(product.amount);
                         const stockColor = getStockColor(stockStatus);
@@ -462,7 +506,7 @@ const ProductsTable: React.FC = () => {
                         return (
                           <tr
                             key={product.id}
-                            className={`${product.isActive ? 'hover:bg-gray-50' : 'bg-custom-mist text-neutral-400/80'} border-b-2 border-gray-200 transition-colors last:border-none`}
+                            className={`${product.isActive ? 'hover:bg-gray-50' : 'bg-custom-mist text-neutral-400/80'} border-pastel-blue border-b-2 transition-colors last:border-none`}
                           >
                             <td className="px-5 py-3">
                               <input
@@ -472,13 +516,13 @@ const ProductsTable: React.FC = () => {
                                 className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
                               />
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               {product.name}
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               {product.category}
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               {product.amount}
                             </td>
                             <td>
@@ -486,10 +530,10 @@ const ProductsTable: React.FC = () => {
                                 className={`mx-auto h-4 w-4 rounded-full ${product.isActive ? stockColor : 'bg-neutral-400/80'}`}
                               ></div>
                             </td>
-                            <td className="border-l-2 border-gray-200 px-4 text-sm">
+                            <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               $ {product.sellPrice}
                             </td>
-                            <td className="w-fit border-l-2 border-gray-200 text-center">
+                            <td className="border-pastel-blue w-fit border-l-2 text-center">
                               <button
                                 onClick={() => handleEditProduct(product)}
                                 className={`${product.isActive ? 'text-glacial-blue hover:text-blue-500' : 'text-neutral-400/80 hover:text-neutral-500'} cursor-pointer py-3 transition-colors`}
@@ -581,6 +625,13 @@ const ProductsTable: React.FC = () => {
         onClose={() => setIsSuccessModalOpen(false)}
         title={successMessage.title}
         description={successMessage.description}
+      />
+      <AdjustPricesModal
+        isOpen={isAdjustPricesModalOpen}
+        onClose={() => setIsAdjustPricesModalOpen(false)}
+        onConfirm={handleAdjustPrices}
+        selectedProducts={selectedProducts}
+        isLoading={adjustPricesMutation.isPending}
       />
     </>
   );
