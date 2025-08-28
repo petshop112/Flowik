@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { useGetAllProducts } from '../../hooks/useProducts';
-import type { Product } from '../../types/product';
+import { useSelector } from 'react-redux';
+import { selectAuth } from '../../features/auth/authSlice';
+import { useDebtDashboardTotals } from '../../hooks/useDebtDashboardTotals';
+import { useDebtChartData } from '../../hooks/useDebtChartData';
 
 import {
   BarChart,
@@ -16,34 +18,6 @@ import {
 
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
-
-const data = [
-  {
-    name: 'Enero',
-    deudasNuevas: 75000,
-    deudasAntiguas: 40000,
-    deudasCobros: 95000,
-  },
-  {
-    name: 'Febrero',
-    deudasNuevas: 90000,
-    deudasAntiguas: 85000,
-    deudasCobros: 120000,
-  },
-  {
-    name: 'Marzo',
-    deudasNuevas: 130000,
-    deudasAntiguas: 0,
-    deudasCobros: 100000,
-  },
-  {
-    name: 'Abril',
-    deudasNuevas: 10000,
-    deudasAntiguas: 35000,
-    deudasCobros: 40000,
-  },
-];
 
 const productosData = [
   { producto: 'Pedigree Adulto Razas Pequeñas 3kg', ventas: 45, stock: 2 },
@@ -60,7 +34,7 @@ const productosData = [
 const legendNames: Record<string, string> = {
   deudasNuevas: 'Deudas Nuevas',
   deudasAntiguas: 'Deudas Antiguas',
-  deudasCobros: 'Deudas Cobros',
+  deudasCobros: 'Deudas Cobradas',
 };
 
 const renderCustomLegend = (props: any) => {
@@ -128,6 +102,12 @@ const Home = () => {
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
   };
+  const id_user = Number(sessionStorage.getItem('userId'));
+  const { token } = useSelector(selectAuth);
+  const { data: debtTotals, isLoading: loadingDebtTotals } = useDebtDashboardTotals(id_user, token);
+  const { chartData, cuatrimestres, cuatrimestreActivo, setCuatrimestreActivo } = useDebtChartData(
+    debtTotals?.clientsRaw ?? []
+  );
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
       <div className="grid grid-cols-3 gap-6">
@@ -141,7 +121,9 @@ const Home = () => {
             <span className="mb-2 text-xs text-[#6b7280]">Suma de saldos pendientes</span>
             <div className="mt-4 flex">
               <CurrencyDollarIcon className="mr-2 h-9 w-9 text-[#82D8E0]" />
-              <span className="text-4xl font-semibold text-[#042D95]">156.026</span>
+              <span className="text-4xl font-semibold text-[#042D95]">
+                {loadingDebtTotals ? '...' : debtTotals?.totalOutstanding?.toLocaleString('es-AR')}
+              </span>
             </div>
           </div>
           {/* Cartita detalle NUMERICO DE LA DEUDA DEL CUATRIMESTRE */}
@@ -150,23 +132,35 @@ const Home = () => {
               <li className="flex items-center gap-2 text-[#042D95]">
                 <span className="inline-block h-3 w-3 rounded bg-[#82D8E0]" />
                 Deudas nuevas
-                <span className="ml-auto text-2xl font-semibold text-[#048995]">$69.950</span>
+                <span className="ml-auto text-2xl font-semibold text-[#048995]">
+                  {' '}
+                  ${loadingDebtTotals ? '...' : debtTotals?.totalNew?.toLocaleString('es-AR')}
+                </span>
               </li>
               <li className="flex items-center gap-2 text-[#042D95]">
                 <span className="inline-block h-3 w-3 rounded bg-[#FE9B38]" />
                 Deudas antiguas
-                <span className="ml-auto text-2xl font-semibold text-[#048995]">$100.715</span>
+                <span className="ml-auto text-2xl font-semibold text-[#048995]">
+                  ${loadingDebtTotals ? '...' : debtTotals?.totalOld?.toLocaleString('es-AR')}
+                </span>
               </li>
               <li className="flex items-center gap-2 text-[#042D95]">
                 <span className="inline-block h-3 w-3 rounded bg-[#5685FA]" />
-                Deudas cobros
+                Deudas Cobradas
                 <span className="text-[#048995]] ml-auto text-2xl font-semibold text-[#048995]">
-                  $42.715
+                  ${loadingDebtTotals ? '...' : debtTotals?.totalPaid?.toLocaleString('es-AR')}
                 </span>
               </li>
               <li className="flex items-center gap-2 text-[#042D95]">
                 Superavit/Deficit
-                <span className="ml-auto text-2xl font-semibold text-[#048995]">-$27.235</span>
+                <span className="ml-auto text-2xl font-semibold text-[#048995]">
+                  $
+                  {loadingDebtTotals
+                    ? '...'
+                    : debtTotals
+                      ? debtTotals.balance.toLocaleString('es-AR', { maximumFractionDigits: 2 })
+                      : '...'}
+                </span>
               </li>
             </ul>
           </div>
@@ -181,8 +175,16 @@ const Home = () => {
               Balance de deuda
             </span>
             <div className="relative w-44">
-              <select className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs">
-                <option className="font-bold">1º Cuatrimestre</option>
+              <select
+                className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs"
+                value={cuatrimestreActivo}
+                onChange={(e) => setCuatrimestreActivo(Number(e.target.value))}
+              >
+                {cuatrimestres.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
               </select>
               <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
@@ -203,7 +205,7 @@ const Home = () => {
               <BarChart
                 width={500}
                 height={400}
-                data={data}
+                data={chartData}
                 margin={{
                   top: 0,
                   right: 0,
