@@ -17,6 +17,7 @@ export type ClientFormValues = {
   telephone_client: string;
   direction_client: string;
   email_client: string;
+  notes: string;
 };
 
 export type Client = ClientFormValues & {
