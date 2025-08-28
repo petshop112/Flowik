@@ -80,7 +80,7 @@ const validationSchema = Yup.object({
     .matches(/\d/, 'Debe contener al menos un caracter numérico')
     .matches(/[A-Z]/, 'Debe contener al menos una letra mayúscula')
     .matches(/[a-z]/, 'Debe contener al menos una letra minúscula')
-    // .matches(/[!@#$%^&*(),.?":{}|<>_-]/, 'Debe contener al menos un caracter especial')
+    .matches(/[!@#$%^&*(),.?":{}|<>_-]/, 'Debe contener al menos un caracter especial')
     .required('La contraseña es obligatoria'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')

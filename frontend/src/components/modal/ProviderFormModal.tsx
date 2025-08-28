@@ -31,7 +31,6 @@ const ProviderFormModal: React.FC<Props> = ({
   isSaving = false,
   provider,
   readOnly = false,
-  proveedoresLista,
   formError,
 }) => {
   const initialForm: Form = useMemo(() => {
@@ -56,7 +55,6 @@ const ProviderFormModal: React.FC<Props> = ({
     email_provider: false,
     category_provider: false,
   });
-  const [duplicateError, setDuplicateError] = useState('');
   const fieldRefs = useRef<Partial<Record<keyof Form, HTMLInputElement | null>>>({});
   const cachedInitialRef = useRef<Form | null>(null);
 
@@ -122,7 +120,6 @@ const ProviderFormModal: React.FC<Props> = ({
 
     const allErrors = validateAll(form);
     setErrors(allErrors);
-    setDuplicateError('');
     console.log('Proveedor creado exitosamente');
 
     if (Object.keys(allErrors).length > 0) {
@@ -136,22 +133,6 @@ const ProviderFormModal: React.FC<Props> = ({
       });
       focusFirstError(allErrors);
       return;
-    }
-
-    // Validación mejorada de duplicados (excluye el propio proveedor si está editando)
-    if (!readOnly && proveedoresLista) {
-      const email = form.email_provider.trim().toLowerCase();
-      const cuit = form.cuit_provider?.trim().toLowerCase() || '';
-      const existe = proveedoresLista.some(
-        (c) =>
-          c.id_provider !== provider?.id_provider &&
-          (c.email_provider?.trim().toLowerCase() === email ||
-            c.cuit_provider?.trim().toLowerCase() === cuit)
-      );
-      if (existe) {
-        setDuplicateError('Ya existe un proveedor con ese email o CUIT.');
-        return;
-      }
     }
 
     // payload para el backend
@@ -364,12 +345,11 @@ const ProviderFormModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Mostrar error de duplicado en el formulario */}
-          {duplicateError && (
-            <div className="mb-4 text-center font-semibold text-red-600">{duplicateError}</div>
-          )}
           {formError && (
-            <div className="mb-4 text-center font-semibold text-red-600">{formError}</div>
+            <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+              <InformationCircleIcon className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2} />
+              {formError}
+            </div>
           )}
 
           {/* Botones */}

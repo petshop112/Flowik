@@ -78,11 +78,16 @@ const ProductsTable: React.FC = () => {
     );
   }, [providers, searchTerm]);
 
+  const sortedProviders = [...(providers ?? [])].sort((a, b) => {
+    if (a.isActive === b.isActive) return 0;
+    return a.isActive ? -1 : 1;
+  });
+
   const totalProviders = filteredProviders.length;
   const totalPages = Math.ceil(totalProviders / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentProviders = filteredProviders.slice(startIndex, endIndex);
+  const currentProviders = sortedProviders.slice(startIndex, endIndex);
 
   // const isDeactivating = deactivateProviderMutation.isPending;
   // Ajusta la página si el total de páginas cambia tras eliminar providers
@@ -124,19 +129,19 @@ const ProductsTable: React.FC = () => {
   };
 
   const handleSaveProvider = async (values: ProviderFormValues) => {
-    if (!editingProvider) {
-      const alreadyExists = providers?.some(
-        (c) =>
-          c.name_provider.trim().toLowerCase() === values.name_provider.trim().toLowerCase() ||
-          c.cuit_provider.trim().toLowerCase() === values.cuit_provider.trim().toLowerCase()
-      );
-      if (alreadyExists) {
-        setFormError('Ya existe un proveedor con ese email o CUIT.');
-        setIsSaving(false);
-        setTimeout(() => setFormError(''), 2500);
-        return;
-      }
-    }
+    // if (!editingProvider) {
+    //   const alreadyExists = providers?.some(
+    //     (c) =>
+    //       c.name_provider.trim().toLowerCase() === values.name_provider.trim().toLowerCase() ||
+    //       c.cuit_provider.trim().toLowerCase() === values.cuit_provider.trim().toLowerCase()
+    //   );
+    //   if (alreadyExists) {
+    //     setFormError('Ya existe un proveedor con ese email o CUIT.');
+    //     setIsSaving(false);
+    //     setTimeout(() => setFormError(''), 2500);
+    //     return;
+    //   }
+    // }
     try {
       setIsSaving(true);
       let result;
@@ -157,7 +162,8 @@ const ProductsTable: React.FC = () => {
       setIsModalOpen(false);
       setEditingProvider(null);
     } catch (error: any) {
-      setFormError(error?.message || 'Error inesperado al guardar');
+      const backendMsg = error?.response?.data?.message;
+      setFormError(backendMsg || 'Error inesperado al guardar');
     } finally {
       setIsSaving(false);
     }
