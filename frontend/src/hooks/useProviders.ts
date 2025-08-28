@@ -20,31 +20,31 @@ export const useGetAllProviders = () => {
 };
 
 export const useDeactivateProvider = (id_user?: number) => {
-  // const token = getUserTokenFromStorage();
-  // const queryClient = useQueryClient();
-  // const key = ['clients', id_user];
-  // return useMutation<Client, Error, number>({
-  //   mutationFn: (id_client) => {
-  //     if (!token) throw new Error('No hay token de autenticación');
-  //     return clientService.deactivateClient(id_client, token);
-  //   },
-  //   onMutate: async (id_client) => {
-  //     await queryClient.cancelQueries({ queryKey: key });
-  //     const prev = queryClient.getQueryData<Client[]>(key) ?? [];
-  //     queryClient.setQueryData<Client[]>(key, (old = []) =>
-  //       old.map((c) => (c.id_client === id_client ? { ...c, isActive: !c.isActive } : c))
-  //     );
-  //     return { prev };
-  //   },
-  //   onError: (_err, _id, ctx) => {
-  //     if ((ctx as { prev?: Client[] })?.prev)
-  //       queryClient.setQueryData(key, (ctx as { prev?: Client[] }).prev);
-  //   },
-  //   onSettled: () => {
-  //     queryClient.invalidateQueries({ queryKey: key });
-  //   },
-  // });
-  console.log(id_user);
+  const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
+  const key = ['providers', id_user];
+  return useMutation<Provider, Error, number[]>({
+    mutationFn: (ids) => {
+      if (!token) throw new Error('No hay token de autenticación');
+      return providerService.deactivateProvider(ids, token);
+    },
+    onMutate: async (ids) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData<Provider[]>(key) ?? [];
+      queryClient.setQueryData<Provider[]>(key, (old = []) =>
+        old.map((c) => (ids.includes(c.id_provider) ? { ...c, isActive: !c.isActive } : c))
+      );
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if ((ctx as { prev?: Provider[] })?.prev)
+        queryClient.setQueryData(key, (ctx as { prev?: Provider[] }).prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['providers'] });
+      queryClient.invalidateQueries({ queryKey: key });
+    },
+  });
 };
 
 export const useEditProvider = () => {
@@ -84,5 +84,32 @@ export const useGetProviderById = (id_provider?: number) => {
     staleTime: 2 * 60 * 1000,
     retry: 1,
     refetchOnWindowFocus: false,
+  });
+};
+
+export const useDeleteProvider = (id_provider?: number) => {
+  const token = getUserTokenFromStorage();
+  const queryClient = useQueryClient();
+  const key = ['providers', id_provider];
+  return useMutation({
+    mutationFn: async (id_provider: number) => {
+      if (!token) throw new Error('No hay token de autenticación');
+      await providerService.deleteProvider(id_provider, token);
+    },
+    onMutate: async (id_provider) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData<Provider[]>(key) ?? [];
+      queryClient.setQueryData<Provider[]>(key, (old = []) =>
+        old.filter((c) => c.id_provider !== id_provider)
+      );
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(key, ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['providers'] });
+      queryClient.invalidateQueries({ queryKey: key });
+    },
   });
 };

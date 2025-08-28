@@ -3,7 +3,6 @@ import { API_BASE_URL } from '../lib/baseurl';
 import type { Provider, ProviderFormValues } from '../types/provider';
 
 const getAllProviders = async (token: string): Promise<Provider[]> => {
-  console.log(token);
   try {
     const { data } = await axios.get(`${API_BASE_URL}providers`, {
       headers: {
@@ -16,11 +15,6 @@ const getAllProviders = async (token: string): Promise<Provider[]> => {
     if (axiosError.response?.status === 404) {
       return [];
     }
-
-    console.error(
-      '[getAllProviders] Error fetching data:',
-      axiosError.response?.data ?? axiosError.message
-    );
     throw error;
   }
 };
@@ -59,16 +53,46 @@ const createProvider = async (payload: ProviderFormValues, token: string): Promi
 
 const getProviderById = async (id_user: number, token: string): Promise<Provider[]> => {
   try {
-    console.log('[getProviderById] API_BASE_URL:', API_BASE_URL);
-    const { data } = await axios.get(`${API_BASE_URL}provider/${id_user}`, {
+    const { data } = await axios.get(`${API_BASE_URL}providers/${id_user}`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    console.log('[getAllProviders] data:', data);
     return data;
   } catch (err) {
     const e = err as AxiosError;
     console.error('[getAllProviders] Error:', e.response?.data ?? e.message);
+    throw err;
+  }
+};
+
+const deleteProvider = async (id_provider: number, token: string): Promise<Provider> => {
+  try {
+    const { data } = await axios.delete(`${API_BASE_URL}providers/${id_provider}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return data;
+  } catch (err) {
+    const e = err as AxiosError;
+    console.error('[getProviderSimpleById] Error:', e.response?.data ?? e.message);
+    throw err;
+  }
+};
+
+const deactivateProvider = async (ids: number[], token: string): Promise<Provider> => {
+  try {
+    const { data } = await axios.patch(
+      `${API_BASE_URL}providers`,
+      { IDs: ids },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      }
+    );
+    return data;
+  } catch (err) {
+    const e = err as AxiosError;
+    console.error('[deactivateProvider] Error:', e.response?.data ?? e.message);
     throw err;
   }
 };
@@ -78,4 +102,6 @@ export const providerService = {
   editProvider,
   createProvider,
   getProviderById,
+  deleteProvider,
+  deactivateProvider,
 };
