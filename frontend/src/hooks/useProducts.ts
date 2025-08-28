@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService } from '../api/productService';
 import { getUserTokenFromStorage } from '../utils/storage';
-import type { AdjustProductPriceData, ProductUpdateData } from '../types/product';
+import type { AdjustProductPriceData, ProductUpdateData, Product } from '../types/product';
 
 export const useGetAllProducts = () => {
   const token = getUserTokenFromStorage();
 
-  return useQuery({
+  return useQuery<Product[], Error>({
     queryKey: ['products'],
     queryFn: async () => {
       if (!token) throw new Error('No hay token, no se puede acceder');
