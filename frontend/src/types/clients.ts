@@ -1,3 +1,16 @@
+export type Payment = {
+  id: number;
+  paymentMount: number;
+  datePayment: string;
+};
+
+export type Debt = {
+  debt_date: string;
+  mount: number;
+  status: string;
+  payments: Payment[];
+};
+
 export type ClientFormValues = {
   name_client: string;
   document_type: string;
@@ -6,9 +19,8 @@ export type ClientFormValues = {
   email_client: string;
 };
 
-// si tu API devuelve todos los campos + id, usa este para listar/mostrar
-// & interseccion
 export type Client = ClientFormValues & {
   id_client: number;
   isActive?: boolean;
+  debts?: Debt[];
 };
