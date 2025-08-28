@@ -5,6 +5,7 @@ import { clientService } from '../../api/clientService';
 import { useSelector } from 'react-redux';
 import { selectAuth } from '../../features/auth/authSlice';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import SuccessModal from '../modal/SuccessModal';
 
 interface DebtFormModalProps {
   isOpen: boolean;
@@ -17,8 +18,12 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
   const [clientInfo, setClientInfo] = useState<{ name_client?: string } | null>(null);
   const [mount, setMount] = useState('');
   const [loading, setLoading] = useState(false);
+
   const [historic, setHistoric] = useState<any[]>([]);
   const [loadingDebts, setLoadingDebts] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successTitle, setSuccessTitle] = useState('');
+  const [successDescription, setSuccessDescription] = useState('');
 
   useEffect(() => {
     if (isOpen && selectedClientIds.length === 1) {
@@ -70,21 +75,21 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
   if (!isOpen) return null;
 
   const handleAddDebt = () => {
-    // Lógica base (puedes mejorar si usas la tabla para añadir antes de guardar real)
     setMount('');
   };
 
   const handleSaveDebt = async () => {
     setLoading(true);
-    setError(null);
+
     try {
       await Promise.all(
         selectedClientIds.map((id) => debtService.createDebt(id, { mount: Number(mount) }, token!))
       );
-      setSuccess(true);
+
       setMount('');
-      onClose();
-      // Recargar historial después de crear
+      setSuccessTitle('¡Deuda añadida!');
+      setSuccessDescription('La deuda se ha añadido correctamente.');
+      setShowSuccessModal(true);
       setLoadingDebts(true);
       debtService
         .getDebtsByClient(selectedClientIds[0], token!)
@@ -92,7 +97,9 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
         .catch(() => setHistoric([]))
         .finally(() => setLoadingDebts(false));
     } catch (e: any) {
-      setError(e?.message || 'Error al guardar deuda');
+      setSuccessTitle('¡Ups, ocurrió un error!');
+      setSuccessDescription(e?.message || 'No se pudo guardar la deuda.');
+      setShowSuccessModal(true);
     } finally {
       setLoading(false);
     }
@@ -100,7 +107,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
 
   const handleDiscountDebt = async () => {
     setLoading(true);
-    setError(null);
+
     try {
       const today = new Date().toISOString().split('T')[0];
       await Promise.all(
@@ -115,10 +122,10 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           )
         )
       );
-      setSuccess(true);
+      setSuccessTitle('¡Deuda modificada!');
+      setSuccessDescription('La deuda se ha modificado correctamente.');
+      setShowSuccessModal(true);
       setMount('');
-      onClose();
-      // Recargar historial después de pagar
       setLoadingDebts(true);
       debtService
         .getDebtsByClient(selectedClientIds[0], token!)
@@ -126,7 +133,9 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
         .catch(() => setHistoric([]))
         .finally(() => setLoadingDebts(false));
     } catch (e: any) {
-      setError(e?.message || 'Error al descontar deuda');
+      setSuccessTitle('¡Ups, ocurrió un error!');
+      setSuccessDescription(e?.message || 'No se pudo descontar la deuda.');
+      setShowSuccessModal(true);
     } finally {
       setLoading(false);
     }
@@ -134,6 +143,12 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title={successTitle}
+        description={successDescription}
+      />
       <div className="w-full max-w-3xl rounded-2xl bg-white pt-9">
         {/* HEADER */}
         <header className="flex items-center justify-between px-8 py-6">
