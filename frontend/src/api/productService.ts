@@ -147,6 +147,32 @@ const adjustProductPrices = async (data: AdjustProductPriceData, token: string) 
   }
 };
 
+const importProductsFile = async (providerId: number, file: File, token: string) => {
+  try {
+    const formData = new FormData();
+    formData.append('documents', file);
+
+    const response = await axios.post(
+      `${API_BASE_URL}products/upload?providerId=${providerId}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      '[importProductsFile] Error uploading file:',
+      axiosError.response?.data ?? axiosError.message
+    );
+    throw error;
+  }
+};
+
 export const productService = {
   getAllProducts,
   getProductById,
@@ -155,4 +181,5 @@ export const productService = {
   deleteProduct,
   deactivateProduct,
   adjustProductPrices,
+  importProductsFile,
 };
