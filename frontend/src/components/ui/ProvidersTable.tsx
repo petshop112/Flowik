@@ -70,6 +70,12 @@ const ProductsTable: React.FC = () => {
     selectedClients.length > 0 && selectedClients.every((c) => c.isActive !== false);
   const actionLabel = allInactive ? 'Activar' : allActive ? 'Desactivar' : 'Activar/Desactivar';
 
+  const selectedProviders = providers?.filter((p) => selectedProviderIds.has(p.id_provider)) ?? [];
+
+  const allSelectedActive = selectedProviders.every((p) => p.isActive === true);
+  const allSelectedInactive = selectedProviders.every((p) => p.isActive === false);
+  const isUniformSelection = allSelectedActive || allSelectedInactive;
+
   const filteredProviders = useMemo(() => {
     if (!providers) return [];
     if (!searchTerm.trim()) return providers;
@@ -99,6 +105,12 @@ const ProductsTable: React.FC = () => {
     const pages = Math.max(1, Math.ceil(total / itemsPerPage));
     if (currentPage > pages) setCurrentPage(pages);
   }, [filteredProviders.length, currentPage]);
+
+  React.useEffect(() => {
+    if (isModalOpen) {
+      setFormError(null);
+    }
+  }, [isModalOpen]);
 
   const handleDeactivate = async () => {
     if (!hasSelectedProviders) return;
@@ -232,7 +244,7 @@ const ProductsTable: React.FC = () => {
                   <article
                     className={`flex items-center gap-2 [&>button]:font-semibold ${hasSelectedProviders ? '[&>button]:cursor-pointer' : ''}`}
                   >
-                    <button
+                    {/* <button
                       onClick={hasSelectedProviders ? handleDeactivate : undefined}
                       disabled={!hasSelectedProviders || isDeactivating}
                       className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedProviders ? 'text-deep-teal' : 'text-gray-400'}`}
@@ -251,7 +263,42 @@ const ProductsTable: React.FC = () => {
                               : 'Cambiando estado...'
                           : actionLabel}
                       </span>
+                    </button> */}
+                    <button
+                      onClick={
+                        hasSelectedProviders && isUniformSelection ? handleDeactivate : undefined
+                      }
+                      disabled={!hasSelectedProviders || isDeactivating || !isUniformSelection}
+                      className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
+                        hasSelectedProviders && isUniformSelection
+                          ? 'text-deep-teal'
+                          : 'text-gray-400'
+                      }`}
+                      title={actionLabel}
+                    >
+                      <ToggleRight
+                        size={18}
+                        className={
+                          hasSelectedProviders && isUniformSelection
+                            ? 'text-tropical-cyan'
+                            : 'text-gray-400'
+                        }
+                      />
+                      <span
+                        className={
+                          hasSelectedProviders && isUniformSelection
+                            ? 'text-deep-teal'
+                            : 'text-gray-400'
+                        }
+                      >
+                        {isDeactivating
+                          ? allSelectedInactive
+                            ? 'Activando...'
+                            : 'Desactivando...'
+                          : actionLabel}
+                      </span>
                     </button>
+
                     <button
                       onClick={() => {
                         if (hasSelectedProviders) {

@@ -36,7 +36,7 @@ export function validateField(name: keyof Errors, form: Form, errors: Errors): E
       if (v.length > 0) {
         if (!lengthBetween(v, 10, 100)) {
           error = 'La dirección debe tener entre 10 y 100 caracteres.';
-        } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\-#/º]+$/.test(v)) {
+        } else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\-#/º]+$|^$/.test(v)) {
           error = 'La dirección contiene caracteres no permitidos.';
         }
       }
@@ -64,8 +64,8 @@ export function validateField(name: keyof Errors, form: Form, errors: Errors): E
     case 'category_provider': {
       const v = form.category_provider.trim();
       if (isEmpty(v)) error = 'La categoría es obligatoria.';
-      else if (!lengthBetween(v, 10, 300))
-        error = 'La categoría debe tener entre 10 y 300 caracteres.';
+      else if (!lengthBetween(v, 3, 300))
+        error = 'La categoría debe tener entre 3 y 300 caracteres.';
       break;
     }
     default:
