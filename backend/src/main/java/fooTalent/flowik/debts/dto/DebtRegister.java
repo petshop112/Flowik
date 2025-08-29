@@ -11,6 +11,5 @@ public record DebtRegister(
         @DecimalMin(value = "0.01", inclusive = true, message = "La Deuda debe ser mayor o igual a 0.01.")
         @Digits(integer = 10,fraction = 2)
         BigDecimal mount
-
 ) {
 }
