@@ -262,7 +262,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           {/* Header */}
           <header className="flex items-center justify-between px-8 pt-12">
             <h2 className="text-2xl font-semibold text-gray-900">
-              {isEditMode ? `ID - Editar Producto` : 'Alta de Producto'}
+              {isEditMode ? formData.name : 'Alta de Producto'}
             </h2>
             <article className="flex items-center gap-1 text-sm font-semibold">
               <p className="text-dark-blue">Última actualización:</p>
