@@ -18,7 +18,7 @@ export default function Header({ role = 'Administrador' }: HeaderProps) {
 
   useAutoLogout();
 
-  const storedUserName = sessionStorage.getItem('username') || 'Usuario';
+  const storedUserName = localStorage.getItem('username') || 'Usuario';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

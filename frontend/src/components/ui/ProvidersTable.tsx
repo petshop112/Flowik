@@ -49,7 +49,7 @@ const ProductsTable: React.FC = () => {
   );
 
   function getUserId() {
-    const storedId = sessionStorage.getItem('userId');
+    const storedId = localStorage.getItem('userId');
     return storedId ? Number(storedId) : undefined;
   }
   const id_user = getUserId();

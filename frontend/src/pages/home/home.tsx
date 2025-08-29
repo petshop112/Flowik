@@ -104,7 +104,7 @@ const Home = () => {
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
   };
-  const id_user = Number(sessionStorage.getItem('userId'));
+  const id_user = Number(localStorage.getItem('userId'));
   const { token } = useSelector(selectAuth);
   const { data: debtTotals, isLoading: loadingDebtTotals } = useDebtDashboardTotals(id_user, token);
   const { chartData, cuatrimestres, cuatrimestreActivo, setCuatrimestreActivo } = useDebtChartData(

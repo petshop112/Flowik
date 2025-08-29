@@ -12,7 +12,7 @@ import { CircleUserRound } from 'lucide-react';
 
 const NavBar = () => {
   const token = useAuthToken();
-  const userName = sessionStorage.getItem('username');
+  const userName = localStorage.getItem('username');
 
   return (
     <nav className="flex justify-between rounded-2xl bg-slate-900 p-2 text-2xl text-white">
