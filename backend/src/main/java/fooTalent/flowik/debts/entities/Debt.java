@@ -32,9 +32,6 @@ public class Debt {
     @Column(precision = 10, scale = 2)
     private BigDecimal mount = BigDecimal.ZERO;
 
-    @Column(name = "expiration_date")
-    private LocalDate expirationDate;
-
     @Column(name = "overdue_Debt")
     private Integer overdueDebt;
 

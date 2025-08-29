@@ -40,19 +40,15 @@ public class NotificationService {
         return repository.save(notification);
     }
 
-    public Notification createDebtNotification(String title, String description, Long referenceId) {
-        String finalCreatedBy = resolveCreatedBy("system");
-
-        Notification notification = Notification.builder()
-                .title(title)
-                .description(description)
-                .type(NotificationType.DEBT)
-                .referenceId(referenceId)
-                .readNotification(false)
-                .createdBy(finalCreatedBy)
-                .build();
-
-        return repository.save(notification);
+    public void createDebtNotification(String title, String description, Long debtId, String createdBy) {
+        Notification notification = new Notification();
+        notification.setTitle(title);
+        notification.setDescription(description);
+        notification.setReferenceId(debtId);
+        notification.setCreatedBy(createdBy);
+        notification.setType(NotificationType.DEBT);
+        notification.setReadNotification(false);
+        repository.save(notification);
     }
 
         public void markAsRead(Long id, String userEmail) {
@@ -79,6 +75,12 @@ public class NotificationService {
     public boolean hasActiveStockNotification(Long productId, String userEmail, String type) {
         return repository.existsByReferenceIdAndCreatedByAndTitle(productId, userEmail, type);
     }
+    public boolean hasActiveDebtNotification(Long debtId, String createdBy, String title) {
+        return repository.existsByReferenceIdAndCreatedByAndTitleAndTypeAndReadNotificationIsFalse(
+                debtId, createdBy, title, NotificationType.DEBT
+        );
+    }
+
     @Scheduled(cron = "0 0 2 * * ?")
     @Transactional
     public void deleteAllOldNotifications() {

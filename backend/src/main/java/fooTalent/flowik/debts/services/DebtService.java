@@ -10,6 +10,7 @@ import fooTalent.flowik.debts.repositories.DebtRepository;
 import fooTalent.flowik.exceptions.ResourceNotFoundException;
 import fooTalent.flowik.notifications.services.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +43,7 @@ public class DebtService {
         return new DebtResponse(saved);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<DebtResponse> getDebtsByClient(Long clientId, String email) {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente"));
@@ -52,7 +53,7 @@ public class DebtService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public DebtResponse getDebtById(Long debtId, String email) {
         Debt debt = debtRepository.findById(debtId)
                 .orElseThrow(() -> new ResourceNotFoundException("Deuda", "ID", debtId));
@@ -60,39 +61,43 @@ public class DebtService {
         return new DebtResponse(debt);
     }
 
-    @Transactional(readOnly = true)
-    public void updateAccountStatus(){
-
+    @Scheduled(fixedRate = 8 * 60 * 60 * 1000)
+    @Transactional
+    public void updateAccountStatus() {
         List<Debt> debts = debtRepository.findAll();
 
-        for(Debt debt : debts){
-            LocalDate expirationDate = debt.getExpirationDate();
-            Integer overdueDebt = debt.getOverdueDebt();
-            Integer criticalDebt = debt.getCriticalDebt();
-            Long daysExpired = null;
+        for (Debt debt : debts) {
+            long daysExpired = ChronoUnit.DAYS.between(debt.getDebt_date(), LocalDate.now());
 
             String notificationTitle = null;
             String notificationDescription = null;
 
-            if(LocalDate.now().isAfter(expirationDate)){
-                daysExpired = ChronoUnit.DAYS.between(expirationDate, LocalDate.now());
+            if (daysExpired >= debt.getOverdueDebt() && daysExpired < debt.getCriticalDebt()) {
+                notificationTitle = "Alerta de deuda atrasada";
+                notificationDescription = "¡Alerta! La deuda de '" + debt.getClient().getName_client()
+                        + "' ha alcanzado el nivel ATRASADO.";
+                debt.setStatus(StatusDebt.Atrasado);
 
-                if(daysExpired >= overdueDebt && daysExpired <= criticalDebt){
-                    notificationTitle = "Alerta de deuda atrasada";
-                    notificationDescription = "¡Alerta! La deuda de '" + debt.getClient().getName_client() + "' ha alcanzado el nivel ATRASADO.";
-                }else if(daysExpired <= criticalDebt){
-                    notificationTitle = "Alerta de deuda crítica";
-                    notificationDescription = "¡Alerta! La deuda de '" + debt.getClient().getName_client() + "' ha alcanzado el nivel CRÍTICO.";
-                }
+            } else if (daysExpired >= debt.getCriticalDebt()) {
+                notificationTitle = "Alerta de deuda crítica";
+                notificationDescription = "¡Alerta! La deuda de '" + debt.getClient().getName_client()
+                        + "' ha alcanzado el nivel CRÍTICO.";
+                debt.setStatus(StatusDebt.Critico);
+            }
 
-                if(notificationTitle != null) {
-                    String notificationCreatorEmail = debt.getCreatedBy();
+            if (notificationTitle != null) {
+                String notificationCreatorEmail = debt.getCreatedBy();
 
-                    boolean alreadyNotified = notificationService.hasActiveStockNotification(debt.getId(), notificationCreatorEmail, notificationTitle);
+                boolean alreadyNotified = notificationService.hasActiveDebtNotification(
+                        debt.getId(), notificationCreatorEmail, notificationTitle);
 
-                    if (!alreadyNotified) {
-                        notificationService.createStockNotification(notificationTitle, notificationDescription, debt.getId(), notificationCreatorEmail);
-                    }
+                if (!alreadyNotified) {
+                    notificationService.createDebtNotification(
+                            notificationTitle,
+                            notificationDescription,
+                            debt.getId(),
+                            notificationCreatorEmail
+                    );
                 }
             }
         }
