@@ -4,17 +4,7 @@ import ImportFileModal from '../modal/ImportFileModal';
 import { productService } from '../../api/productService';
 import { useSelector } from 'react-redux';
 import { selectAuth } from '../../features/auth/authSlice';
-import {
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  Calculator,
-  ToggleRight,
-  ChevronRight,
-  ChevronLeft,
-  Check,
-} from 'lucide-react';
+import { Search, Plus, Edit, Trash2, ToggleRight, ChevronRight, ChevronLeft } from 'lucide-react';
 import {
   useCreateProduct,
   useGetAllProducts,
@@ -204,7 +194,7 @@ const ProductsTable: React.FC = () => {
 
       setSuccessMessage({
         title: '¡Eliminación completada!',
-        description: `Los elementos seleccionados ya no estarán disponibles en la tabla ni en el buscador.`,
+        description: `Los elementos seleccionados ya no aparecerán en la tabla ni en el buscador.`,
       });
 
       setIsSuccessModalOpen(true);
@@ -467,11 +457,11 @@ const ProductsTable: React.FC = () => {
             <h1 className="text-dark-blue mb-4 text-2xl font-semibold">Productos</h1>
 
             {/* Barra de acciones */}
-            <article className="flex flex-wrap items-center justify-between gap-3">
-              {hasProducts ? (
-                <article className="flex items-center gap-2 [&>button]:font-semibold">
+            {hasProducts && (
+              <article className="gap- flex flex-wrap items-center justify-between gap-2">
+                <article className="flex items-center gap-3 [&>button]:font-semibold">
                   <button
-                    className="text-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 transition-colors"
+                    className="text-deep-teal flex cursor-pointer items-center gap-2 py-2"
                     onClick={handleOpenImportModal}
                   >
                     <img src="../../../icons/import-file.svg" alt="importar archivo" />
@@ -479,8 +469,8 @@ const ProductsTable: React.FC = () => {
                   </button>
                   <button
                     className={`${
-                      hasSelectedProducts ? 'text-deep-teal' : 'text-gray-400'
-                    } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
+                      hasSelectedProducts ? 'text-deep-teal cursor-pointer' : 'text-gray-400'
+                    } flex items-center gap-2 py-2`}
                     disabled={!hasSelectedProducts}
                   >
                     <img
@@ -493,10 +483,10 @@ const ProductsTable: React.FC = () => {
                   <button
                     onClick={handleToggleProductStatus}
                     disabled={selectedProductsState.disabled || deactivateProductMutation.isPending}
-                    className={`flex items-center gap-2 rounded-md px-3 py-2 font-semibold transition-colors ${
+                    className={`flex items-center gap-2 py-2 font-semibold ${
                       selectedProductsState.disabled || selectedProductsState.hasMixedStates
                         ? 'text-gray-400'
-                        : 'text-deep-teal cursor-pointer hover:bg-cyan-50'
+                        : 'text-deep-teal cursor-pointer'
                     } ${selectedProductsState.hasMixedStates ? 'cursor-not-allowed' : ''}`}
                   >
                     <ToggleRight
@@ -517,21 +507,21 @@ const ProductsTable: React.FC = () => {
                     onClick={handleOpenDeleteModal}
                     disabled={!hasSelectedProducts || deleteProductMutation.isPending}
                     className={`group ${
-                      hasSelectedProducts ? 'text-[#F82254]' : 'text-gray-400'
-                    } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
+                      hasSelectedProducts ? 'text-electric-pink' : 'text-gray-400'
+                    } flex items-center gap-2 py-2`}
                   >
                     <Trash2
                       size={24}
                       className={`${
                         hasSelectedProducts && !deleteProductMutation.isPending
-                          ? 'text-[#F82254] group-hover:text-[#B3123A]'
+                          ? 'text-electric-pink group-hover:text-deep-crimson'
                           : 'text-gray-400'
                       } transition-colors`}
                     />
                     <span
                       className={`${
                         hasSelectedProducts && !deleteProductMutation.isPending
-                          ? 'group-hover:text-[#B3123A]'
+                          ? 'group-hover:text-deep-crimson cursor-pointer'
                           : ''
                       } transition-colors`}
                     >
@@ -539,13 +529,9 @@ const ProductsTable: React.FC = () => {
                     </span>
                   </button>
                 </article>
-              ) : (
-                <article></article>
-              )}
 
-              <aside className="flex items-center gap-3">
-                {/* Búsqueda */}
-                {hasProducts && (
+                <aside className="flex items-center gap-3">
+                  {/* Búsqueda */}
                   <article className="relative">
                     <Search
                       className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
@@ -557,42 +543,34 @@ const ProductsTable: React.FC = () => {
                       value={searchTerm}
                       data-test="search-input"
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="border-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="border-dark-blue w-38 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </article>
-                )}
-
-                {/* Nuevo producto */}
-                <button
-                  onClick={handleNewProduct}
-                  className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
-                >
-                  <Plus size={18} />
-                  Nuevo producto
-                </button>
-
-                {/* Cambiar Precio */}
-                {hasProducts && (
+                  {/* Nuevo producto */}
+                  <button
+                    onClick={handleNewProduct}
+                    className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
+                  >
+                    <Plus size={18} />
+                    Nuevo producto
+                  </button>
+                  {/* Cambiar Precio */}
                   <button
                     onClick={handleOpenAdjustPricesModal}
                     disabled={!hasSelectedProducts || adjustPricesMutation.isPending}
-                    className={`flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors ${
-                      hasSelectedProducts
-                        ? 'bg-deep-teal cursor-pointer hover:bg-teal-700'
-                        : 'cursor-not-allowed bg-gray-400'
-                    }`}
+                    className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedProducts ? 'cursor-pointer border border-teal-600 bg-teal-600 text-white hover:bg-teal-700' : 'cursor-not-allowed border border-teal-200 bg-teal-50 text-teal-600 opacity-60'}`}
                   >
-                    <Calculator size={18} />
+                    <img src="/icons/client/calculator.svg" alt="" />
                     Cambiar Precio
                   </button>
-                )}
-              </aside>
-            </article>
+                </aside>
+              </article>
+            )}
           </header>
 
           {/* Tabla */}
           {!hasProducts ? (
-            <main className="border-sky-glimmer overflow-hidden rounded-xl border bg-white shadow-sm">
+            <main className="border-sky-glimmer mt-10 overflow-hidden rounded-xl border bg-white shadow-sm">
               <EmptyProductsState onAddProduct={handleNewProduct} />
             </main>
           ) : (
@@ -601,18 +579,41 @@ const ProductsTable: React.FC = () => {
                 <article className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-polar-mist">
-                      <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal [&>th:first-child]:border-l-0">
-                        <th className="w-12 px-4 py-3">
-                          <Check />
+                      <tr className="[&>th:first-child]:border-polar-mist [&>th]:border-l-2 [&>th]:border-white [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                        <th className="border-polar-mist flex h-full items-center justify-center border-r-2 px-2 text-center">
+                          <input
+                            type="checkbox"
+                            checked={
+                              currentProducts.length > 0 &&
+                              currentProducts.every((p) => selectedProductIds.has(p.id))
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const ids = filteredProducts.map((p) => p.id);
+                                setSelectedProductIds(new Set(ids));
+                              } else {
+                                setSelectedProductIds(new Set());
+                                setEditingProductId(null);
+                                setEditingProduct(null);
+                              }
+                            }}
+                            className="h-5 w-5 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                          />
                         </th>
-                        <th>Nombre producto</th>
-                        <th>Categoría</th>
-                        <th>Stock unitario</th>
-                        <th className="border-none">
-                          <img className="h-6 w-6 max-w-6" src="/icons/alarma.svg" alt="" />
+                        <th className="px-4">Nombre producto</th>
+                        <th className="px-4">Categoría</th>
+                        <th className="px-4">
+                          <div className="flex items-center justify-between">
+                            <span>Stock unitario</span>
+                            <img
+                              className="h-6 w-6"
+                              src="/icons/alarma.svg"
+                              alt="Icono de alarma"
+                            />
+                          </div>
                         </th>
-                        <th>Precio venta</th>
-                        <th className="w-8">Editar</th>
+                        <th className="px-4">Precio venta</th>
+                        <th className="w-8 px-4">Editar</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white">
@@ -630,12 +631,12 @@ const ProductsTable: React.FC = () => {
                                 : 'bg-custom-mist text-neutral-400/80'
                             } border-pastel-blue border-b-2 transition-colors last:border-none`}
                           >
-                            <td className="px-5 py-3">
+                            <td className="flex h-full items-center justify-center py-4">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => toggleProductSelection(product.id)}
-                                className="h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500"
+                                className="h-5 w-5 cursor-pointer"
                               />
                             </td>
                             <td className="border-pastel-blue border-l-2 px-4 text-sm">
@@ -645,14 +646,14 @@ const ProductsTable: React.FC = () => {
                               {product.category}
                             </td>
                             <td className="border-pastel-blue border-l-2 px-4 text-sm">
-                              {product.amount}
-                            </td>
-                            <td>
-                              <div
-                                className={`mx-auto h-4 w-4 rounded-full ${
-                                  product.isActive ? stockColor : 'bg-neutral-400/80'
-                                }`}
-                              ></div>
+                              <div className="flex w-full items-center justify-between">
+                                <p>{product.amount}</p>
+                                <div
+                                  className={`h-6 w-6 rounded-full ${
+                                    product.isActive ? stockColor : 'bg-neutral-400/80'
+                                  }`}
+                                ></div>
+                              </div>
                             </td>
                             <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               $ {product.sellPrice}
