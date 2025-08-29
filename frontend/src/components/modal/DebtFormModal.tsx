@@ -6,8 +6,8 @@ import { useSelector } from 'react-redux';
 import { selectAuth } from '../../features/auth/authSlice';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import SuccessModal from '../modal/SuccessModal';
+import { debtColor } from '../../utils/debtColors';
 import { useQueryClient } from '@tanstack/react-query';
-
 interface DebtFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,14 +17,24 @@ interface DebtFormModalProps {
 const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selectedClientIds }) => {
   const { token } = useSelector(selectAuth);
   const [clientInfo, setClientInfo] = useState<{ name_client?: string } | null>(null);
+  // const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const [mount, setMount] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // const hasSelectedProducts = selectedProductIds.size > 0;
+
   const [historic, setHistoric] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
+  const totalPages = Math.ceil(historic.length / rowsPerPage);
+
+  const paginatedRows = historic.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
   const [loadingDebts, setLoadingDebts] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successTitle, setSuccessTitle] = useState('');
   const [successDescription, setSuccessDescription] = useState('');
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -154,18 +164,15 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
       />
       <div className="w-full max-w-3xl rounded-2xl bg-white pt-9">
         {/* HEADER */}
+
         <header className="flex items-center justify-between px-8 py-6">
-          <h2 className="text-[22px] font-semibold text-gray-900">
-            {clientInfo
-              ? `${clientInfo.name_client ?? ''}`
-              : `ID – ${selectedClientIds[0] ?? 'N/A'}`}
-          </h2>
+          <h2 className="text-[22px] font-bold text-gray-900">{clientInfo?.name_client}</h2>
           <button
             onClick={onClose}
-            className="rounded-md px-2 text-2xl text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            className="absolute top-8 right-8 text-xl font-bold text-[#0679C6]"
             aria-label="Cerrar"
           >
-            ✕
+            &times;
           </button>
         </header>
 
@@ -179,7 +186,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           </button>
           <button
             type="button"
-            className="border-b-2 border-blue-500 pb-2 text-base font-semibold text-blue-900"
+            className="border-b-2 border-[#5685FA] pb-2 text-base font-semibold text-[#396FF9]"
           >
             Administrar deuda
           </button>
@@ -233,38 +240,21 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           </div>
         </div>
 
-        <div className="flex gap-2 px-8 pb-2">
-          <button className="flex items-center gap-1 text-sm" disabled>
-            <svg width={18} height={18} fill="none">
-              <circle cx={9} cy={9} r={7} stroke="#d2d2d2" strokeWidth={2} />
-            </svg>
-            Desactivar
-          </button>
-          <button className="flex items-center gap-1 text-sm" disabled>
-            <svg width={18} height={18} fill="none">
-              <rect x={4} y={7} width={10} height={4} fill="#d2d2d2" />
-            </svg>
-            Eliminar
-          </button>
-        </div>
-
         {/* TABLA DEUDA */}
         <div className="flex flex-col overflow-x-auto px-8 pb-8">
           <table className="w-full rounded-xl border border-blue-100 text-sm text-blue-900">
             <thead className="bg-blue-50">
               <tr>
-                <th className="px-2 py-2">
-                  <input type="checkbox" />
-                </th>
+                <td className="px-2 py-2 text-center align-middle">
+                  <input type="checkbox" className="mx-auto h-4 w-4 align-middle" />
+                </td>
                 <th className="px-2 py-2">Fecha deuda</th>
                 <th className="px-2 py-2">Deuda</th>
                 <th className="px-2 py-2">Fecha modificación</th>
                 <th className="px-2 py-2">Resto deuda</th>
-                <th className="flex items-center justify-center gap-1 px-2 py-2">
+                <th className="flex items-center justify-between gap-1 px-2 py-2">
                   Total días deuda
-                  <svg className="ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="#9CB7FC">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  </svg>
+                  <img className="h-6 w-6" src="/icons/alarma.svg" alt="" />
                 </th>
               </tr>
             </thead>
@@ -282,8 +272,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                   </td>
                 </tr>
               ) : (
-                historic.map((d, idx) => {
-                  // Sumar todos los payments de la deuda
+                paginatedRows.map((d, idx) => {
                   const pagos = (d.payments ?? []).reduce(
                     (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
                     0
@@ -292,21 +281,37 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                   return (
                     <tr key={d.debtId ?? idx} className="border-t border-blue-50">
                       <td className="px-2 py-2">
-                        <input type="checkbox" />
+                        <div className="flex items-center justify-center">
+                          <input className="h-4 w-4" type="checkbox" />
+                        </div>
                       </td>
-                      <td className="px-2 py-2">{formatFecha(d.debt_date)}</td>
-                      <td className="px-2 py-2">
+                      <td className="py-2 pl-4">{formatFecha(d.debt_date)}</td>
+                      <td className="py-2 pl-4">
                         $
                         {Number(d.mount ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                       </td>
                       <td className="px-2 py-2">
                         {formatFecha(d.modification_date ?? d.modificacion)}
                       </td>
-                      <td className="px-2 py-2">
+                      <td className="py-2 pl-5">
                         ${resto.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                       </td>
+
                       <td className="px-2 py-2">
-                        {getDiasDeuda(d.debt_date, d.modification_date)}
+                        <span className="flex w-full items-center justify-between">
+                          <span className="leading-none">
+                            {getDiasDeuda(d.debt_date, d.modification_date)
+                              .toString()
+                              .padStart(3, '0')}
+                          </span>
+                          <span
+                            className="inline-block h-6 w-6 rounded-full border border-gray-200"
+                            style={{
+                              background: debtColor(getDiasDeuda(d.debt_date, d.modification_date)),
+                            }}
+                            title={`Estado de deuda: ${getDiasDeuda(d.debt_date, d.modification_date)} días`}
+                          />
+                        </span>
                       </td>
                     </tr>
                   );
@@ -314,6 +319,38 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               )}
             </tbody>
           </table>
+          {/* PAGINACIÓN DE TABLA */}
+          {historic.length > rowsPerPage && (
+            <div className="flex items-center justify-center gap-2 py-4">
+              <button
+                className="rounded border border-blue-100 px-2 py-1 text-blue-500 disabled:opacity-40"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                &lt;
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  className={`rounded px-3 py-1 text-base ${
+                    currentPage === i + 1
+                      ? 'bg-blue-600 font-semibold text-white'
+                      : 'bg-blue-50 text-blue-600'
+                  }`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                className="rounded border border-blue-100 px-2 py-1 text-blue-500 disabled:opacity-40"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                &gt;
+              </button>
+            </div>
+          )}
         </div>
 
         {/* FOOTER BOTONES */}

@@ -371,7 +371,6 @@ const ClientsTable: React.FC = () => {
               ) : null}
             </article>
           </header>
-          {/* Tabla o estado vacío */}
           {!Array.isArray(clients) || clients.length === 0 ? (
             <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
               <EmptyClientsState onAddClient={handleNewClient} />
@@ -433,10 +432,6 @@ const ClientsTable: React.FC = () => {
                       {currentClients.map((client) => {
                         const isSelected = selectedClientIds.has(client.id_client);
                         const isInactive = client.isActive === false;
-                        // const days = client.total_debt_days ?? 0;
-
-                        // const mutedCell = debtExists ? 'text-gray-900' : 'text-neutral-300';
-
                         return (
                           <tr
                             key={client.id_client}
