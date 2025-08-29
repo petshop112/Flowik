@@ -67,10 +67,10 @@ public class Debt {
     public void prePersist() {
         this.createdBy = SecurityUtil.getAuthenticatedEmail();
         this.isActive = true;
-        if(this.overdueDebt != null){
+        if(this.overdueDebt == null){
             this.overdueDebt = 30;
         }
-        if(this.criticalDebt != null){
+        if(this.criticalDebt == null){
             this.criticalDebt = 60;
         }
     }
