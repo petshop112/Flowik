@@ -20,12 +20,15 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 }) => {
   const [errors, setErrors] = useState<ProductValidationErrors>({});
   const [formData, setFormData] = useState<
-    Omit<ProductUpdateFormData, 'id' | 'providers'> & { providerIds?: string[] }
+    Omit<ProductUpdateFormData, 'id' | 'providers' | 'amount'> & {
+      providerIds?: string[];
+      amount?: number | null;
+    }
   >({
     name: '',
     category: '',
     description: '',
-    amount: 0,
+    amount: null,
     sellPrice: 0,
     buyDate: '',
     expiration: '',
@@ -55,7 +58,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         name: '',
         category: '',
         description: '',
-        amount: 0,
+        amount: null,
         sellPrice: 0,
         buyDate: getCurrentDate(),
         expiration: '',
@@ -166,7 +169,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     return !newErrors[fieldName];
   };
 
-  const handleInputChange = (field: keyof typeof formData, value: string | number) => {
+  const handleInputChange = (field: keyof typeof formData, value: string | number | null) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -179,7 +182,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
     if (['name', 'description', 'category', 'sellPrice', 'amount'].includes(field)) {
       setTimeout(() => {
-        validateField(field as ProductValidatableFields, value);
+        validateField(field as ProductValidatableFields, value || '');
       }, 100);
     }
   };
@@ -224,7 +227,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       name: formData.name.trim(),
       category: formData.category.trim(),
       description: formData.description.trim(),
-      amount: Number(formData.amount) || 0,
+      amount: formData.amount !== null ? Number(formData.amount) : 0,
       sellPrice: Number(formData.sellPrice) || 0,
       buyDate: formData.buyDate || getCurrentDate(),
       expiration: formData.expiration || '',
@@ -381,10 +384,10 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 <input
                   type="number"
                   min="0"
-                  value={formData.amount || ''}
+                  value={formData.amount !== null ? formData.amount : ''}
                   data-test="product-amount"
                   onChange={(e) => handleInputChange('amount', parseInt(e.target.value) || 0)}
-                  placeholder={isEditMode ? formData.amount.toString() : 'Uds.'}
+                  placeholder="Uds."
                   className={`${
                     isEditMode ? 'text-gray-500' : ''
                   } w-full rounded-sm border border-gray-300 px-3 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500`}
