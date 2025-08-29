@@ -2,9 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import ImportFileModal from '../modal/ImportFileModal';
 import { productService } from '../../api/productService';
-import { useSelector } from 'react-redux'; // Si usas Redux para el token
-// Update the import path to the correct location of authSlice
-import { selectAuth } from '../../features/auth/authSlice'; // Ajusta el import según tu proyecto
+import { useSelector } from 'react-redux';
+import { selectAuth } from '../../features/auth/authSlice';
 import {
   Search,
   Plus,
