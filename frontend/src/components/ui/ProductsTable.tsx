@@ -475,7 +475,7 @@ const ProductsTable: React.FC = () => {
                     className="text-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 transition-colors"
                     onClick={handleOpenImportModal}
                   >
-                    <img src="../../../public/icons/import-file.svg" alt="importar archivo" />
+                    <img src="../../../icons/import-file.svg" alt="importar archivo" />
                     Importar
                   </button>
                   <button
@@ -485,7 +485,7 @@ const ProductsTable: React.FC = () => {
                     disabled={!hasSelectedProducts}
                   >
                     <img
-                      src="../../../public/icons/export-file.svg"
+                      src="../../../icons/export-file.svg"
                       alt="exportar archivo"
                       className={`${hasSelectedProducts ? 'filter-none' : 'opacity-50 grayscale'}`}
                     />
