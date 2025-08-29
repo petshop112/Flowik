@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { FC } from 'react';
 import { TrashIcon } from '@heroicons/react/24/outline';
 
