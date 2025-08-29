@@ -278,7 +278,7 @@ const ClientsTable: React.FC = () => {
                       title={actionLabel}
                     >
                       <ToggleRight
-                        size={18}
+                        size={24}
                         className={hasSelectedClients ? 'text-tropical-cyan' : 'text-gray-400'}
                       />
                       <span className={hasSelectedClients ? 'text-deep-teal' : 'text-gray-400'}>
@@ -309,7 +309,7 @@ const ClientsTable: React.FC = () => {
                       title="Eliminar seleccionados"
                     >
                       <Trash2
-                        size={18}
+                        size={24}
                         className={
                           hasSelectedClients
                             ? 'text-[#F82254] group-hover:text-[#B3123A]'

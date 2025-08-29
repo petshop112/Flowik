@@ -1,5 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import ImportFileModal from '../modal/ImportFileModal';
+import { productService } from '../../api/productService';
+import { useSelector } from 'react-redux'; // Si usas Redux para el token
+// Update the import path to the correct location of authSlice
+import { selectAuth } from '../../features/auth/authSlice'; // Ajusta el import según tu proyecto
 import {
   Search,
   Plus,
@@ -43,7 +48,10 @@ const ProductsTable: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
   const [isAdjustPricesModalOpen, setIsAdjustPricesModalOpen] = useState(false);
 
-  const { data: products = [], error } = useGetAllProducts();
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const { data: products = [], isLoading, error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
     editingProductId || 0
   );
@@ -238,6 +246,55 @@ const ProductsTable: React.FC = () => {
     });
   }, [products, searchTerm]);
 
+  const selectedProductsState = useMemo(() => {
+    if (selectedProductIds.size === 0) {
+      return {
+        action: null as 'activate' | 'deactivate' | null,
+        buttonText: 'Desactivar',
+        disabled: true,
+        hasMixedStates: false,
+      };
+    }
+
+    const selected = products.filter((p: Product) => selectedProductIds.has(p.id));
+    const activeProducts = selected.filter((p) => p.isActive);
+    const inactiveProducts = selected.filter((p) => !p.isActive);
+
+    if (activeProducts.length > 0 && inactiveProducts.length > 0) {
+      return {
+        action: null,
+        buttonText: 'Elige Activar o Desactivar',
+        disabled: true,
+        hasMixedStates: true,
+      };
+    }
+
+    if (activeProducts.length > 0 && inactiveProducts.length === 0) {
+      return {
+        action: 'deactivate',
+        buttonText: 'Desactivar',
+        disabled: false,
+        hasMixedStates: false,
+      };
+    }
+
+    if (inactiveProducts.length > 0 && activeProducts.length === 0) {
+      return {
+        action: 'activate',
+        buttonText: 'Activar',
+        disabled: false,
+        hasMixedStates: false,
+      };
+    }
+
+    return {
+      action: null,
+      buttonText: 'Activar/Desactivar',
+      disabled: true,
+      hasMixedStates: false,
+    };
+  }, [selectedProductIds, products]);
+
   const handleToggleProductStatus = async () => {
     if (selectedProductIds.size === 0 || selectedProductsState.disabled) return;
 
@@ -264,10 +321,14 @@ const ProductsTable: React.FC = () => {
     } catch (error) {
       setSuccessMessage({
         title: '¡Error!',
-        description: `No se pudo ${selectedProductsState.action === 'activate' ? 'activar' : 'desactivar'} los productos. Intenta nuevamente.`,
+        description: `No se pudo ${
+          selectedProductsState.action === 'activate' ? 'activar' : 'desactivar'
+        } los productos. Intenta nuevamente.`,
       });
       console.error(
-        `Error al ${selectedProductsState.action === 'activate' ? 'activar' : 'desactivar'} productos:`,
+        `Error al ${
+          selectedProductsState.action === 'activate' ? 'activar' : 'desactivar'
+        } productos:`,
         error
       );
     } finally {
@@ -282,7 +343,7 @@ const ProductsTable: React.FC = () => {
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   const getPageNumbers = () => {
-    const pages = [];
+    const pages = [] as number[];
     for (let i = 1; i <= totalPages; i++) {
       pages.push(i);
     }
@@ -328,54 +389,57 @@ const ProductsTable: React.FC = () => {
     }
   };
 
-  const selectedProductsState = useMemo(() => {
-    if (selectedProductIds.size === 0) {
-      return {
-        action: null,
-        buttonText: 'Desactivar',
-        disabled: true,
-        hasMixedStates: false,
-      };
+  const handleOpenImportModal = () => setIsImportModalOpen(true);
+  const token = useSelector(selectAuth)?.token ?? '';
+
+  const handleImportFile = async (file: File, provider: string) => {
+    setIsImporting(true);
+    try {
+      const providerObj = providers?.find((p) => p.name_provider === provider);
+      if (!providerObj) throw new Error('Proveedor no encontrado');
+      const providerId = providerObj.id_provider;
+      console.log('id provedor' + providerId);
+
+      const result = await productService.importProductsFile(providerId, file, token);
+
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+
+      setIsImportModalOpen(false);
+      setSuccessMessage({
+        title: '¡Importación exitosa!',
+        description: `Se importaron ${result.validos.length} productos.`,
+      });
+      setIsSuccessModalOpen(true);
+
+      if (result.invalidos && result.invalidos.length > 0) {
+        console.log('filas invalidas');
+
+        // TODO: Mostrar errores filas invalidas
+      }
+    } catch (error: any) {
+      setSuccessMessage({
+        title: 'Error al importar',
+        description: error.message || 'No se pudo importar el archivo.',
+      });
+      setIsSuccessModalOpen(true);
+    } finally {
+      setIsImporting(false);
     }
+  };
 
-    const selectedProducts = products.filter((p: Product) => selectedProductIds.has(p.id));
-    const activeProducts = selectedProducts.filter((p) => p.isActive);
-    const inactiveProducts = selectedProducts.filter((p) => !p.isActive);
-
-    if (activeProducts.length > 0 && inactiveProducts.length > 0) {
-      return {
-        action: null,
-        buttonText: 'Elige Activar o Desactivar',
-        disabled: true,
-        hasMixedStates: true,
-      };
-    }
-
-    if (activeProducts.length > 0 && inactiveProducts.length === 0) {
-      return {
-        action: 'deactivate',
-        buttonText: 'Desactivar',
-        disabled: false,
-        hasMixedStates: false,
-      };
-    }
-
-    if (inactiveProducts.length > 0 && activeProducts.length === 0) {
-      return {
-        action: 'activate',
-        buttonText: 'Activar',
-        disabled: false,
-        hasMixedStates: false,
-      };
-    }
-
-    return {
-      action: null,
-      buttonText: 'Activar/Desactivar',
-      disabled: true,
-      hasMixedStates: false,
-    };
-  }, [selectedProductIds, products]);
+  if (isLoading) {
+    return (
+      <section className="bg-custom-mist h-full w-full p-6">
+        <article className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center py-24">
+          <div className="relative mb-4 h-12 w-12">
+            <div className="h-12 w-12 rounded-full border-4 border-gray-300"></div>
+            <div className="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+          <p className="text-gray-600">Cargando productos...</p>
+        </article>
+      </section>
+    );
+  }
 
   if (error && !error.message.includes('404')) {
     return (
@@ -408,6 +472,26 @@ const ProductsTable: React.FC = () => {
               {hasProducts ? (
                 <article className="flex items-center gap-2 [&>button]:font-semibold">
                   <button
+                    className="text-deep-teal flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 transition-colors"
+                    onClick={handleOpenImportModal}
+                  >
+                    <img src="../../../public/icons/import-file.svg" alt="importar archivo" />
+                    Importar
+                  </button>
+                  <button
+                    className={`${
+                      hasSelectedProducts ? 'text-deep-teal' : 'text-gray-400'
+                    } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
+                    disabled={!hasSelectedProducts}
+                  >
+                    <img
+                      src="../../../public/icons/export-file.svg"
+                      alt="exportar archivo"
+                      className={`${hasSelectedProducts ? 'filter-none' : 'opacity-50 grayscale'}`}
+                    />
+                    Exportar
+                  </button>
+                  <button
                     onClick={handleToggleProductStatus}
                     disabled={selectedProductsState.disabled || deactivateProductMutation.isPending}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 font-semibold transition-colors ${
@@ -433,17 +517,27 @@ const ProductsTable: React.FC = () => {
                   <button
                     onClick={handleOpenDeleteModal}
                     disabled={!hasSelectedProducts || deleteProductMutation.isPending}
-                    className={`${
-                      hasSelectedProducts
-                        ? 'text-deep-teal cursor-pointer hover:bg-cyan-50'
-                        : 'text-gray-400'
+                    className={`group ${
+                      hasSelectedProducts ? 'text-[#F82254]' : 'text-gray-400'
                     } flex items-center gap-2 rounded-md px-3 py-2 transition-colors`}
                   >
                     <Trash2
-                      size={18}
-                      className={`${hasSelectedProducts && !deleteProductMutation.isPending ? 'text-tropical-cyan' : 'text-gray-400'}`}
+                      size={24}
+                      className={`${
+                        hasSelectedProducts && !deleteProductMutation.isPending
+                          ? 'text-[#F82254] group-hover:text-[#B3123A]'
+                          : 'text-gray-400'
+                      } transition-colors`}
                     />
-                    {deleteProductMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+                    <span
+                      className={`${
+                        hasSelectedProducts && !deleteProductMutation.isPending
+                          ? 'group-hover:text-[#B3123A]'
+                          : ''
+                      } transition-colors`}
+                    >
+                      {deleteProductMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+                    </span>
                   </button>
                 </article>
               ) : (
@@ -531,7 +625,11 @@ const ProductsTable: React.FC = () => {
                         return (
                           <tr
                             key={product.id}
-                            className={`${product.isActive ? 'hover:bg-gray-50' : 'bg-custom-mist text-neutral-400/80'} border-pastel-blue border-b-2 transition-colors last:border-none`}
+                            className={`${
+                              product.isActive
+                                ? 'hover:bg-gray-50'
+                                : 'bg-custom-mist text-neutral-400/80'
+                            } border-pastel-blue border-b-2 transition-colors last:border-none`}
                           >
                             <td className="px-5 py-3">
                               <input
@@ -552,7 +650,9 @@ const ProductsTable: React.FC = () => {
                             </td>
                             <td>
                               <div
-                                className={`mx-auto h-4 w-4 rounded-full ${product.isActive ? stockColor : 'bg-neutral-400/80'}`}
+                                className={`mx-auto h-4 w-4 rounded-full ${
+                                  product.isActive ? stockColor : 'bg-neutral-400/80'
+                                }`}
                               ></div>
                             </td>
                             <td className="border-pastel-blue border-l-2 px-4 text-sm">
@@ -561,7 +661,11 @@ const ProductsTable: React.FC = () => {
                             <td className="border-pastel-blue w-fit border-l-2 text-center">
                               <button
                                 onClick={() => handleEditProduct(product)}
-                                className={`${product.isActive ? 'text-glacial-blue hover:text-blue-500' : 'text-neutral-400/80 hover:text-neutral-500'} cursor-pointer py-3 transition-colors`}
+                                className={`${
+                                  product.isActive
+                                    ? 'text-glacial-blue hover:text-blue-500'
+                                    : 'text-neutral-400/80 hover:text-neutral-500'
+                                } cursor-pointer py-3 transition-colors`}
                               >
                                 <Edit size={24} />
                               </button>
@@ -587,7 +691,11 @@ const ProductsTable: React.FC = () => {
                     <ul className="text-dark-blue flex items-center gap-2">
                       <li>
                         <button
-                          className={`py-2 ${currentPage === 1 ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                          className={`py-2 ${
+                            currentPage === 1
+                              ? 'cursor-not-allowed text-neutral-400/70'
+                              : 'cursor-pointer hover:text-blue-600'
+                          }`}
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
                         >
@@ -612,7 +720,11 @@ const ProductsTable: React.FC = () => {
 
                       <li>
                         <button
-                          className={`py-2 ${currentPage === totalPages ? 'cursor-not-allowed text-neutral-400/70' : 'cursor-pointer hover:text-blue-600'}`}
+                          className={`py-2 ${
+                            currentPage === totalPages
+                              ? 'cursor-not-allowed text-neutral-400/70'
+                              : 'cursor-pointer hover:text-blue-600'
+                          }`}
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
                         >
@@ -657,6 +769,13 @@ const ProductsTable: React.FC = () => {
         onConfirm={handleAdjustPrices}
         selectedProducts={selectedProducts}
         isLoading={adjustPricesMutation.isPending}
+      />
+      <ImportFileModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handleImportFile}
+        providers={providers ? providers.map((p) => p.name_provider) : []}
+        isLoading={isImporting}
       />
     </>
   );
