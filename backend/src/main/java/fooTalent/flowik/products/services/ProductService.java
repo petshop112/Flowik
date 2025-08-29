@@ -75,9 +75,9 @@ public class ProductService implements ProductServiceImpl{
         }
 
         if (productUpdated.description() != null && !productUpdated.description().isBlank()) {
-            if (productUpdated.description().length() < 10 || productUpdated.description().length() > 255) {
+            if (productUpdated.description().length() < 3 || productUpdated.description().length() > 255) {
                 throw new BadRequestException
-                        ("La descripción del producto debe tener entre 10 y 255 caracteres.");
+                        ("La descripción del producto debe tener entre 3 y 255 caracteres.");
             }
         }
 
@@ -88,9 +88,11 @@ public class ProductService implements ProductServiceImpl{
             }
         }
 
-        if (productUpdated.amount() != null && productUpdated.amount() < 0) {
-            throw new BadRequestException
-                    ("La cantidad debe ser mayor o igual a 0.");
+        if(productUpdated.amount() != null) {
+            if (productUpdated.amount() < 0) {
+                throw new BadRequestException
+                        ("La cantidad debe ser mayor o igual a 0.");
+            }
         }
 
         if (productUpdated.sellPrice() != null && productUpdated.sellPrice().compareTo(BigDecimal.ZERO) < 0) {
@@ -108,7 +110,7 @@ public class ProductService implements ProductServiceImpl{
         if (productUpdated.name() != null && !productUpdated.name().isBlank()) anyUpdate = true;
         if (productUpdated.description() != null && !productUpdated.description().isBlank()) anyUpdate = true;
         if (productUpdated.category() != null && !productUpdated.category().isBlank()) anyUpdate = true;
-        if (productUpdated.amount() != null && productUpdated.amount() > 0) anyUpdate = true;
+        if (productUpdated.amount() != null && productUpdated.amount() >= 0) anyUpdate = true;
         if (productUpdated.sellPrice() != null && productUpdated.sellPrice().compareTo(BigDecimal.ZERO) > 0) anyUpdate = true;
         if (providers != null && !providers.isEmpty()) anyUpdate = true;
         if (!anyUpdate) {

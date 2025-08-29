@@ -1,6 +1,5 @@
 package fooTalent.flowik.notifications.entities;
 
-import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.notifications.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,6 +36,5 @@ public class Notification {
     @PrePersist
     public void prePersist() {
         this.generationDate = LocalDate.now();
-        this.createdBy = SecurityUtil.getAuthenticatedEmail();
     }
 }

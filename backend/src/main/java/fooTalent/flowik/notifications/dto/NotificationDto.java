@@ -5,9 +5,6 @@ import  fooTalent.flowik.notifications.enums.NotificationType;
 
 import java.time.LocalDate;
 public class NotificationDto {
-
-
-
     @Getter
     @Setter
     @NoArgsConstructor

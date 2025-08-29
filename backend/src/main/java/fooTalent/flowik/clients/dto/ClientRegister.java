@@ -23,10 +23,11 @@ public record ClientRegister(
         @Schema(example = "1122334455")
         String telephone_client,
 
-        @NotBlank(message = "La dirección del Cliente es obligatoria.")
+
         @Size(min = 10, max = 100, message = "La Direccion del Cliente debe tener entre 10 y 100 caracteres")
         @Schema(example = "Calle Falsa 123")
-        @ValidAddress
+        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$",
+                message = "La Dirección contiene caracteres no permitidos.")
         String direction_client,
 
         @Pattern(regexp = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$", message = "Correo de Cliente invalido")
@@ -34,7 +35,7 @@ public record ClientRegister(
         @Schema(example = "cliente@email.com")
         String email_client,
 
-        @Size(min=10, max = 200, message = "Puede utilizar hasta 200 caracteres en las notas")
+        @Size(max = 300, message = "Puede utilizar hasta 200 caracteres en las notas")
         String notes
        )
 {

@@ -37,7 +37,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private int amount;
+    private Integer amount;
 
     @Column(nullable = false, precision = 10, scale = 2, name = "sell_price")
     private BigDecimal sellPrice;
@@ -47,6 +47,12 @@ public class Product {
 
     @Column(nullable = false, name = "is_active")
     private boolean isActive;
+
+    @Column(name = "low_stock_threshold")
+    private Integer lowStockThreshold;
+
+    @Column(name = "critical_stock_threshold")
+    private Integer criticalStockThreshold;
 
     @ManyToMany
     @JoinTable(
@@ -66,20 +72,27 @@ public class Product {
         if (this.buyDate == null) {
             this.buyDate = LocalDate.now();
         }
-    }
-
-    public Product(ProductRegister p, List<Provider> providers) {
-        this.buyDate = LocalDate.now();
-        this.name = p.name();
-        this.description = p.description();
-        this.amount = p.amount();
-        this.sellPrice = p.sellPrice();
-        this.category = p.category();
-        this.isActive = true;
-        this.providers = providers;
+        if (this.lowStockThreshold == null) {
+            this.lowStockThreshold = 15;
+        }
+        if (this.criticalStockThreshold == null) {
+            this.criticalStockThreshold = 5;
+        }
     }
 
 
+public Product(ProductRegister p, List<Provider> providers) {
+    this.buyDate = LocalDate.now();
+    this.name = p.name();
+    this.description = p.description();
+    this.amount = p.amount();
+    this.sellPrice = p.sellPrice();
+    this.category = p.category();
+    this.isActive = true;
+    this.providers = providers;
+    this.lowStockThreshold = 5;
+    this.criticalStockThreshold = 2;
+}
 
     public void updateProduct(ProductUpdated p, List<Provider> providersNew) {
         if (p.name() != null && !p.name().isBlank()) {
@@ -91,7 +104,7 @@ public class Product {
         if (p.category() != null && !p.category().isBlank()) {
             this.category = p.category();
         }
-        if (p.amount() != null && p.amount() > 0) {
+        if (p.amount() != null && p.amount() >= 0) {
             this.amount = p.amount();
         }
         if (p.sellPrice() != null && p.sellPrice().compareTo(BigDecimal.ZERO) > 0) {

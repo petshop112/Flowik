@@ -84,10 +84,6 @@ public class ClientController {
 
         String email = SecurityUtil.getAuthenticatedEmail();
 
-        if (isAllFieldsEmpty(clientUpdate)) {
-            throw new IllegalArgumentException("Debe enviar al menos un campo para actualizar");
-        }
-
         Client existingClient = clientRepository.findById(id_client)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado", "ID", id_client));
 

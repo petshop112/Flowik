@@ -38,5 +38,5 @@ public class NotificationController {
             String user = SecurityUtil.getAuthenticatedEmail();
             service.markAsRead(id, user);
         }
-
 }
+
