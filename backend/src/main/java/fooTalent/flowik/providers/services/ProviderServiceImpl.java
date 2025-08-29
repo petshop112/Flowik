@@ -99,8 +99,8 @@ public class ProviderServiceImpl implements ProviderService {
         }
 
         if (dto.category_provider() != null && !dto.category_provider().isBlank()) {
-            if (dto.category_provider().length() < 10 || dto.category_provider().length() > 300) {
-                throw new BadRequestException("La categoría del Proveedor debe tener entre 10 y 300 caracteres.");
+            if (dto.category_provider().length() > 300) {
+                throw new BadRequestException("La categoría del Proveedor debe tener hasta 300 caracteres.");
             }
             anyUpdate = true;
             existing.setCategory_provider(dto.category_provider());
