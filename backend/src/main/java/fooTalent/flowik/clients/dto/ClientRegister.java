@@ -24,9 +24,9 @@ public record ClientRegister(
         String telephone_client,
 
 
-        @Size(min = 10, max = 100, message = "La Direccion del Cliente debe tener entre 10 y 100 caracteres")
+        @Size(max = 100, message = "La Direccion del Cliente debe tener entre 10 y 100 caracteres")
         @Schema(example = "Calle Falsa 123")
-        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$",
+        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$|^$",
                 message = "La Dirección contiene caracteres no permitidos.")
         String direction_client,
 

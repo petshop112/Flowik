@@ -170,6 +170,7 @@ public class ProductController {
 
         return ResponseEntity.ok(products);
     }
+    @Operation(summary = "Carga masiva de productos por medio de ChatGPT, por pdf, excel o csv e id de proveedor")
     @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductValidationResponse> uploadFile(
             @RequestPart("documents") MultipartFile documents,
