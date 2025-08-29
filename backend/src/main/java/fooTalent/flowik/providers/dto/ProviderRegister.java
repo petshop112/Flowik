@@ -1,6 +1,5 @@
 package fooTalent.flowik.providers.dto;
 
-import fooTalent.flowik.validations.ValidAddress;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -33,7 +32,7 @@ public record ProviderRegister(
         String email_provider,
 
         @NotBlank(message = "La categoria del proveedor es obligatoria.")
-        @Size(min = 5, max = 300, message = "la categoria del Proveedor debe tener entre 10 y 300 caracteres")
+        @Size(max = 300, message = "la categoria del Proveedor debe tener entre 100 y 300 caracteres")
         String category_provider
 ){
 }
