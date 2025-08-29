@@ -85,9 +85,9 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  token: null,
-  username: null,
-  userId: null,
+  token: localStorage.getItem('token'),
+  username: localStorage.getItem('username'),
+  userId: localStorage.getItem('userId'),
   loading: false,
   error: null,
   recoveryMessage: null,
@@ -101,14 +101,13 @@ const authSlice = createSlice({
       state.token = null;
       state.username = null;
       state.userId = null;
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('username');
-      sessionStorage.removeItem('userId');
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userId');
     },
   },
   extraReducers: (builder) => {
     builder
-      // ---- LOGIN ----
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -116,17 +115,17 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-        sessionStorage.setItem('token', action.payload.token);
+        localStorage.setItem('token', action.payload.token);
 
         try {
           const payload = JSON.parse(atob(action.payload.token.split('.')[1]));
           if (payload?.userName) {
             state.username = payload.userName;
-            sessionStorage.setItem('username', payload.userName);
+            localStorage.setItem('username', payload.userName);
           }
           if (payload?.userId || payload?.id) {
             state.userId = payload.userId || payload.id;
-            sessionStorage.setItem('userId', payload.userId || payload.id);
+            localStorage.setItem('userId', payload.userId || payload.id);
           }
         } catch (e) {
           console.error('Error decoding token', e);
@@ -146,7 +145,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload.token ?? null;
         if (action.payload.token) {
-          sessionStorage.setItem('token', action.payload.token);
+          localStorage.setItem('token', action.payload.token);
         }
       })
       .addCase(registerUser.rejected, (state, action) => {

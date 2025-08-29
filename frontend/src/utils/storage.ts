@@ -1,7 +1,7 @@
 export const getUserTokenFromStorage = (): string | null => {
-  return sessionStorage.getItem('token');
+  return localStorage.getItem('token');
 };
 
 export const getUserIdFromStorage = (): string | null => {
-  return sessionStorage.getItem('userId');
+  return localStorage.getItem('userId');
 };

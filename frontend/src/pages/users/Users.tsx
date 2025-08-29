@@ -19,12 +19,12 @@ type User = {
 };
 
 const Client = () => {
-  const userName = sessionStorage.getItem('username');
+  const userName = localStorage.getItem('username');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const token = sessionStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   const filteredUsers = users.filter(
     (user) =>

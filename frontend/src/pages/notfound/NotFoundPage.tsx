@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 const NotFoundPage = () => {
-  const token = sessionStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const redirectPath = token ? '/' : '/login';
   const valueButton = token ? 'Volver a Home' : 'Volver a Login';
   return (

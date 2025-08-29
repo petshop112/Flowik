@@ -4,7 +4,7 @@ const useAuthToken = () => {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedToken = sessionStorage.getItem('token');
+    const savedToken = localStorage.getItem('token');
     setToken(savedToken);
   }, []);
 

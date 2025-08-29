@@ -37,14 +37,23 @@ const ImportFileModal: FC<ImportFileModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
       <div
-        className="min-h-[540px] w-[594px] rounded-[10px] border border-[#5685FA] bg-white p-8 shadow-lg"
+        className="relative min-h-[540px] w-[594px] rounded-[10px] border border-[#5685FA] bg-white p-8 shadow-lg"
         style={{ maxWidth: '96vw' }}
       >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 cursor-pointer text-3xl text-[#0679C6]"
+          aria-label="Cerrar"
+          type="button"
+          style={{ lineHeight: 1 }}
+        >
+          &times;
+        </button>
         <h2 className="mb-6 text-center text-2xl font-bold">Importar archivos</h2>
         <div className="mb-4">
           <label className="text-dark-blue mb-2 block font-semibold">Seleccionar proveedor</label>
           <select
-            className="w-full rounded-md border px-3 py-2"
+            className="w-full cursor-pointer rounded-md border border-[#042D95] px-3 py-2"
             value={selectedProvider}
             onChange={(e) => setSelectedProvider(e.target.value)}
           >
@@ -56,21 +65,21 @@ const ImportFileModal: FC<ImportFileModalProps> = ({
             ))}
           </select>
         </div>
-        <div className="mb-4">
+        <div className="mt-8 mb-4">
           <label className="text-dark-blue mb-2 block font-semibold">Seleccionar archivo</label>
           <input
             type="file"
             accept=".pdf,.csv,.xlsx,.xls"
-            className="w-full rounded-md border px-3 py-2"
+            className="w-full cursor-pointer rounded-md border border-[#5685FA] px-3 py-2"
             onChange={handleFileChange}
           />
         </div>
         <p className="mb-4 text-center text-lg font-normal text-gray-400">
           Solo podrás subir archivos en formato pdf, excel y csv.
         </p>
-        <div className="mt-14 flex items-center justify-center gap-4">
+        <div className="mt-8 flex items-center justify-center gap-4">
           <button
-            className="rounded-md border px-4 py-2 text-[#396FF9]"
+            className="cursor-pointer rounded-md border px-4 py-2 text-[#396FF9]"
             style={{ width: 166, height: 48 }}
             onClick={onClose}
             disabled={isLoading}
@@ -78,7 +87,7 @@ const ImportFileModal: FC<ImportFileModalProps> = ({
             Cancelar
           </button>
           <button
-            className="rounded-md bg-[#5685FA] px-4 py-2 text-white"
+            className="cursor-pointer rounded-md bg-[#5685FA] px-4 py-2 text-white"
             style={{ width: 166, height: 48 }}
             onClick={handleImport}
             disabled={!selectedFile || !selectedProvider || isLoading}
@@ -86,12 +95,12 @@ const ImportFileModal: FC<ImportFileModalProps> = ({
             {isLoading ? 'Importando...' : 'Importar'}
           </button>
         </div>
-        <div className="mt-14 text-center">
+        <div className="mt-20 text-center">
           <a
             href="../../../Instructivo_Importacion_Productos_VALIDACION.pdf"
             className="text-blue-600 underline"
             tabIndex={-1}
-            target="_blank"
+            download
           >
             Instrucciones para la importación de archivos
           </a>

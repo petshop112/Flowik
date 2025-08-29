@@ -5,7 +5,7 @@ const Logout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
     navigate('/login');
   };
   return (
