@@ -32,6 +32,8 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
   }, [adjustValue, adjustType]);
 
   const handleCalculate = () => {
+    const priceRegex = /^\d{1,8}(?:\.\d{1,2})?$/;
+
     if (!isFormValid) {
       setErrors(['Por favor, ingresa un valor de ajuste y selecciona un tipo de ajuste.']);
       setCalculatedPrices(null);
@@ -60,21 +62,37 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
       }
 
       newPrice = Math.round(newPrice * 100) / 100;
+      const newPriceString = newPrice.toFixed(2);
+
+      let errorType = '';
+      if (newPrice < 0.01) {
+        errorType = 'minPrice';
+      } else if (!priceRegex.test(newPriceString)) {
+        errorType = 'format';
+      }
 
       return {
         ...product,
         currentPrice,
         newPrice,
-        isValid: newPrice >= 0.01,
+        isValid: !errorType,
+        errorType,
       };
     });
 
-    const invalidProducts = previews.filter((p) => !p.isValid);
+    const minPriceInvalidProducts = previews.filter((p) => p.errorType === 'minPrice');
+    const formatInvalidProducts = previews.filter((p) => p.errorType === 'format');
     const newErrors: string[] = [];
 
-    if (invalidProducts.length > 0) {
+    if (minPriceInvalidProducts.length > 0) {
       newErrors.push(
-        `${invalidProducts.length} producto(s) tendría(n) precios inválidos (< $0.01)`
+        `${minPriceInvalidProducts.length} producto(s) tendría(n) precios inválidos (< $0.01).`
+      );
+    }
+
+    if (formatInvalidProducts.length > 0) {
+      newErrors.push(
+        `${formatInvalidProducts.length} producto(s) tendría(n) precios con un formato inválido (máximo 8 dígitos enteros y 2 decimales).`
       );
     }
 
