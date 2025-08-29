@@ -12,7 +12,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,7 +75,7 @@ public class ClientServiceImpl implements ClientService {
 
         if (clientUpdate.direction_client() != null && !clientUpdate.direction_client().isBlank()) {
             if (clientUpdate.direction_client().length() < 10 || clientUpdate.direction_client().length() > 100 ||
-                    !clientUpdate.direction_client().matches("^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$")) {
+                    !clientUpdate.direction_client().matches( "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$|^$")) {
                 throw new BadRequestException("La dirección debe tener entre 10 y 100 caracteres y un formato válido.");
             }
         }

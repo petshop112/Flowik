@@ -17,8 +17,8 @@ public record ProviderRegister(
         @Pattern(regexp = "^[0-9]{11}$", message = "Debe contener exactamente 11 dígitos numéricos")
         String cuit_provider,
 
-        @Size(min = 10, max = 100, message = "La Direccion del Proveedor debe tener entre 10 y 100 caracteres")
-        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$")
+        @Size(max = 100, message = "La Direccion del Proveedor debe tener entre 10 y 100 caracteres")
+        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$|^$")
         String direction_provider,
 
         @NotBlank(message = "El campo telefono es obligatorio")

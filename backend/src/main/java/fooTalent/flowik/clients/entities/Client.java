@@ -34,7 +34,7 @@ public class Client {
     @Column(nullable = false, length = 20)
     private String telephone_client;
 
-    @Column(length = 150)
+    @Column(length = 100)
     private String direction_client;
 
     @Column(nullable = false, length = 150)
