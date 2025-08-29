@@ -236,7 +236,7 @@ public class ProductController {
                - category: columnas como "tipo de producto", "clase de producto", "grupo de productos", "rubro de producto", o si no hay indicador claro, considera la que agrupe productos similares por función o uso general.
                - amount: columnas como "cantidad", "stock", "inventario", o si no hay indicador claro, la que represente un número de unidades (sin kilos, gramos ni litros).
                - sellPrice: columnas como "precio de venta", "precio sugerido", "valor de venta", "precio de mercado", o si no hay indicador claro, la que parezca un precio. **Si tiene símbolo de moneda, ignorarlo y devolver solo el número decimal.**
-               
+               - teniendo en cuenta lo ya explicado, si llegase a existir un campo extra de los que no tenemos, dejarlo afuera y guardar los que correspondan.
                Si no puedes inferir un campo, inclúyelo en los errores de esa fila con el mensaje: `"campo: no se pudo inferir"`.
             
             4. **No agregues símbolos de moneda, signos $, etiquetas de código, comillas invertidas, ni texto adicional. Devuelve únicamente el JSON limpio.**

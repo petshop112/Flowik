@@ -47,7 +47,7 @@ public class Client {
     @Column(name = "isActive")
     private boolean isActive;
 
-    @Column(length = 200)
+    @Column(length = 300)
     private String notes;
 
     @Column(nullable = false, updatable = false, length = 150)

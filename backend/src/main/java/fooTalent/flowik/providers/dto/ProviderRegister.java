@@ -18,7 +18,7 @@ public record ProviderRegister(
         String cuit_provider,
 
         @Size(min = 10, max = 100, message = "La Direccion del Proveedor debe tener entre 10 y 100 caracteres")
-        @ValidAddress
+        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\\-#/º]+$")
         String direction_provider,
 
         @NotBlank(message = "El campo telefono es obligatorio")
@@ -33,7 +33,7 @@ public record ProviderRegister(
         String email_provider,
 
         @NotBlank(message = "La categoria del proveedor es obligatoria.")
-        @Size(min = 10, max = 300, message = "la categoria del Proveedor debe tener entre 10 y 300 caracteres")
+        @Size(min = 5, max = 300, message = "la categoria del Proveedor debe tener entre 10 y 300 caracteres")
         String category_provider
 ){
 }
