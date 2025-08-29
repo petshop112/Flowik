@@ -21,4 +21,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     boolean existsByReferenceIdAndCreatedByAndTitle(Long productId, String userEmail, String type);
 
     void deleteByGenerationDateBefore(LocalDate threshold);
+
+    boolean existsByReferenceIdAndCreatedByAndTitleAndTypeAndReadNotificationIsFalse(Long debtId, String createdBy, String title, NotificationType notificationType);
 }
