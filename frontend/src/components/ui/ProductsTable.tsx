@@ -224,13 +224,13 @@ const ProductsTable: React.FC = () => {
 
     let filtered = products;
     if (searchTerm.trim().length >= 2) {
+      const trimmedSearchItem = searchTerm.trim().toLowerCase();
+
       filtered = products.filter(
         (product: Product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.providers.some((provider) =>
-            provider.toLowerCase().includes(searchTerm.toLowerCase())
-          )
+          product.name.toLowerCase().includes(trimmedSearchItem) ||
+          product.category.toLowerCase().includes(trimmedSearchItem) ||
+          product.providers.some((provider) => provider.toLowerCase().includes(trimmedSearchItem))
       );
     }
 
