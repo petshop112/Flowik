@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { selectAuth } from '../../features/auth/authSlice';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import SuccessModal from '../modal/SuccessModal';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DebtFormModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successTitle, setSuccessTitle] = useState('');
   const [successDescription, setSuccessDescription] = useState('');
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isOpen && selectedClientIds.length === 1) {
@@ -74,18 +76,14 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
 
   if (!isOpen) return null;
 
-  const handleAddDebt = () => {
-    setMount('');
-  };
-
-  const handleSaveDebt = async () => {
+  const handleAddDebt = async () => {
     setLoading(true);
 
     try {
       await Promise.all(
         selectedClientIds.map((id) => debtService.createDebt(id, { mount: Number(mount) }, token!))
       );
-
+      await queryClient.invalidateQueries({ queryKey: ['clientDebts'] });
       setMount('');
       setSuccessTitle('¡Deuda añadida!');
       setSuccessDescription('La deuda se ha añadido correctamente.');
@@ -105,6 +103,10 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
     }
   };
 
+  const handleSaveDebt = async () => {
+    onClose();
+  };
+
   const handleDiscountDebt = async () => {
     setLoading(true);
 
@@ -122,6 +124,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           )
         )
       );
+      await queryClient.invalidateQueries({ queryKey: ['clientDebts'] });
       setSuccessTitle('¡Deuda modificada!');
       setSuccessDescription('La deuda se ha modificado correctamente.');
       setShowSuccessModal(true);
