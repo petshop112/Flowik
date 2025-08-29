@@ -12,7 +12,7 @@ export type Form = {
   telephone_client: string;
   email_client: string;
   document_type: string;
-  direction_client?: string;
+  direction_client: string;
   notes?: string;
 };
 export type Errors = Partial<Record<keyof Form, string>>;
@@ -51,11 +51,12 @@ export function validateField(name: keyof Errors, form: Form, errors: Errors): E
     }
     case 'direction_client': {
       const v = (form.direction_client || '').trim();
-      if (v == '') {
-        break;
-      }
+      // if (v == '') {
+      //   break;
+      // }
       if (!lengthBetween(v, 10, 100)) error = 'Entre 10 y 100 caracteres.';
-      else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.#/º-]+$/.test(v))
+      if (isEmpty(v)) error = 'La direccion es obligatoria.';
+      else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.\-#/º]+$|^$/.test(v))
         error = 'Solo letras, números y los símbolos: espacio, coma, punto, #, /, º, guion.';
       break;
     }
