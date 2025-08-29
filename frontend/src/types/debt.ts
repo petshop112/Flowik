@@ -1,3 +1,3 @@
 export type DebtPayload = {
-    mount: number;
-}
+  mount: number;
+};

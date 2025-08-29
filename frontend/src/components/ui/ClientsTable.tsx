@@ -219,6 +219,11 @@ const ClientsTable: React.FC = () => {
     }
   };
 
+  const handleCloseDebtModal = () => {
+    setIsDebtModalOpen(false);
+    queryClient.invalidateQueries({ queryKey: ['clientsDebtTotals', 'clients'] });
+  };
+
   const hasClients = clients && clients.length > 0;
 
   const selected = Array.from(selectedClientIds);
@@ -635,7 +640,7 @@ const ClientsTable: React.FC = () => {
         </article>
         <DebtFormModal
           isOpen={isDebtModalOpen}
-          onClose={() => setIsDebtModalOpen(false)}
+          onClose={handleCloseDebtModal}
           selectedClientIds={Array.from(selectedClientIds)}
         />
       </section>
