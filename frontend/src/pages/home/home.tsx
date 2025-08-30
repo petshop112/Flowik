@@ -175,7 +175,10 @@ const Home = () => {
           </Link>
         </div>
 
-        <div className="dark:bg-card col-span-2 flex flex-col rounded-xl border border-[#82D8E0] bg-white p-4 shadow">
+        <Link
+          to="/clients"
+          className="dark:bg-card col-span-2 flex flex-col rounded-xl border border-[#82D8E0] bg-white p-4 shadow"
+        >
           <div className="flex items-center justify-between">
             <span className="text-primary flex justify-center text-3xl font-semibold text-[#048995]">
               <span className="mr-1 flex items-center">
@@ -253,199 +256,203 @@ const Home = () => {
           <span className="mt-2 ml-2 text-xs text-[#999999]">
             Gráfico muestra unidades de productos más vendidos en los últimos 60 días
           </span>
-        </div>
+        </Link>
       </div>
 
       {/* Productos y stock bajo */}
       <div className="grid grid-cols-2 gap-6">
         {/* Movimiento de producto */}
-        <div className="md:col-span-1">
-          <div className="dark:bg-card flex flex-col gap-2 rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="flex items-center text-2xl font-semibold text-[#042D95]">
-                <img
-                  src="/icons/sidebar/productos.svg"
-                  className="mr-2 shrink-0 text-current group-hover:text-current"
-                  alt=""
-                />
-                Productos con más stock
-              </span>
-            </div>
-            {/* GRÁFICO con Recharts */}
-            <div style={{ width: '100%', height: 329 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={topStockData}
-                  layout="vertical"
-                  margin={{ top: 10, right: 27, left: 85, bottom: 0 }}
-                  barCategoryGap={16}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
-                  <XAxis
-                    type="number"
-                    domain={[0, Math.max(maxStock, 1)]}
-                    ticks={getCustomTicks()}
-                    axisLine={false}
-                    tickLine={false}
-                    tick={({ x, y, payload }) => (
-                      <text
-                        x={x}
-                        y={y - 300}
-                        fill="#94A3B8"
-                        fontSize={15}
-                        textAnchor="middle"
-                        alignmentBaseline="middle"
-                      >
-                        {payload.value} uds
-                      </text>
-                    )}
+        <Link to="/products">
+          <div className="md:col-span-1">
+            <div className="dark:bg-card flex flex-col gap-2 rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="flex items-center text-2xl font-semibold text-[#042D95]">
+                  <img
+                    src="/icons/sidebar/productos.svg"
+                    className="mr-2 shrink-0 text-current group-hover:text-current"
+                    alt=""
                   />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    axisLine={false}
-                    tickLine={false}
-                    width={130}
-                    tick={({ y, payload }) => {
-                      const truncate = (text: string, max: number) =>
-                        text.length > max ? text.slice(0, max - 3) + '...' : text;
-                      return (
+                  Productos con más stock
+                </span>
+              </div>
+              {/* GRÁFICO con Recharts */}
+              <div style={{ width: '100%', height: 329 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={topStockData}
+                    layout="vertical"
+                    margin={{ top: 10, right: 27, left: 85, bottom: 0 }}
+                    barCategoryGap={16}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
+                    <XAxis
+                      type="number"
+                      domain={[0, Math.max(maxStock, 1)]}
+                      ticks={getCustomTicks()}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={({ x, y, payload }) => (
                         <text
-                          x={12}
-                          y={y + 6}
-                          fill="#3056d3"
-                          fontWeight="bold"
-                          fontSize={14}
-                          textAnchor="start"
+                          x={x}
+                          y={y - 300}
+                          fill="#94A3B8"
+                          fontSize={15}
+                          textAnchor="middle"
                           alignmentBaseline="middle"
                         >
-                          {truncate(payload.value, 28)}
+                          {payload.value} uds
                         </text>
-                      );
-                    }}
-                  />
-                  <Tooltip
-                    formatter={(val: number) => [`${val} uds`, 'Stock']}
-                    labelFormatter={(label: string) => `Producto: ${label}`}
-                    contentStyle={{ fontSize: 16 }}
-                  />
-                  <Bar
-                    dataKey="amount"
-                    fill="#BBD7FF"
-                    barSize={18}
-                    radius={[5, 5, 5, 5]}
-                    label={{
-                      position: 'right',
-                      fill: '#3056d3',
-                      fontSize: 15,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {topStockData.map((entry) => (
-                      <Cell
-                        key={`cell-${entry.id}`}
-                        fill={activeProd && entry.id === activeProd.id ? '#2563eb' : '#BBD7FF'}
-                        cursor="pointer"
-                        onClick={() => setSelectedProductId(entry.id)}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <span className="mt-2 ml-2 text-xs text-[#999999]">
-              El gráfico muestra los 10 productos con mayor stock actualmente.
-            </span>
-          </div>
-
-          {/* Cuadro detalle producto */}
-          {activeProd && (
-            <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
-              <table className="w-full">
-                <thead className="bg-[#f8fbff]">
-                  <tr>
-                    <th
-                      colSpan={4}
-                      className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
+                      )}
+                    />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      axisLine={false}
+                      tickLine={false}
+                      width={130}
+                      tick={({ y, payload }) => {
+                        const truncate = (text: string, max: number) =>
+                          text.length > max ? text.slice(0, max - 3) + '...' : text;
+                        return (
+                          <text
+                            x={12}
+                            y={y + 6}
+                            fill="#3056d3"
+                            fontWeight="bold"
+                            fontSize={14}
+                            textAnchor="start"
+                            alignmentBaseline="middle"
+                          >
+                            {truncate(payload.value, 28)}
+                          </text>
+                        );
+                      }}
+                    />
+                    <Tooltip
+                      formatter={(val: number) => [`${val} uds`, 'Stock']}
+                      labelFormatter={(label: string) => `Producto: ${label}`}
+                      contentStyle={{ fontSize: 16 }}
+                    />
+                    <Bar
+                      dataKey="amount"
+                      fill="#BBD7FF"
+                      barSize={18}
+                      radius={[5, 5, 5, 5]}
+                      label={{
+                        position: 'right',
+                        fill: '#3056d3',
+                        fontSize: 15,
+                        fontWeight: 700,
+                      }}
                     >
-                      {activeProd.name}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white">
-                  <tr>
-                    <td className="px-4 py-4 text-sm font-medium">Unidades en stock</td>
-                    <td className="px-4 py-4 text-2xl font-bold">{activeProd.amount}</td>
-                    <td className="px-4 py-4 text-sm">Precio de venta</td>
-                    <td className="px-4 py-4 text-2xl font-bold">${activeProd.sellPrice}</td>
-                  </tr>
-                </tbody>
-              </table>
+                      {topStockData.map((entry) => (
+                        <Cell
+                          key={`cell-${entry.id}`}
+                          fill={activeProd && entry.id === activeProd.id ? '#2563eb' : '#BBD7FF'}
+                          cursor="pointer"
+                          onClick={() => setSelectedProductId(entry.id)}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <span className="mt-2 ml-2 text-xs text-[#999999]">
+                El gráfico muestra los 10 productos con mayor stock actualmente.
+              </span>
             </div>
-          )}
-        </div>
 
-        {/* Stock bajo */}
-        <div className="dark:bg-card flex min-h-full flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
-          <div className="mb-3 flex items-center gap-2 text-2xl font-semibold text-[#042D95]">
-            <img
-              src="/icons/sidebar/productos.svg"
-              className="shrink-0 text-current group-hover:text-current"
-              alt=""
-            />
-            Stock Bajo
-          </div>
-          <div className="overflow-x-auto rounded-xl border border-[#CDDBFE]">
-            {isLoading ? (
-              <div className="py-8 text-center text-lg font-semibold text-blue-400">
-                Cargando productos de bajo stock...
-              </div>
-            ) : error ? (
-              <div className="py-8 text-center font-semibold text-red-500">
-                Error al cargar stock bajo
-              </div>
-            ) : (
-              <table className="w-full overflow-hidden rounded-xl border border-gray-200 text-base">
-                <thead className="bg-polar-mist">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
-                      Nombre producto
-                    </th>
-                    <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
-                      Stock unitario
-                    </th>
-                    <th className="px-2 py-2 text-center">
-                      <span
-                        className="inline-flex items-center"
-                        title="Producto sin stock disponible"
+            {/* Cuadro detalle producto */}
+            {activeProd && (
+              <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
+                <table className="w-full">
+                  <thead className="bg-[#f8fbff]">
+                    <tr>
+                      <th
+                        colSpan={4}
+                        className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
                       >
-                        <ExclamationCircleIcon className="h-6 w-6 text-[#0F172A]" />
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
-                  {topStockBajo.map((item, i) => (
-                    <tr key={i} className="transition hover:bg-gray-50">
-                      <td className="max-w-[220px] truncate px-4 py-2">{item.name}</td>
-                      <td className="px-4 py-2">
-                        {typeof item.amount === 'number' ? item.amount : '-'}
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <td className="px-2 py-2 text-center">
-                          <span
-                            className={`inline-block h-4 w-4 rounded-full ${getStockColor(getStockStatus(item.amount))}`}
-                            title="Stock bajo"
-                          />
-                        </td>
-                      </td>
+                        {activeProd.name}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white">
+                    <tr>
+                      <td className="px-4 py-4 text-sm font-medium">Unidades en stock</td>
+                      <td className="px-4 py-4 text-2xl font-bold">{activeProd.amount}</td>
+                      <td className="px-4 py-4 text-sm">Precio de venta</td>
+                      <td className="px-4 py-4 text-2xl font-bold">${activeProd.sellPrice}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
-        </div>
+        </Link>
+
+        {/* Stock bajo */}
+        <Link to="/products">
+          <div className="dark:bg-card flex min-h-full flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
+            <div className="mb-3 flex items-center gap-2 text-2xl font-semibold text-[#042D95]">
+              <img
+                src="/icons/sidebar/productos.svg"
+                className="shrink-0 text-current group-hover:text-current"
+                alt=""
+              />
+              Stock Bajo
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-[#CDDBFE]">
+              {isLoading ? (
+                <div className="py-8 text-center text-lg font-semibold text-blue-400">
+                  Cargando productos de bajo stock...
+                </div>
+              ) : error ? (
+                <div className="py-8 text-center font-semibold text-red-500">
+                  Error al cargar stock bajo
+                </div>
+              ) : (
+                <table className="w-full overflow-hidden rounded-xl border border-gray-200 text-base">
+                  <thead className="bg-polar-mist">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
+                        Nombre producto
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-[#3056d3]">
+                        Stock unitario
+                      </th>
+                      <th className="px-2 py-2 text-center">
+                        <span
+                          className="inline-flex items-center"
+                          title="Producto sin stock disponible"
+                        >
+                          <ExclamationCircleIcon className="h-6 w-6 text-[#0F172A]" />
+                        </span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
+                    {topStockBajo.map((item, i) => (
+                      <tr key={i} className="transition hover:bg-gray-50">
+                        <td className="max-w-[220px] truncate px-4 py-2">{item.name}</td>
+                        <td className="px-4 py-2">
+                          {typeof item.amount === 'number' ? item.amount : '-'}
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <td className="px-2 py-2 text-center">
+                            <span
+                              className={`inline-block h-4 w-4 rounded-full ${getStockColor(getStockStatus(item.amount))}`}
+                              title="Stock bajo"
+                            />
+                          </td>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
   );
