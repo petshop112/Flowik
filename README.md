@@ -1,6 +1,6 @@
 # 🐾 Flowik – Panel de Gestión para PYMES
 
-Flowik es una aplicación web destinada a pequeñas y medianas empresas, que centraliza la gestión de usuarios, clientes, productos y proveedores. Su objetivo es digitalizar y simplificar las tareas administrativas del negocio mediante un panel intuitivo con funcionalidades clave como registro de ventas, control de stock, alertas automatizadas, importacion y exportacion masiva para agilizar tiempos y facilitar las tareas administrativas.
+Flowik es una aplicación web destinada a pequeñas y medianas empresas, que centraliza la gestión de usuarios, clientes, productos y proveedores. Su objetivo es digitalizar y simplificar las tareas administrativas del negocio mediante un panel intuitivo con funcionalidades clave como registro de ventas, control de stock, alertas automatizadas, importacion y exportacion masiva para agilizar tiempos y facilitar las tareas administrativas del administrador.
 
 ## ⚙ Tecnologías utilizadas
 
@@ -140,4 +140,3 @@ Cada nueva tarea o issue debe realizarse en una rama independiente siguiendo est
 ---
 
 > 💡 Este flujo permite organizar mejor el trabajo en equipo, evitar conflictos innecesarios y mantener siempre una versión estable del sistema en `main`.
->
