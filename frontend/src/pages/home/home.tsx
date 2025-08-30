@@ -81,7 +81,10 @@ const Home = () => {
   const activeProd = topStockData.find((p) => p.id === selectedProductId) || topStockData[0];
 
   // Productos con menos stock (stock bajo)
-  const topStockBajo = [...products].sort((a, b) => a.amount - b.amount).slice(0, 10);
+  const topStockBajo = [...products]
+    .filter((p) => getStockStatus(p.amount) === 'critical' || getStockStatus(p.amount) === 'low')
+    .sort((a, b) => a.amount - b.amount)
+    .slice(0, 10);
 
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
