@@ -180,12 +180,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
         <div className="flex gap-8 border-b border-[#E5EAF7] px-8 pt-4">
           <button
             type="button"
-            className="border-b-2 border-transparent pb-2 text-base font-medium text-gray-400"
-          >
-            Detalles del cliente
-          </button>
-          <button
-            type="button"
             className="border-b-2 border-[#5685FA] pb-2 text-base font-semibold text-[#396FF9]"
           >
             Administrar deuda
