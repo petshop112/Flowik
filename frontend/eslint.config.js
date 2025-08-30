@@ -1,23 +1,65 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import { globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import prettier from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
 
-export default tseslint.config([
-  globalIgnores(['dist']),
+export default [
+  {
+    ignores: ['dist', 'build', 'node_modules', '.vite', 'coverage'],
+  },
+
+  js.configs.recommended,
+
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+        // Plara aplicar reglas "type-aware", descomenta y apunta a tus tsconfig:
+        // project: ["./tsconfig.json", "./tsconfig.app.json", "./tsconfig.node.json"],
+        // tsconfigRootDir: new URL(".", import.meta.url),
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      react,
+      'react-hooks': reactHooks,
+      prettier,
+    },
+    rules: {
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
+
+      'no-unused-vars': 'off',
+
+      // TypeScript
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+
+      // React
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+
+      // Hooks
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
+    settings: {
+      react: { version: 'detect' },
     },
   },
-])
+
+  prettierConfig,
+];

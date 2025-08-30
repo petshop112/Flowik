@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ignorar backend
+/backend/
+
+# variables de entorno
+.env
