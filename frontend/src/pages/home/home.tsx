@@ -18,20 +18,7 @@ import {
 } from 'recharts';
 
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
-import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
-
-const productosData = [
-  { producto: 'Pedigree Adulto Razas Pequeñas 3kg', ventas: 45, stock: 2 },
-  { producto: 'Eukanuba Cachorro', ventas: 40, stock: 500 },
-  { producto: 'Cat chow Grow', ventas: 35, stock: 5 },
-  { producto: 'Whiskas Gatitos', ventas: 30, stock: 5000 },
-  { producto: 'Vitalcanino Raza', ventas: 25, stock: 30 },
-  { producto: 'Pro Carne y Leche', ventas: 20, stock: 3 },
-  { producto: 'Whiskas Razas grandes', ventas: 15, stock: 300 },
-  { producto: 'ocho', ventas: 40, stock: 200 },
-  { producto: 'nueve', ventas: 2, stock: 2 },
-];
 
 const legendNames: Record<string, string> = {
   deudasNuevas: 'Deudas Nuevas',
@@ -80,36 +67,46 @@ const renderCustomLegend = (props: any) => {
 };
 
 const Home = () => {
+  // Productos desde el backend
   const { data: products = [], isLoading, error } = useGetAllProducts();
 
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [sellingFilter, setSellingFilter] = useState<'mayor' | 'menor'>('mayor');
+  // Top 10 productos con más stock y activos
+  const topStockData = [...products]
+    .filter((p) => p.isActive)
+    .sort((a, b) => b.amount - a.amount)
+    .reverse()
+    .slice(0, 10);
 
-  //ordering the products to render
-  const orderedProducts = [...productosData].sort((a, b) =>
-    sellingFilter === 'mayor' ? b.ventas - a.ventas : a.ventas - b.ventas
-  );
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const activeProd = topStockData.find((p) => p.id === selectedProductId) || topStockData[0];
 
-  // filtering data from the db to get the top 7 and top 10 for producto movement and stock
+  // Productos con menos stock (stock bajo)
   const topStockBajo = [...products].sort((a, b) => a.amount - b.amount).slice(0, 10);
-
-  const topProductosData = orderedProducts.slice(0, 7);
-
-  //selecting products to display under the product rotaion graphic
-  const activeProd =
-    topProductosData.find((p) => p.producto === selectedProduct) || topProductosData[0];
-
-  const stockActiveProd = products.find((s) => s.name === activeProd.producto);
 
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
   };
+
   const id_user = Number(localStorage.getItem('userId'));
   const { token } = useSelector(selectAuth);
   const { data: debtTotals, isLoading: loadingDebtTotals } = useDebtDashboardTotals(id_user, token);
   const { chartData, cuatrimestres, cuatrimestreActivo, setCuatrimestreActivo } = useDebtChartData(
     debtTotals?.clientsRaw ?? []
   );
+
+  const maxStock = Math.max(...topStockData.map((p) => p.amount), 1);
+
+  const getCustomTicks = () => {
+    // Si el máximo es pequeño (ej: 11), pon los ticks distribuidos cada 2 o 5 unidades.
+    if (maxStock <= 20) {
+      return [0, 5, 10, 15, 20].filter((t) => t <= maxStock + 2);
+    }
+    // Si el máximo es mediano, espaciado de 10 en 10:
+    if (maxStock <= 60) return [0, 15, 30, 45, 60].filter((t) => t <= maxStock + 5);
+    // Si es grande, pon 0 y el máximo nada más:
+    return [0, maxStock];
+  };
+
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
       <div className="grid grid-cols-3 gap-6">
@@ -244,7 +241,7 @@ const Home = () => {
             </ResponsiveContainer>
           </div>
           <span className="mt-2 ml-2 text-xs text-[#999999]">
-            Gráfico muestra unidades de productos más vendidos en los últimos 60 días
+            Gráfico muestra unidades de productos más vendidos en los últimos 60ddddddd días
           </span>
         </div>
       </div>
@@ -256,40 +253,19 @@ const Home = () => {
           <div className="dark:bg-card flex flex-col gap-2 rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
             <div className="mb-2 flex items-center justify-between">
               <span className="flex items-center text-2xl font-semibold text-[#042D95]">
-                <ShoppingCartIcon className="mr-2 h-7 text-[#5685FA]" />
-                Movimiento de producto
+                <img
+                  src="/icons/sidebar/productos.svg"
+                  className="mr-2 shrink-0 text-current group-hover:text-current"
+                  alt=""
+                />
+                Productos con más stock
               </span>
-              <div className="relative w-44">
-                <select
-                  className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs"
-                  value={sellingFilter}
-                  onChange={(e) => setSellingFilter(e.target.value as 'mayor' | 'menor')}
-                >
-                  <option value="mayor" className="font-bold">
-                    Mayor salida
-                  </option>
-                  <option value="menor" className="font-bold">
-                    Menor salida
-                  </option>
-                </select>
-                <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2">
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path
-                      d="M6 8L10 12L14 8"
-                      stroke="#048995"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              </div>
             </div>
             {/* GRÁFICO con Recharts */}
             <div style={{ width: '100%', height: 329 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={topProductosData}
+                  data={topStockData}
                   layout="vertical"
                   margin={{ top: 10, right: 27, left: 85, bottom: 0 }}
                   barCategoryGap={16}
@@ -297,8 +273,8 @@ const Home = () => {
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
                   <XAxis
                     type="number"
-                    domain={[0, 50]}
-                    ticks={[10, 20, 30, 40, 50]}
+                    domain={[0, Math.max(maxStock, 1)]}
+                    ticks={getCustomTicks()}
                     axisLine={false}
                     tickLine={false}
                     tick={({ x, y, payload }) => (
@@ -310,12 +286,12 @@ const Home = () => {
                         textAnchor="middle"
                         alignmentBaseline="middle"
                       >
-                        {payload.value}uds
+                        {payload.value} uds
                       </text>
                     )}
                   />
                   <YAxis
-                    dataKey="producto"
+                    dataKey="name"
                     type="category"
                     axisLine={false}
                     tickLine={false}
@@ -339,13 +315,13 @@ const Home = () => {
                     }}
                   />
                   <Tooltip
-                    formatter={(val: number) => [`${val} uds`, 'Ventas']}
+                    formatter={(val: number) => [`${val} uds`, 'Stock']}
                     labelFormatter={(label: string) => `Producto: ${label}`}
                     contentStyle={{ fontSize: 16 }}
                   />
                   <Bar
-                    dataKey="ventas"
-                    fill={sellingFilter === 'menor' ? '#FDCED9' : '#BBD7FF'}
+                    dataKey="amount"
+                    fill="#BBD7FF"
                     barSize={18}
                     radius={[5, 5, 5, 5]}
                     label={{
@@ -355,62 +331,68 @@ const Home = () => {
                       fontWeight: 700,
                     }}
                   >
-                    {' '}
-                    {topProductosData.map((entry, idx) => (
+                    {topStockData.map((entry) => (
                       <Cell
-                        key={`cell-${idx}`}
-                        fill={
-                          sellingFilter === 'menor'
-                            ? entry.producto === activeProd.producto
-                              ? '#F87171'
-                              : '#FDCED9'
-                            : entry.producto === activeProd.producto
-                              ? '#2563eb'
-                              : '#BBD7FF'
-                        }
+                        key={`cell-${entry.id}`}
+                        fill={activeProd && entry.id === activeProd.id ? '#2563eb' : '#BBD7FF'}
                         cursor="pointer"
-                        onClick={() => setSelectedProduct(entry.producto)}
+                        onClick={() => setSelectedProductId(entry.id)}
                       />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            <span className="mt-2 ml-2 text-xs text-[#999999]">
+              El gráfico muestra los 10 productos con mayor stock actualmente.
+            </span>
           </div>
 
-          <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
-            <table className="w-full">
-              <thead className="bg-[#f8fbff]">
-                <tr>
-                  <th
-                    colSpan={4}
-                    className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
-                  >
-                    {activeProd.producto}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white">
-                <tr>
-                  <td className="px-4 py-4 text-sm font-medium">Unidades vendidas</td>
-                  <td className="px-4 py-4 text-2xl font-bold">{activeProd.ventas}</td>
-                  <td className="font-mediu px-4 py-4 text-sm">Disponibles en stock (uds)</td>
-                  <td className="px-4 py-4 text-2xl font-bold">
-                    {stockActiveProd ? stockActiveProd.amount : '—'}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          {/* Cuadro detalle producto */}
+          {activeProd && (
+            <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
+              <table className="w-full">
+                <thead className="bg-[#f8fbff]">
+                  <tr>
+                    <th
+                      colSpan={4}
+                      className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
+                    >
+                      {activeProd.name}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white">
+                  <tr>
+                    <td className="px-4 py-4 text-sm font-medium">Unidades en stock</td>
+                    <td className="px-4 py-4 text-2xl font-bold">{activeProd.amount}</td>
+                    <td className="px-4 py-4 text-sm">Precio de venta</td>
+                    <td className="px-4 py-4 text-2xl font-bold">
+                      {typeof activeProd.sellPrice === 'number'
+                        ? activeProd.sellPrice.toLocaleString('es-ES', {
+                            style: 'currency',
+                            currency: 'USD',
+                          })
+                        : '—'}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Stock bajo */}
         <div className="dark:bg-card flex min-h-full flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
           <div className="mb-3 flex items-center gap-2 text-2xl font-semibold text-[#042D95]">
-            <ShoppingCartIcon className="mr-2 h-7 w-7 text-[#5685FA]" />
+            <img
+              src="/icons/sidebar/productos.svg"
+              className="shrink-0 text-current group-hover:text-current"
+              alt=""
+            />
             Stock Bajo
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-[#CDDBFE]">
             {isLoading ? (
               <div className="py-8 text-center text-lg font-semibold text-blue-400">
                 Cargando productos de bajo stock...
@@ -463,4 +445,5 @@ const Home = () => {
     </div>
   );
 };
+
 export default Home;
