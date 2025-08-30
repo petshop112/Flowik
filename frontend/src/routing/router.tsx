@@ -3,7 +3,6 @@ import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import Home from '../pages/home/home';
 import NotFoundPage from '../pages/notfound/NotFoundPage';
-// import Dashboard from '../pages/Dashboard';
 import ClientsPage from '../pages/clients/Clients';
 import { PrivateRoute } from '../components/features/PrivateRoute';
 import Products from '../pages/products/Products';
@@ -22,10 +21,9 @@ const router = createBrowserRouter([
         element: <PrivateRoute />,
         children: [
           {
-            element: <DashboardLayoutRoute />, // hereda Header + Sidebar
+            element: <DashboardLayoutRoute />,
             children: [
               { index: true, element: <Home /> },
-              // { path: 'dashboard', element: <Dashboard /> },
               { path: 'products', element: <Products /> },
               { path: 'clients', element: <ClientsPage /> },
               { path: 'providers', element: <ProvidersPage /> },

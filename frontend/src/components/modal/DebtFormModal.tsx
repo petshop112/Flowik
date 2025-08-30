@@ -17,11 +17,8 @@ interface DebtFormModalProps {
 const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selectedClientIds }) => {
   const { token } = useSelector(selectAuth);
   const [clientInfo, setClientInfo] = useState<{ name_client?: string } | null>(null);
-  // const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const [mount, setMount] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // const hasSelectedProducts = selectedProductIds.size > 0;
 
   const [historic, setHistoric] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,7 +57,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
     }
   }, [isOpen, selectedClientIds, token]);
 
-  // Helpers de formato
   const formatFecha = (fecha: string) => {
     const dateObj = new Date(fecha);
     if (isNaN(dateObj.getTime())) return '';
@@ -74,7 +70,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
     return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
   };
 
-  // Suma total de DEUDA que queda por pagar entre todas las deudas
   const totalDebt = historic.reduce((sum, d) => {
     const pagos = (d.payments ?? []).reduce(
       (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
@@ -163,8 +158,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
         description={successDescription}
       />
       <div className="w-full max-w-3xl rounded-2xl bg-white pt-9">
-        {/* HEADER */}
-
         <header className="flex items-center justify-between px-8 py-6">
           <h2 className="text-[22px] font-bold text-gray-900">{clientInfo?.name_client}</h2>
           <button
@@ -176,7 +169,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           </button>
         </header>
 
-        {/* TABS */}
         <div className="flex gap-8 border-b border-[#E5EAF7] px-8 pt-4">
           <button
             type="button"
@@ -186,7 +178,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           </button>
         </div>
 
-        {/* INFORMACIÓN ARRIBA */}
         <div className="flex flex-wrap items-end justify-between gap-2 px-8 py-8">
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-blue-900">Deuda Acumulada</span>
@@ -199,7 +190,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               </span>
             </div>
           </div>
-          {/* INPUT mount + AGREGAR */}
           <div className="flex items-end gap-2">
             <div className="flex flex-col items-start">
               <label className="mb-1 text-xs font-semibold text-blue-900">Monto</label>
@@ -234,7 +224,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           </div>
         </div>
 
-        {/* TABLA DEUDA */}
         <div className="flex flex-col overflow-x-auto px-8 pb-8">
           <table className="w-full rounded-xl border border-blue-100 text-sm text-blue-900">
             <thead className="bg-blue-50">
@@ -313,7 +302,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               )}
             </tbody>
           </table>
-          {/* PAGINACIÓN DE TABLA */}
           {historic.length > rowsPerPage && (
             <div className="flex items-center justify-center gap-2 py-4">
               <button
@@ -347,7 +335,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           )}
         </div>
 
-        {/* FOOTER BOTONES */}
         <div className="flex justify-center gap-4 px-8 pb-8">
           <button
             className="h-11 rounded-md border border-blue-100 bg-blue-50 px-8 text-base font-medium text-blue-500 transition hover:bg-blue-100"

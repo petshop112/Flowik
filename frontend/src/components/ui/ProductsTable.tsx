@@ -23,6 +23,7 @@ import {
   useAdjustProductPrices,
 } from '../../hooks/useProducts';
 import ProductFormModal from '../modal/ProductFormModal';
+import ProductViewModal from '../modal/ProductViewModal';
 import { InventoryLegend } from './InventoryLegend';
 import { getStockStatus, getStockColor } from '../../utils/product';
 import { useGetAllProviders } from '../../hooks/useProviders';
@@ -48,6 +49,9 @@ const ProductsTable: React.FC = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
+  // Nuevo estado para ver producto
+  const [viewProductId, setViewProductId] = useState<number | null>(null);
+
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportProducts, setExportProducts] = useState<Product[]>([]);
   const [isExporting, setIsExporting] = useState(false);
@@ -55,6 +59,10 @@ const ProductsTable: React.FC = () => {
   const { data: products = [], isLoading, error } = useGetAllProducts();
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
     editingProductId || 0
+  );
+  // Hook para ver producto
+  const { data: viewProduct, isLoading: isLoadingViewProduct } = useGetProductById(
+    viewProductId || 0
   );
   const { data: providers } = useGetAllProviders();
   const deleteProductMutation = useDeleteProduct();
@@ -399,7 +407,6 @@ const ProductsTable: React.FC = () => {
       const providerObj = providers?.find((p) => p.name_provider === provider);
       if (!providerObj) throw new Error('Proveedor no encontrado');
       const providerId = providerObj.id_provider;
-      console.log('id provedor' + providerId);
 
       const result = await productService.importProductsFile(providerId, file, token);
 
@@ -411,12 +418,6 @@ const ProductsTable: React.FC = () => {
         description: `Se importaron ${result.validos.length} productos.`,
       });
       setIsSuccessModalOpen(true);
-
-      if (result.invalidos && result.invalidos.length > 0) {
-        console.log('filas invalidas');
-
-        // TODO: Mostrar errores filas invalidas
-      }
     } catch (error: any) {
       setSuccessMessage({
         title: 'Error al importar',
@@ -429,7 +430,7 @@ const ProductsTable: React.FC = () => {
   };
 
   const handleOpenExportModal = () => {
-    setExportProducts(selectedProducts); // los seleccionados
+    setExportProducts(selectedProducts);
     setIsExportModalOpen(true);
   };
 
@@ -525,11 +526,9 @@ const ProductsTable: React.FC = () => {
     <>
       <section className="bg-custom-mist min-h-[calc(100vh-6.5rem)] w-full p-6">
         <article className="mx-auto">
-          {/* Header */}
           <header className="mb-6">
             <h1 className="text-dark-blue mb-4 text-2xl font-semibold">Productos</h1>
 
-            {/* Barra de acciones */}
             {hasProducts && (
               <article className="gap- flex flex-wrap items-center justify-between gap-2">
                 <article className="flex items-center gap-3 [&>button]:font-semibold">
@@ -605,7 +604,6 @@ const ProductsTable: React.FC = () => {
                 </article>
 
                 <aside className="flex items-center gap-3">
-                  {/* Búsqueda */}
                   <article className="relative">
                     <Search
                       className="text-electric-blue absolute top-1/2 left-3 -translate-y-1/2 transform"
@@ -620,7 +618,6 @@ const ProductsTable: React.FC = () => {
                       className="border-dark-blue w-38 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </article>
-                  {/* Nuevo producto */}
                   <button
                     onClick={handleNewProduct}
                     className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
@@ -628,7 +625,6 @@ const ProductsTable: React.FC = () => {
                     <Plus size={18} />
                     Nuevo producto
                   </button>
-                  {/* Cambiar Precio */}
                   <button
                     onClick={handleOpenAdjustPricesModal}
                     disabled={!hasSelectedProducts || adjustPricesMutation.isPending}
@@ -642,7 +638,6 @@ const ProductsTable: React.FC = () => {
             )}
           </header>
 
-          {/* Tabla */}
           {!hasProducts ? (
             <main className="border-sky-glimmer mt-10 overflow-hidden rounded-xl border bg-white shadow-sm">
               <EmptyProductsState onAddProduct={handleNewProduct} />
@@ -714,7 +709,12 @@ const ProductsTable: React.FC = () => {
                               />
                             </td>
                             <td className="border-pastel-blue border-l-2 px-4 text-sm">
-                              {product.name}
+                              <span
+                                className={`cursor-pointer ${product.isActive ? 'text-gray-900 hover:underline' : 'pointer-events-none opacity-50'}`}
+                                onClick={() => product.isActive && setViewProductId(product.id)}
+                              >
+                                {product.name}
+                              </span>
                             </td>
                             <td className="border-pastel-blue border-l-2 px-4 text-sm">
                               {product.category}
@@ -758,7 +758,6 @@ const ProductsTable: React.FC = () => {
                 )}
               </main>
 
-              {/* Paginación */}
               {totalPages > 1 && (
                 <article className="flex justify-center py-3">
                   <nav className="flex items-center justify-between">
@@ -825,6 +824,25 @@ const ProductsTable: React.FC = () => {
         categories={categories}
         isSaving={isSavingProduct}
       />
+
+      {/* Modal de solo lectura para ver producto */}
+      {viewProductId &&
+        (isLoadingViewProduct ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+            <div className="flex w-full max-w-md flex-col items-center rounded-lg bg-white p-8 shadow-xl">
+              <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+              <p className="text-gray-600">Cargando producto...</p>
+            </div>
+          </div>
+        ) : (
+          <ProductViewModal
+            isOpen={!!viewProductId}
+            onClose={() => setViewProductId(null)}
+            product={viewProduct}
+            providers={providers}
+            categories={categories}
+          />
+        ))}
       <DeleteProductModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
