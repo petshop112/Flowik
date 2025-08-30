@@ -68,7 +68,7 @@ const ProductsTable: React.FC = () => {
     selectedClients.length > 0 && selectedClients.every((c) => c.isActive === false);
   const allActive =
     selectedClients.length > 0 && selectedClients.every((c) => c.isActive !== false);
-  const actionLabel = allInactive ? 'Activar' : allActive ? 'Desactivar' : 'Activar/Desactivar';
+  const actionLabel = allInactive ? 'Activar' : allActive ? 'Desactivar' : 'Desactivar';
 
   const selectedProviders = providers?.filter((p) => selectedProviderIds.has(p.id_provider)) ?? [];
 
@@ -244,26 +244,6 @@ const ProductsTable: React.FC = () => {
                   <article
                     className={`flex items-center gap-2 [&>button]:font-semibold ${hasSelectedProviders ? '[&>button]:cursor-pointer' : ''}`}
                   >
-                    {/* <button
-                      onClick={hasSelectedProviders ? handleDeactivate : undefined}
-                      disabled={!hasSelectedProviders || isDeactivating}
-                      className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedProviders ? 'text-deep-teal' : 'text-gray-400'}`}
-                      title={actionLabel}
-                    >
-                      <ToggleRight
-                        size={18}
-                        className={hasSelectedProviders ? 'text-tropical-cyan' : 'text-gray-400'}
-                      />
-                      <span className={hasSelectedProviders ? 'text-deep-teal' : 'text-gray-400'}>
-                        {isDeactivating
-                          ? allInactive
-                            ? 'Activando...'
-                            : allActive
-                              ? 'Desactivando...'
-                              : 'Cambiando estado...'
-                          : actionLabel}
-                      </span>
-                    </button> */}
                     <button
                       onClick={
                         hasSelectedProviders && isUniformSelection ? handleDeactivate : undefined

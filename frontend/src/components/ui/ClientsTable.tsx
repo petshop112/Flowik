@@ -402,11 +402,9 @@ const ClientsTable: React.FC = () => {
                             }
                             onChange={(e) => {
                               if (e.target.checked) {
-                                // Selecciono todos los clientes filtrados (todas las paginas)
                                 const ids = filteredClients.map((c) => c.id_client);
                                 setSelectedClientIds(new Set(ids));
                               } else {
-                                // Deselecciona todos
                                 setSelectedClientIds(new Set());
                               }
                             }}

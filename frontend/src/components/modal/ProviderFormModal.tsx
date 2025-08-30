@@ -134,7 +134,6 @@ const ProviderFormModal: React.FC<Props> = ({
       return;
     }
 
-    // payload para el backend
     const payload: ProviderFormValues = {
       name_provider: form.name_provider.trim(),
       cuit_provider: form.cuit_provider.trim(),
@@ -173,7 +172,6 @@ const ProviderFormModal: React.FC<Props> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 px-8 py-8">
-          {/* Nombre + Teléfono */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Empresa*</label>
@@ -228,7 +226,6 @@ const ProviderFormModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Categoría + Dirección */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">Categoría*</label>
@@ -285,7 +282,6 @@ const ProviderFormModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* CUIT + Correo */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
@@ -351,7 +347,6 @@ const ProviderFormModal: React.FC<Props> = ({
             </div>
           )}
 
-          {/* Botones */}
           <div className="flex items-center justify-center gap-4 pt-2 pb-2">
             <button
               type="button"
