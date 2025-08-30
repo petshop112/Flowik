@@ -1,0 +1,214 @@
+package fooTalent.flowik.auth.services;
+
+import fooTalent.flowik.auth.dto.*;
+import fooTalent.flowik.auth.repositories.VerificationTokenRepository;
+import fooTalent.flowik.auth.util.UserValidation;
+import fooTalent.flowik.auth.util.VerificationToken;
+import fooTalent.flowik.exceptions.ResourceNotFoundException;
+import fooTalent.flowik.users.entity.User;
+import fooTalent.flowik.users.repositories.UserRepository;
+import fooTalent.flowik.auth.util.EmailService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final UserValidation userValidation;
+    private final VerificationTokenRepository verificationTokenRepository;
+    private final EmailService emailService;
+
+    @Value("${URL_FRONT}")
+    private String frontUrl;
+    @Value("${URL_BACK}")
+    private String backUrl;
+
+    public AuthResponse register(RegisterRequest request) {
+        if (!request.password().equals(request.confirmPassword())) {
+            return new AuthResponse(null, "Las contraseñas no coinciden.", false);
+        }
+
+        String fullName = request.firstName() + " " + request.lastName();
+
+        User tempUser = new User();
+        tempUser.setUserName(fullName);
+        tempUser.setEmail(request.email());
+        tempUser.setPassword(request.password());
+
+        AuthResponse validationResponse = userValidation.validate(tempUser);
+        if (!validationResponse.success()) {
+            return validationResponse;
+        }
+
+        if (userRepository.findByEmail(request.email()).isPresent()) {
+            return new AuthResponse(null, "El email ya está registrado", false);
+        }
+
+        User user = new User();
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setUserName(fullName);
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+
+        String verificationToken = UUID.randomUUID().toString();
+        user.setVerificationToken(verificationToken);
+        user.setVerificationTokenExpiration(new Date(System.currentTimeMillis() + 86400000));
+        user.setIsActive(false);
+
+        try {
+            String link = backUrl + "/api/auth/verifyToken?token=" + verificationToken;
+            emailService.sendEmail(user.getEmail(), "Verifica tu cuenta",
+                    "<p>Hola " + user.getUserName() + ",</p>" +
+                            "<p>Gracias por registrarte en Flowik, web app para controlar tu " +
+                            "Petshop. Por favor, haz clic en el siguiente enlace para activar tu cuenta:</p>" +
+                            "<a href=\"" + link + "\">Verificar cuenta</a>"
+            );
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo enviar el email de verificación. El usuario no fue registrado.", e);
+        }
+
+        System.out.println("Token de verificación enviado: " + verificationToken);
+        return new AuthResponse(null, "Usuario registrado exitosamente. Por favor verifica tu correo, " +
+                "no olvides revisar tu casilla de spam", true);
+    }
+
+    public AuthResponse login(LoginRequest request) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.email());
+        if (optionalUser.isEmpty()) {
+            return new AuthResponse(null, "Usuario no encontrado.", false);
+        }
+        User user = optionalUser.get();
+
+        if (user.getVerificationToken() != null) {
+            return new AuthResponse(null, "No se realizó la validación del correo.", false);
+        }
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.email(),
+                            request.password()
+                    )
+            );
+        } catch (Exception e) {
+            return new AuthResponse(null, "Contraseña incorrecta.", false);
+        }
+
+        String jwt = jwtService.generateToken(user);
+
+        return new AuthResponse(jwt, "Usuario autenticado exitosamente.", true);
+    }
+
+    public AuthResponse changePassword(ChangePasswordRequest request) {
+
+        Optional<User> optionalUser = userRepository.findByEmail(request.email());
+
+        if (optionalUser.isEmpty()) {
+            return new AuthResponse(null, "Usuario no encontrado.", false);
+        }
+        User user = optionalUser.get();
+
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            return new AuthResponse(null, "Contraseña actual incorrecta.", false);
+        }
+
+        AuthResponse passwordValidation = userValidation.validatePassword(request.newPassword());
+        if (!passwordValidation.success()) {
+            return passwordValidation;
+        }
+
+        if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+            return new AuthResponse(null, "La nueva contraseña no puede ser igual a la anterior.", false);
+        }
+        if(!request.newPassword().equals(request.confirmPassword())){
+            return new AuthResponse(null, "El campo nueva contraseña y confirmar contraseñas no coinciden.", false);
+        }
+
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        String jwt = jwtService.generateToken(user);
+
+        return new AuthResponse(jwt, "Contraseña actualizada con éxito.", true);
+    }
+
+    @Transactional
+    public String forgotPassword(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("una cuenta vinculada a el email");
+        }
+
+        User user = optionalUser.get();
+
+        verificationTokenRepository.deleteByUser(user);
+
+        String token = generateUniqueToken();
+
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(user);
+        verificationToken.setExpiryDate(LocalDateTime.now().plusHours(1));
+        verificationTokenRepository.save(verificationToken);
+
+        String link = frontUrl + "/new-Password?token=" + token;
+        emailService.sendEmail(user.getEmail(), "Recuperar contraseña",
+                "<p>Hola " + user.getUserName() + ",</p>" +
+                        "<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>" +
+                        "<a href=\"" + link + "\">Restablecer contraseña</a><br>" +
+                        "<p>Este enlace expirará en 1 hora.</p>");
+
+        return "Se ha enviado un correo para restablecer la contraseña.";
+    }
+
+    private String generateUniqueToken() {
+        String token;
+        do {
+            token = UUID.randomUUID().toString();
+        } while (verificationTokenRepository.findByToken(token).isPresent());
+        return token;
+    }
+
+    public AuthResponse resetPassword(ResetPasswordRequest request) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            return new AuthResponse(null, "Las contraseñas no coinciden.", false);
+        }
+
+        Optional<VerificationToken> optionalToken = verificationTokenRepository.findByToken(request.token());
+
+        if (optionalToken.isEmpty()) {
+            return new AuthResponse(null, "Token inválido.", false);
+        }
+
+        VerificationToken token = optionalToken.get();
+
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            return new AuthResponse(null, "El token ha expirado.", false);
+        }
+
+        User user = token.getUser();
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+
+        userRepository.save(user);
+        verificationTokenRepository.delete(token);
+
+        return new AuthResponse(null, "Contraseña actualizada exitosamente.", true);
+    }
+}
