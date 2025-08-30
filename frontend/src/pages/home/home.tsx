@@ -4,6 +4,7 @@ import { selectAuth } from '../../features/auth/authSlice';
 import { useDebtDashboardTotals } from '../../hooks/useDebtDashboardTotals';
 import { useDebtChartData } from '../../hooks/useDebtChartData';
 import { useGetAllProducts } from '../../hooks/useProducts';
+import { getStockStatus, getStockColor } from '../../utils/product';
 
 import {
   BarChart,
@@ -74,7 +75,6 @@ const Home = () => {
   const topStockData = [...products]
     .filter((p) => p.isActive)
     .sort((a, b) => b.amount - a.amount)
-    .reverse()
     .slice(0, 10);
 
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
@@ -208,7 +208,7 @@ const Home = () => {
                 margin={{
                   top: 0,
                   right: 0,
-                  left: 0,
+                  left: 20,
                   bottom: 0,
                 }}
               >
@@ -241,7 +241,7 @@ const Home = () => {
             </ResponsiveContainer>
           </div>
           <span className="mt-2 ml-2 text-xs text-[#999999]">
-            Gráfico muestra unidades de productos más vendidos en los últimos 60ddddddd días
+            Gráfico muestra unidades de productos más vendidos en los últimos 60 días
           </span>
         </div>
       </div>
@@ -422,10 +422,12 @@ const Home = () => {
                         {typeof item.amount === 'number' ? item.amount : '-'}
                       </td>
                       <td className="px-2 py-2 text-center">
-                        <span
-                          className="inline-block h-4 w-4 rounded-full bg-[#f82f69]"
-                          title="Stock bajo"
-                        />
+                        <td className="px-2 py-2 text-center">
+                          <span
+                            className={`inline-block h-4 w-4 rounded-full ${getStockColor(getStockStatus(item.amount))}`}
+                            title="Stock bajo"
+                          />
+                        </td>
                       </td>
                     </tr>
                   ))}
