@@ -151,7 +151,7 @@ const Home = () => {
                 </span>
               </li>
               <li className="flex items-center gap-2 text-[#042D95]">
-                Superavit/Deficit
+                Déficit
                 <span className="ml-auto text-2xl font-semibold text-[#048995]">
                   $
                   {loadingDebtTotals
@@ -367,14 +367,7 @@ const Home = () => {
                     <td className="px-4 py-4 text-sm font-medium">Unidades en stock</td>
                     <td className="px-4 py-4 text-2xl font-bold">{activeProd.amount}</td>
                     <td className="px-4 py-4 text-sm">Precio de venta</td>
-                    <td className="px-4 py-4 text-2xl font-bold">
-                      {typeof activeProd.sellPrice === 'number'
-                        ? activeProd.sellPrice.toLocaleString('es-ES', {
-                            style: 'currency',
-                            currency: 'USD',
-                          })
-                        : '—'}
-                    </td>
+                    <td className="px-4 py-4 text-2xl font-bold">${activeProd.sellPrice}</td>
                   </tr>
                 </tbody>
               </table>
