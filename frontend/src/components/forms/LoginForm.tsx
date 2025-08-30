@@ -142,7 +142,7 @@ const LoginForm = () => {
             {loading ? 'Cargando...' : 'Iniciar sesión'}
           </button>
 
-          <p className="font-['Albert Sans'] text-center text-[16px] leading-[120%] font-normal text-[#5685FA]">
+          {/* <p className="font-['Albert Sans'] text-center text-[16px] leading-[120%] font-normal text-[#5685FA]">
             ¿Primera vez aquí?{' '}
             <a
               href="/register"
@@ -150,7 +150,7 @@ const LoginForm = () => {
             >
               Regístrate
             </a>
-          </p>
+          </p> */}
         </Form>
       )}
     </Formik>
