@@ -39,7 +39,9 @@ export const NotificationsPopover = () => {
   const { data, isLoading, error } = useNotifications();
   const { mutate: markRead } = useMarkReadNotification();
 
-  const notifications = data ?? [];
+  const notifications = (data ?? [])
+    .slice()
+    .sort((a, b) => new Date(b.generationDate).getTime() - new Date(a.generationDate).getTime());
   const unreadCount = notifications.filter((n) => !n.read).length;
   const grouped = groupNotificationsBySection(notifications);
 
