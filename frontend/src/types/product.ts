@@ -81,7 +81,7 @@ export interface ProductValidationErrors {
   amount?: string;
 }
 
-export type ProductValidatableFields = keyof ProductValidationErrors;
+export type ProductValidTableFields = keyof ProductValidationErrors;
 
 export interface AdjustProductPriceData {
   value: number;

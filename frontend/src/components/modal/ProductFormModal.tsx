@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import type {
   ProductFormModalProps,
   ProductUpdateFormData,
-  ProductValidatableFields,
+  ProductValidTableFields,
   ProductValidationErrors,
   ProductWithOptionalId,
 } from '../../types/product';
@@ -20,12 +20,15 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 }) => {
   const [errors, setErrors] = useState<ProductValidationErrors>({});
   const [formData, setFormData] = useState<
-    Omit<ProductUpdateFormData, 'id' | 'providers'> & { providerIds?: string[] }
+    Omit<ProductUpdateFormData, 'id' | 'providers' | 'amount'> & {
+      providerIds?: string[];
+      amount: number | null;
+    }
   >({
     name: '',
     category: '',
     description: '',
-    amount: 0,
+    amount: null,
     sellPrice: 0,
     buyDate: '',
     expiration: '',
@@ -55,7 +58,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         name: '',
         category: '',
         description: '',
-        amount: 0,
+        amount: null,
         sellPrice: 0,
         buyDate: getCurrentDate(),
         expiration: '',
@@ -94,7 +97,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, product]);
 
-  const validateField = (fieldName: ProductValidatableFields, value: string | number): boolean => {
+  const validateField = (fieldName: ProductValidTableFields, value: string | number): boolean => {
     const newErrors = { ...errors };
     const stringValue = String(value || '');
 
@@ -166,7 +169,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     return !newErrors[fieldName];
   };
 
-  const handleInputChange = (field: keyof typeof formData, value: string | number) => {
+  const handleInputChange = (field: keyof typeof formData, value: string | number | null) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -179,13 +182,13 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
     if (['name', 'description', 'category', 'sellPrice', 'amount'].includes(field)) {
       setTimeout(() => {
-        validateField(field as ProductValidatableFields, value);
+        validateField(field as ProductValidTableFields, value || '');
       }, 100);
     }
   };
 
   const validateForm = (): boolean => {
-    const fields: ProductValidatableFields[] = [
+    const fields: ProductValidTableFields[] = [
       'name',
       'description',
       'category',
@@ -224,7 +227,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       name: formData.name.trim(),
       category: formData.category.trim(),
       description: formData.description.trim(),
-      amount: Number(formData.amount) || 0,
+      amount: formData.amount !== null ? Number(formData.amount) : 0,
       sellPrice: Number(formData.sellPrice) || 0,
       buyDate: formData.buyDate || getCurrentDate(),
       expiration: formData.expiration || '',
@@ -381,10 +384,41 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 <input
                   type="number"
                   min="0"
-                  value={formData.amount || ''}
+                  value={formData.amount !== null ? formData.amount : ''}
                   data-test="product-amount"
-                  onChange={(e) => handleInputChange('amount', parseInt(e.target.value) || 0)}
-                  placeholder={isEditMode ? formData.amount.toString() : 'Uds.'}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const integerRegex = /^-?\d*$/;
+
+                    if (value === '' || integerRegex.test(value)) {
+                      handleInputChange('amount', value === '' ? null : parseInt(value) || 0);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === '.' ||
+                      e.key === ',' ||
+                      e.key === 'e' ||
+                      e.key === 'E' ||
+                      e.key === '+' ||
+                      e.key === '-'
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text');
+                    const integerRegex = /^\d+$/;
+
+                    if (integerRegex.test(pastedText)) {
+                      const value = parseInt(pastedText);
+                      if (value >= 0) {
+                        handleInputChange('amount', value);
+                      }
+                    }
+                  }}
+                  placeholder="Uds."
                   className={`${
                     isEditMode ? 'text-gray-500' : ''
                   } w-full rounded-sm border border-gray-300 px-3 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500`}
