@@ -251,7 +251,7 @@ const Home = () => {
             </ResponsiveContainer>
           </div>
           <span className="mt-2 ml-2 text-xs text-[#999999]">
-            Gráfico muestra unidades de productos más vendidos en los últimos 60 días
+            El gráfico muestra la evolución mensual de deudas agrupada por cuatrimestres.
           </span>
         </div>
       </div>
