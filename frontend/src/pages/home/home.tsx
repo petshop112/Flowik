@@ -5,6 +5,7 @@ import { useDebtDashboardTotals } from '../../hooks/useDebtDashboardTotals';
 import { useDebtChartData } from '../../hooks/useDebtChartData';
 import { useGetAllProducts } from '../../hooks/useProducts';
 import { getStockStatus, getStockColor } from '../../utils/product';
+import { Link } from 'react-router-dom';
 
 import {
   BarChart,
@@ -116,56 +117,62 @@ const Home = () => {
         {/* COLUMNA 1 */}
         <div className="flex flex-col gap-4">
           {/* Cartita DEUDA TOTAAL */}
-          <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white p-6 shadow">
-            <span className="text-primary mb-1 text-xl font-semibold text-[#042D95]">
-              Deuda de Clientes
-            </span>
-            <span className="mb-2 text-xs text-[#6b7280]">Suma de saldos pendientes</span>
-            <div className="mt-4 flex">
-              <CurrencyDollarIcon className="mr-2 h-9 w-9 text-[#82D8E0]" />
-              <span className="text-4xl font-semibold text-[#042D95]">
-                {loadingDebtTotals ? '...' : debtTotals?.totalOutstanding?.toLocaleString('es-AR')}
+          <Link to="/clients">
+            <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white p-6 shadow">
+              <span className="text-primary mb-1 text-xl font-semibold text-[#042D95]">
+                Deuda de Clientes
               </span>
-            </div>
-          </div>
-          {/* Cartita detalle NUMERICO DE LA DEUDA DEL CUATRIMESTRE */}
-          <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white px-6 py-4 shadow">
-            <ul className="space-y-3 text-[1rem] font-medium">
-              <li className="flex items-center gap-2 text-[#042D95]">
-                <span className="inline-block h-3 w-3 rounded bg-[#82D8E0]" />
-                Deudas nuevas
-                <span className="ml-auto text-2xl font-semibold text-[#048995]">
-                  {' '}
-                  ${loadingDebtTotals ? '...' : debtTotals?.totalNew?.toLocaleString('es-AR')}
-                </span>
-              </li>
-              <li className="flex items-center gap-2 text-[#042D95]">
-                <span className="inline-block h-3 w-3 rounded bg-[#FE9B38]" />
-                Deudas antiguas
-                <span className="ml-auto text-2xl font-semibold text-[#048995]">
-                  ${loadingDebtTotals ? '...' : debtTotals?.totalOld?.toLocaleString('es-AR')}
-                </span>
-              </li>
-              <li className="flex items-center gap-2 text-[#042D95]">
-                <span className="inline-block h-3 w-3 rounded bg-[#5685FA]" />
-                Deudas Cobradas
-                <span className="text-[#048995]] ml-auto text-2xl font-semibold text-[#048995]">
-                  ${loadingDebtTotals ? '...' : debtTotals?.totalPaid?.toLocaleString('es-AR')}
-                </span>
-              </li>
-              <li className="flex items-center gap-2 text-[#042D95]">
-                Déficit
-                <span className="ml-auto text-2xl font-semibold text-[#048995]">
-                  $
+              <span className="mb-2 text-xs text-[#6b7280]">Suma de saldos pendientes</span>
+              <div className="mt-4 flex">
+                <CurrencyDollarIcon className="mr-2 h-9 w-9 text-[#82D8E0]" />
+                <span className="text-4xl font-semibold text-[#042D95]">
                   {loadingDebtTotals
                     ? '...'
-                    : debtTotals
-                      ? debtTotals.balance.toLocaleString('es-AR', { maximumFractionDigits: 2 })
-                      : '...'}
+                    : debtTotals?.totalOutstanding?.toLocaleString('es-AR')}
                 </span>
-              </li>
-            </ul>
-          </div>
+              </div>
+            </div>
+          </Link>
+          {/* Cartita detalle NUMERICO DE LA DEUDA DEL CUATRIMESTRE */}
+          <Link to="/clients">
+            <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white px-6 py-4 shadow">
+              <ul className="space-y-3 text-[1rem] font-medium">
+                <li className="flex items-center gap-2 text-[#042D95]">
+                  <span className="inline-block h-3 w-3 rounded bg-[#82D8E0]" />
+                  Deudas nuevas
+                  <span className="ml-auto text-2xl font-semibold text-[#048995]">
+                    {' '}
+                    ${loadingDebtTotals ? '...' : debtTotals?.totalNew?.toLocaleString('es-AR')}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-[#042D95]">
+                  <span className="inline-block h-3 w-3 rounded bg-[#FE9B38]" />
+                  Deudas antiguas
+                  <span className="ml-auto text-2xl font-semibold text-[#048995]">
+                    ${loadingDebtTotals ? '...' : debtTotals?.totalOld?.toLocaleString('es-AR')}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-[#042D95]">
+                  <span className="inline-block h-3 w-3 rounded bg-[#5685FA]" />
+                  Deudas Cobradas
+                  <span className="text-[#048995]] ml-auto text-2xl font-semibold text-[#048995]">
+                    ${loadingDebtTotals ? '...' : debtTotals?.totalPaid?.toLocaleString('es-AR')}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-[#042D95]">
+                  Déficit
+                  <span className="ml-auto text-2xl font-semibold text-[#048995]">
+                    $
+                    {loadingDebtTotals
+                      ? '...'
+                      : debtTotals
+                        ? debtTotals.balance.toLocaleString('es-AR', { maximumFractionDigits: 2 })
+                        : '...'}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </Link>
         </div>
 
         <div className="dark:bg-card col-span-2 flex flex-col rounded-xl border border-[#82D8E0] bg-white p-4 shadow">
