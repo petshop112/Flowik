@@ -260,9 +260,7 @@ const ClientFormModal: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-semibold text-[#042D95]">
-                Dirección <span className="font-bold text-[#042D95]"> (Opcional)</span>
-              </label>
+              <label className="mb-1 block text-sm font-semibold text-[#042D95]">Dirección</label>
               <input
                 ref={(el) => {
                   fieldRefs.current.direction_client = el;
