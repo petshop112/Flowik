@@ -70,7 +70,7 @@ public class AuthService {
         user.setVerificationTokenExpiration(new Date(System.currentTimeMillis() + 86400000));
         user.setIsActive(false);
 
-        try {
+       try {
             String link = backUrl + "/api/auth/verifyToken?token=" + verificationToken;
             emailService.sendEmail(user.getEmail(), "Verifica tu cuenta",
                     "<p>Hola " + user.getUserName() + ",</p>" +
