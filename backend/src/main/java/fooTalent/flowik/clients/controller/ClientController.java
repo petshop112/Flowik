@@ -60,21 +60,15 @@ public class ClientController {
 
     @Operation(summary = "Lista todos los Clientes",
     description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
-    @GetMapping("/user/{id_user}")
-    public ResponseEntity<List<ClientResponse>> getAllClients(@PathVariable("id_user") Long id_user){
-        SecurityUtil.validateUserAccess(userRepository, id_user);
-
-        User user = userRepository.findById(id_user)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id_user));
-        String email = user.getEmail();
+    @GetMapping
+    public ResponseEntity<List<ClientResponse>> getAllClients(){
+       String email = SecurityUtil.getAuthenticatedEmail();
 
         List<ClientResponse> clients = clientService.getAllClient().stream()
                 .filter(client -> client.getCreatedBy().equals(email))
                 .map(ClientResponse::new)
                 .toList();
-        if (clients.isEmpty()) {
-            throw new ResourceNotFoundException("Clientes", "Usuario", id_user);
-        }
+
         return ResponseEntity.ok(clients);
     }
     @Operation(summary = "Modificar un cliente por id")
