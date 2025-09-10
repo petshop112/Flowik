@@ -7,7 +7,7 @@ export function useDebtDashboardTotals(id_user?: number, token?: string | null) 
     queryKey: ['debtDashboard', id_user, token],
     enabled: !!token && !!id_user,
     queryFn: async () => {
-      const clients: Client[] = await clientService.getAllClients(id_user!, token!);
+      const clients: Client[] = await clientService.getAllClients(token!);
       let totalOutstanding = 0;
       let totalNew = 0;
       let totalOld = 0;

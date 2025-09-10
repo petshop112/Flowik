@@ -1,4 +1,4 @@
-// import './lib/axiosInterceptor';
+import './lib/axiosInterceptor';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
