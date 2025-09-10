@@ -8,7 +8,7 @@ export const useGetAllClients = (id_user?: number) => {
   return useQuery<Client[], Error>({
     queryKey: ['clients', id_user],
     enabled: !!token && typeof id_user === 'number',
-    queryFn: () => clientService.getAllClients(id_user!, token!),
+    queryFn: () => clientService.getAllClients(token!),
     staleTime: 2 * 60 * 1000,
     retry: 1,
     refetchOnWindowFocus: false,
