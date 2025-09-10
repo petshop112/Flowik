@@ -432,13 +432,12 @@ const Home = () => {
                         <td className="px-4 py-2">
                           {typeof item.amount === 'number' ? item.amount : '-'}
                         </td>
+
                         <td className="px-2 py-2 text-center">
-                          <td className="px-2 py-2 text-center">
-                            <span
-                              className={`inline-block h-4 w-4 rounded-full ${getStockColor(getStockStatus(item.amount))}`}
-                              title="Stock bajo"
-                            />
-                          </td>
+                          <span
+                            className={`inline-block h-4 w-4 rounded-full ${getStockColor(getStockStatus(item.amount))}`}
+                            title="Stock bajo"
+                          />
                         </td>
                       </tr>
                     ))}
