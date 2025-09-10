@@ -262,7 +262,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         </article>
       ) : (
         <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl">
-          {/* Header */}
           <header className="flex items-center justify-between px-8 pt-12">
             <h2 className="text-2xl font-semibold text-gray-900">
               {isEditMode ? formData.name : 'Alta de Producto'}
@@ -279,9 +278,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </button>
           </header>
 
-          {/* Content */}
           <main className="space-y-4 px-8 py-4">
-            {/* Nombre del Producto */}
             <div>
               <label className="text-dark-blue mb-2 block text-sm font-medium">
                 Nombre Producto*
@@ -301,7 +298,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
             </div>
 
-            {/* Descripción */}
             <div>
               <label className="text-dark-blue mb-2 block text-sm font-medium">Descripción*</label>
               <textarea
@@ -321,7 +317,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               )}
             </div>
 
-            {/* Categoría y Proveedor */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-dark-blue mb-2 block text-sm font-medium">Categoría*</label>
@@ -375,7 +370,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </div>
             </div>
 
-            {/* Stock y Precio */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-dark-blue mb-2 block text-sm font-medium">
@@ -450,7 +444,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </div>
           </main>
 
-          {/* Footer */}
           <footer className="flex justify-center gap-4 px-8 pb-6 text-sm [&>button]:px-12 [&>button]:py-[6px] [&>button]:transition-colors">
             <button
               onClick={handleCancel}
