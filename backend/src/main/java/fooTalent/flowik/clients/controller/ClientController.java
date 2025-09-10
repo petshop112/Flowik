@@ -46,13 +46,13 @@ public class ClientController {
     }
     @Operation(summary = "Obtener un cliente por su ID")
     @GetMapping("/{id_client}")
-    public ResponseEntity<ClientResponse> getClientById(@PathVariable Long id) {
+    public ResponseEntity<ClientResponse> getClientById(@PathVariable("id_client") Long id) {
         String email = SecurityUtil.getAuthenticatedEmail();
 
         return clientRepository.findById(id)
                 .filter(client -> email.equals(client.getCreatedBy()))
                 .map(client -> ResponseEntity.ok(new ClientResponse(client)))
-                .orElse(ResponseEntity.ok(null));
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Lista todos los Clientes",

@@ -83,7 +83,6 @@ public class AuthService {
             throw new RuntimeException("No se pudo enviar el email de verificación. El usuario no fue registrado.", e);
         }
 
-        System.out.println("Token de verificación enviado: " + verificationToken);
         return new AuthResponse(null, "Usuario registrado exitosamente. Por favor verifica tu correo, " +
                 "no olvides revisar tu casilla de spam", true);
     }
