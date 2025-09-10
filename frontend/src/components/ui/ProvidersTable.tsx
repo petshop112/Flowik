@@ -345,7 +345,6 @@ const ProductsTable: React.FC = () => {
             </article>
           </header>
 
-          {/* Tabla o página de vacío */}
           {!Array.isArray(providers) || providers.length === 0 ? (
             <main className="overflow-hidden rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
               <EmptyProvidersState onAddClient={handleNewProvider} />
