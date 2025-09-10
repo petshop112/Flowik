@@ -323,7 +323,7 @@ const ProductsTable: React.FC = () => {
                       />
                       <input
                         type="text"
-                        placeholder="Buscar"
+                        placeholder="Nombre, CUIT"
                         value={searchTerm}
                         onChange={(e) => {
                           setSearchTerm(e.target.value);

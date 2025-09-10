@@ -611,11 +611,11 @@ const ProductsTable: React.FC = () => {
                     />
                     <input
                       type="text"
-                      placeholder="Buscar"
+                      placeholder="Nombre, Categoría"
                       value={searchTerm}
                       data-test="search-input"
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="border-dark-blue w-38 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="border-dark-blue w-50 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </article>
                   <button
