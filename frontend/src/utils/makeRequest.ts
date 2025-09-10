@@ -11,7 +11,7 @@ export const makeRequest: MakeRequestFunction = async (url, options) => {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Error en la solicitud');
+    throw new Error(errorData.message || 'Error in the request');
   }
 
   return response.json();

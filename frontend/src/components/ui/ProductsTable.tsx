@@ -49,7 +49,6 @@ const ProductsTable: React.FC = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
-  // Nuevo estado para ver producto
   const [viewProductId, setViewProductId] = useState<number | null>(null);
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -60,7 +59,6 @@ const ProductsTable: React.FC = () => {
   const { data: productToEdit, isLoading: isLoadingProductToEdit } = useGetProductById(
     editingProductId || 0
   );
-  // Hook para ver producto
   const { data: viewProduct, isLoading: isLoadingViewProduct } = useGetProductById(
     viewProductId || 0
   );
@@ -472,13 +470,13 @@ const ProductsTable: React.FC = () => {
             );
           }
 
-          const paginaTexto = `Página ${doc.getNumberOfPages()}`;
+          const pageText = `Página ${doc.getNumberOfPages()}`;
           doc.setFontSize(10);
-          const textoWidth = doc.getTextWidth(paginaTexto);
-          const textoX = (pageWidth - textoWidth) / 2;
-          const textoY = pageHeight - footerImgHeight - 4;
+          const textWidth = doc.getTextWidth(pageText);
+          const textX = (pageWidth - textWidth) / 2;
+          const textY = pageHeight - footerImgHeight - 4;
 
-          doc.text(paginaTexto, textoX, textoY);
+          doc.text(pageText, textX, textY);
         },
       });
 
@@ -530,7 +528,7 @@ const ProductsTable: React.FC = () => {
             <h1 className="text-dark-blue mb-4 text-2xl font-semibold">Productos</h1>
 
             {hasProducts && (
-              <article className="gap- flex flex-wrap items-center justify-between gap-2">
+              <article className="flex flex-wrap items-center justify-between gap-2 text-sm">
                 <article className="flex items-center gap-3 [&>button]:font-semibold">
                   <button
                     className="text-deep-teal flex cursor-pointer items-center gap-2 py-2"
@@ -615,7 +613,7 @@ const ProductsTable: React.FC = () => {
                       value={searchTerm}
                       data-test="search-input"
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="border-dark-blue w-50 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="border-dark-blue w-45 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </article>
                   <button
@@ -623,7 +621,7 @@ const ProductsTable: React.FC = () => {
                     className="bg-electric-blue flex cursor-pointer items-center gap-2 rounded-md px-4 py-2 text-white transition-colors hover:bg-blue-600"
                   >
                     <Plus size={18} />
-                    Nuevo producto
+                    Agregar producto
                   </button>
                   <button
                     onClick={handleOpenAdjustPricesModal}
@@ -631,7 +629,7 @@ const ProductsTable: React.FC = () => {
                     className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedProducts ? 'cursor-pointer border border-teal-600 bg-teal-600 text-white hover:bg-teal-700' : 'cursor-not-allowed border border-teal-200 bg-teal-50 text-teal-600 opacity-60'}`}
                   >
                     <img src="/icons/client/calculator.svg" alt="" />
-                    Cambiar Precio
+                    Cambiar precio
                   </button>
                 </aside>
               </article>
@@ -825,7 +823,6 @@ const ProductsTable: React.FC = () => {
         isSaving={isSavingProduct}
       />
 
-      {/* Modal de solo lectura para ver producto */}
       {viewProductId &&
         (isLoadingViewProduct ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
