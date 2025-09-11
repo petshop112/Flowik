@@ -6,7 +6,10 @@ export const useNotifications = () =>
   useQuery<NotificationType[], Error>({
     queryKey: ['notifications'],
     queryFn: notificationService.getAllNotifications,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   });
 
 export const useMarkReadNotification = () => {
