@@ -25,7 +25,7 @@ export const loginUser = createAsyncThunk<LoginResponse, LoginCredentials>(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Error al iniciar sesión');
+      return rejectWithValue('Login error');
     }
   }
 );
@@ -40,7 +40,7 @@ export const registerUser = createAsyncThunk<RegisterResponse, RegisterCredentia
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Error al registrar usuario');
+      return rejectWithValue('Error registering user');
     }
   }
 );
@@ -55,7 +55,7 @@ export const recoverPassword = createAsyncThunk<RecoverPasswordResponse, Recover
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Error al recuperar contraseña');
+      return rejectWithValue('Error recovering password');
     }
   }
 );
@@ -70,7 +70,7 @@ export const newPassword = createAsyncThunk<NewPasswordResponse, NewPasswordRequ
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Error al cambiar contraseña');
+      return rejectWithValue('Error changing password');
     }
   }
 );
