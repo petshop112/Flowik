@@ -8,6 +8,7 @@ import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import SuccessModal from '../modal/SuccessModal';
 import { debtColor } from '../../utils/debtColors';
 import { useQueryClient } from '@tanstack/react-query';
+
 interface DebtFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,15 +18,15 @@ interface DebtFormModalProps {
 const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selectedClientIds }) => {
   const { token } = useSelector(selectAuth);
   const [clientInfo, setClientInfo] = useState<{ name_client?: string } | null>(null);
-  const [mount, setMount] = useState('');
+  const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [historic, setHistoric] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
-  const totalPages = Math.ceil(historic.length / rowsPerPage);
+  const totalPages = Math.ceil(history.length / rowsPerPage);
 
-  const paginatedRows = historic.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  const paginatedRows = history.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const [loadingDebts, setLoadingDebts] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -39,8 +40,8 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
       setLoadingDebts(true);
       debtService
         .getDebtsByClient(selectedClientIds[0], token!)
-        .then(setHistoric)
-        .catch(() => setHistoric([]))
+        .then(setHistory)
+        .catch(() => setHistory([]))
         .finally(() => setLoadingDebts(false));
     }
   }, [isOpen, selectedClientIds, token]);
@@ -57,26 +58,26 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
     }
   }, [isOpen, selectedClientIds, token]);
 
-  const formatFecha = (fecha: string) => {
-    const dateObj = new Date(fecha);
+  const formatDate = (date: string) => {
+    const dateObj = new Date(date);
     if (isNaN(dateObj.getTime())) return '';
     return dateObj.toLocaleDateString('es-AR');
   };
 
-  const getDiasDeuda = (fechaDeuda: string, fechaModif?: string) => {
-    const from = new Date(fechaDeuda);
-    const to = fechaModif ? new Date(fechaModif) : new Date();
+  const getDebtDays = (debtDate: string, modificationDate?: string) => {
+    const from = new Date(debtDate);
+    const to = modificationDate ? new Date(modificationDate) : new Date();
     const diffMs = to.getTime() - from.getTime();
     return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
   };
 
-  const totalDebt = historic.reduce((sum, d) => {
-    const pagos = (d.payments ?? []).reduce(
+  const totalDebt = history.reduce((sum, d) => {
+    const payments = (d.payments ?? []).reduce(
       (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
       0
     );
-    const resto = Number(d.mount ?? 0) - pagos;
-    return sum + (resto > 0 ? resto : 0);
+    const remaining = Number(d.mount ?? 0) - payments;
+    return sum + (remaining > 0 ? remaining : 0);
   }, 0);
 
   if (!isOpen) return null;
@@ -86,18 +87,18 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
 
     try {
       await Promise.all(
-        selectedClientIds.map((id) => debtService.createDebt(id, { mount: Number(mount) }, token!))
+        selectedClientIds.map((id) => debtService.createDebt(id, { mount: Number(amount) }, token!))
       );
       await queryClient.invalidateQueries({ queryKey: ['clientDebts'] });
-      setMount('');
+      setAmount('');
       setSuccessTitle('¡Deuda añadida!');
       setSuccessDescription('La deuda se ha añadido correctamente.');
       setShowSuccessModal(true);
       setLoadingDebts(true);
       debtService
         .getDebtsByClient(selectedClientIds[0], token!)
-        .then(setHistoric)
-        .catch(() => setHistoric([]))
+        .then(setHistory)
+        .catch(() => setHistory([]))
         .finally(() => setLoadingDebts(false));
     } catch (e: any) {
       setSuccessTitle('¡Ups, ocurrió un error!');
@@ -122,7 +123,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           paymentService.createPayment(
             id,
             {
-              paymentMount: Number(mount),
+              paymentMount: Number(amount),
               datePayment: today,
             },
             token!
@@ -133,22 +134,23 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
       setSuccessTitle('¡Deuda modificada!');
       setSuccessDescription('La deuda se ha modificado correctamente.');
       setShowSuccessModal(true);
-      setMount('');
+      setAmount('');
       setLoadingDebts(true);
       debtService
         .getDebtsByClient(selectedClientIds[0], token!)
-        .then(setHistoric)
-        .catch(() => setHistoric([]))
+        .then(setHistory)
+        .catch(() => setHistory([]))
         .finally(() => setLoadingDebts(false));
     } catch (e: any) {
       setSuccessTitle('¡Ups, ocurrió un error!');
-      setSuccessDescription(e?.message || 'No se pudo descontar la deuda.');
+      setSuccessDescription(
+        e?.response?.data?.message || e?.message || 'No se pudo descontar la deuda.'
+      );
       setShowSuccessModal(true);
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
       <SuccessModal
@@ -197,8 +199,8 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                 <input
                   type="number"
                   className="w-30 border-none bg-transparent px-3 py-1.5 text-right text-lg"
-                  value={mount}
-                  onChange={(e) => setMount(e.target.value)}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   placeholder="000.000"
                 />
                 <span className="ml-2">
@@ -216,7 +218,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             <button
               onClick={handleDiscountDebt}
               className="ml-2 rounded-md bg-[#048995] px-3 py-1.5 font-medium text-white transition hover:bg-[#02747a]"
-              disabled={!mount}
+              disabled={!amount}
               type="button"
             >
               Descontar deuda
@@ -235,6 +237,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                 <th className="px-2 py-2">Deuda</th>
                 <th className="px-2 py-2">Fecha modificación</th>
                 <th className="px-2 py-2">Resto deuda</th>
+                <th className="px-2 py-2">Descuentos de Deuda</th>
                 <th className="flex items-center justify-between gap-1 px-2 py-2">
                   Total días deuda
                   <img className="h-6 w-6" src="/icons/alarma.svg" alt="" />
@@ -244,23 +247,23 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             <tbody>
               {loadingDebts ? (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-blue-400">
+                  <td colSpan={7} className="py-6 text-center text-blue-400">
                     Cargando historial...
                   </td>
                 </tr>
-              ) : historic.length === 0 ? (
+              ) : history.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-blue-200">
+                  <td colSpan={7} className="py-6 text-center text-blue-200">
                     No hay deudas registradas.
                   </td>
                 </tr>
               ) : (
                 paginatedRows.map((d, idx) => {
-                  const pagos = (d.payments ?? []).reduce(
+                  const payments = (d.payments ?? []).reduce(
                     (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
                     0
                   );
-                  const resto = Number(d.mount ?? 0) - pagos;
+                  const remaining = Number(d.mount ?? 0) - payments;
                   return (
                     <tr key={d.debtId ?? idx} className="border-t border-blue-50">
                       <td className="px-2 py-2">
@@ -268,31 +271,49 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                           <input className="h-4 w-4" type="checkbox" />
                         </div>
                       </td>
-                      <td className="py-2 pl-4">{formatFecha(d.debt_date)}</td>
+                      <td className="py-2 pl-4">{formatDate(d.debt_date)}</td>
                       <td className="py-2 pl-4">
                         $
                         {Number(d.mount ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                       </td>
                       <td className="px-2 py-2">
-                        {formatFecha(d.modification_date ?? d.modificacion)}
+                        {d.payments && d.payments.length > 0
+                          ? formatDate(d.payments[d.payments.length - 1].datePayment)
+                          : formatDate(d.debt_date)}
                       </td>
                       <td className="py-2 pl-5">
-                        ${resto.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
+                        ${remaining.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                       </td>
-
+                      <td className="py-2 pl-4">
+                        {(d.payments ?? []).length === 0 ? (
+                          <span className="text-gray-400">-</span>
+                        ) : (
+                          d.payments.map((pay: any, i: number) => (
+                            <div key={i} className="text-green-600">
+                              -$
+                              {Number(pay.paymentMount ?? 0).toLocaleString('es-AR', {
+                                maximumFractionDigits: 0,
+                              })}{' '}
+                              <span className="text-xs text-gray-500">
+                                ({formatDate(pay.datePayment)})
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </td>
                       <td className="px-2 py-2">
                         <span className="flex w-full items-center justify-between">
                           <span className="leading-none">
-                            {getDiasDeuda(d.debt_date, d.modification_date)
+                            {getDebtDays(d.debt_date, d.modification_date)
                               .toString()
                               .padStart(3, '0')}
                           </span>
                           <span
                             className="inline-block h-6 w-6 rounded-full border border-gray-200"
                             style={{
-                              background: debtColor(getDiasDeuda(d.debt_date, d.modification_date)),
+                              background: debtColor(getDebtDays(d.debt_date, d.modification_date)),
                             }}
-                            title={`Estado de deuda: ${getDiasDeuda(d.debt_date, d.modification_date)} días`}
+                            title={`Estado de deuda: ${getDebtDays(d.debt_date, d.modification_date)} días`}
                           />
                         </span>
                       </td>
@@ -302,7 +323,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               )}
             </tbody>
           </table>
-          {historic.length > rowsPerPage && (
+          {history.length > rowsPerPage && (
             <div className="flex items-center justify-center gap-2 py-4">
               <button
                 className="rounded border border-blue-100 px-2 py-1 text-blue-500 disabled:opacity-40"
