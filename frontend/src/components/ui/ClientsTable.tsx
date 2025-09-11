@@ -30,10 +30,6 @@ type ClientWithDebt = Client & {
   is_active?: boolean;
 };
 
-// function hasDebt(v?: number | string) {
-//   return toNumber(v) > 0;
-// }
-
 function getUserId() {
   const storedId = localStorage.getItem('userId');
   return storedId ? Number(storedId) : undefined;
