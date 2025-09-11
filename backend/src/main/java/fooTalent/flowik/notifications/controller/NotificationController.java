@@ -1,6 +1,7 @@
 package fooTalent.flowik.notifications.controller;
 import fooTalent.flowik.config.SecurityUtil;
 import fooTalent.flowik.notifications.dto.NotificationDto;
+import fooTalent.flowik.notifications.entities.Notification;
 import fooTalent.flowik.notifications.enums.NotificationType;
 import fooTalent.flowik.notifications.mappers.NotificationMapper;
 import fooTalent.flowik.notifications.services.NotificationService;
@@ -18,14 +19,18 @@ public class NotificationController {
         @Autowired
         private NotificationService service;
 
-        @Operation(summary = "Obtener todas las notificaciones")
-        @GetMapping
-        public List<NotificationDto.NotificationDTO> getAllNotifications() {
-            String user = SecurityUtil.getAuthenticatedEmail();
-            return service.listAll(user).stream()
-                    .map(NotificationMapper::toDTO)
-                    .collect(Collectors.toList());
-        }
+    @Operation(summary = "Obtener todas las notificaciones")
+    @GetMapping
+    public List<NotificationDto.NotificationDTO> getAllNotifications() {
+        String userEmail = SecurityUtil.getAuthenticatedEmail();
+
+        List<Notification> allNotifications = service.listAll();
+
+        return allNotifications.stream()
+                .filter(notification -> notification.getCreatedBy().equals(userEmail))
+                .map(NotificationMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 
         @Operation(summary = "filtrar las notificaciones por Stock o Deudas")
         @GetMapping("/type/{type}")
