@@ -32,12 +32,14 @@ import EmptyProductsState from './EmptyProductsState';
 import DeleteProductModal from '../modal/DeleteProductModal';
 import SuccessModal from '../modal/SuccessModal';
 import AdjustPricesModal from '../modal/AdjustPricesModal';
+import ImportErrorModal from '../modal/ImportErrorModal';
 
 const ProductsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isImportErrorOpen, setIsImportErrorOpen] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithOptionalId | null>(null);
@@ -48,6 +50,8 @@ const ProductsTable: React.FC = () => {
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  // const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [importErrorMsg, setImportErrorMsg] = useState('');
 
   const [viewProductId, setViewProductId] = useState<number | null>(null);
 
@@ -127,6 +131,17 @@ const ProductsTable: React.FC = () => {
     setEditingProductId(null);
     setEditingProduct(null);
   };
+
+  // const handleImportError = (message: string) => {
+  //   setImportErrorMsg(message);
+  //   setIsErrorModalOpen(true); // mostrar error
+  //   setIsImportModalOpen(false); // ocultar import
+  // };
+
+  // const handleCloseError = () => {
+  //   setIsErrorModalOpen(false);
+  //   setIsImportModalOpen(true); // volver al modal de importación
+  // };
 
   const handleSaveProduct = async (productData: ProductWithOptionalId) => {
     try {
@@ -399,6 +414,30 @@ const ProductsTable: React.FC = () => {
   const handleOpenImportModal = () => setIsImportModalOpen(true);
   const token = useSelector(selectAuth)?.token ?? '';
 
+  // const handleImportFile = async (file: File, provider: string): Promise<number> => {
+  //   setIsImporting(true);
+  //   try {
+  //     const providerObj = providers?.find((p) => p.name_provider === provider);
+  //     if (!providerObj) throw new Error('Proveedor no encontrado');
+  //     const providerId = providerObj.id_provider;
+
+  //     const result = await productService.importProductsFile(providerId, file, token);
+
+  //     await queryClient.invalidateQueries({ queryKey: ['products'] });
+
+  //     const count = result?.validos?.length ?? 0;
+
+  //     if (!count) {
+  //       throw new Error('No se importaron productos válidos');
+  //     }
+
+  //     // Éxito real → devuelve la cantidad
+  //     return count;
+  //   } finally {
+  //     setIsImporting(false);
+  //   }
+  // };
+
   const handleImportFile = async (file: File, provider: string): Promise<number> => {
     setIsImporting(true);
     try {
@@ -407,16 +446,22 @@ const ProductsTable: React.FC = () => {
       const providerId = providerObj.id_provider;
 
       const result = await productService.importProductsFile(providerId, file, token);
-
       await queryClient.invalidateQueries({ queryKey: ['products'] });
 
-      const count = result?.validos?.length ?? 0;
-
+      const count = Number(result?.validos?.length ?? 0);
       if (!count) {
-        throw new Error('No se importaron productos válidos');
+        const e: any = new Error('EMPTY_IMPORT');
+        e.code = 'EMPTY_IMPORT';
+        throw e;
       }
 
-      // Éxito real → devuelve la cantidad
+      // Éxito → podés mostrar tu success modal/toast acá si querés
+      setSuccessMessage({
+        title: '¡Importación exitosa!',
+        description: `Se importaron ${count} productos.`,
+      });
+      setIsSuccessModalOpen(true);
+
       return count;
     } finally {
       setIsImporting(false);
@@ -622,7 +667,11 @@ const ProductsTable: React.FC = () => {
                   <button
                     onClick={handleOpenAdjustPricesModal}
                     disabled={!hasSelectedProducts || adjustPricesMutation.isPending}
-                    className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${hasSelectedProducts ? 'cursor-pointer border border-teal-600 bg-teal-600 text-white hover:bg-teal-700' : 'cursor-not-allowed border border-teal-200 bg-teal-50 text-teal-600 opacity-60'}`}
+                    className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
+                      hasSelectedProducts
+                        ? 'cursor-pointer border border-teal-600 bg-teal-600 text-white hover:bg-teal-700'
+                        : 'cursor-not-allowed border border-teal-200 bg-teal-50 text-teal-600 opacity-60'
+                    }`}
                   >
                     <img src="/icons/client/calculator.svg" alt="" />
                     Cambiar precio
@@ -808,6 +857,7 @@ const ProductsTable: React.FC = () => {
           )}
         </article>
       </section>
+
       <ProductFormModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -836,18 +886,21 @@ const ProductsTable: React.FC = () => {
             categories={categories}
           />
         ))}
+
       <DeleteProductModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteProducts}
         isLoading={deleteProductMutation.isPending}
       />
+
       <SuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
         title={successMessage.title}
         description={successMessage.description}
       />
+
       <AdjustPricesModal
         isOpen={isAdjustPricesModalOpen}
         onClose={() => setIsAdjustPricesModalOpen(false)}
@@ -855,13 +908,29 @@ const ProductsTable: React.FC = () => {
         selectedProducts={selectedProducts}
         isLoading={adjustPricesMutation.isPending}
       />
+
       <ImportFileModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImport={handleImportFile}
         providers={providers ? providers.map((p) => p.name_provider) : []}
         isLoading={isImporting}
+        onError={(msg) => {
+          setImportErrorMsg(msg);
+          setIsImportModalOpen(false); // cierro import
+          setIsImportErrorOpen(true); // abro popup rojo (portal)
+        }}
       />
+
+      {isImportErrorOpen && (
+        <ImportErrorModal
+          errorMessage={importErrorMsg}
+          onClose={() => {
+            setIsImportErrorOpen(false);
+            setIsImportModalOpen(true);
+          }}
+        />
+      )}
 
       <ExportProductsModal
         isOpen={isExportModalOpen}
