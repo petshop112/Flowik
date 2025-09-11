@@ -399,37 +399,6 @@ const ProductsTable: React.FC = () => {
   const handleOpenImportModal = () => setIsImportModalOpen(true);
   const token = useSelector(selectAuth)?.token ?? '';
 
-  // const handleImportFile = async (file: File, provider: string): Promise<number> => {
-  //   setIsImporting(true);
-  //   try {
-  //     const providerObj = providers?.find((p) => p.name_provider === provider);
-  //     if (!providerObj) throw new Error('Proveedor no encontrado');
-  //     const providerId = providerObj.id_provider;
-
-  //     const result = await productService.importProductsFile(providerId, file, token);
-
-  //     await queryClient.invalidateQueries({ queryKey: ['products'] });
-
-  //     setIsImportModalOpen(false);
-  //     setSuccessMessage({
-  //       title: '¡Importación exitosa!',
-  //       description: `Se importaron ${result.validos.length} productos.`,
-  //     });
-  //     setIsSuccessModalOpen(true);
-
-  //     return result.validos.length;
-  //   } catch (error: any) {
-  //     setSuccessMessage({
-  //       title: 'Error al importar',
-  //       description: error.message || 'No se pudo importar el archivo.',
-  //     });
-  //     setIsSuccessModalOpen(true);
-  //     return 0;
-  //   } finally {
-  //     setIsImporting(false);
-  //   }
-  // };
-
   const handleImportFile = async (file: File, provider: string): Promise<number> => {
     setIsImporting(true);
     try {
