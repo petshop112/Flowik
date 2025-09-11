@@ -35,18 +35,6 @@ public class AuthController {
     @Value("${URL_FRONT}")
     private String frontUrl;
 
-    @Operation(summary = "Registrar un nuevo usuario.")
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        System.out.println("Nombre completo recibido: '" + request.firstName() + " " + request.lastName() + "'");
-        AuthResponse response = authService.register(request);
-
-        if (!response.success()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-        return ResponseEntity.ok(response);
-    }
-
     @Operation(summary = "Iniciar sesión")
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
