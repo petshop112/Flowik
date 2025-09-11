@@ -53,10 +53,6 @@ public class ProviderController {
                 .map(ProviderList::new)
                 .toList();
 
-        if (providerList.isEmpty()) {
-            throw new ResourceNotFoundException("Proveedores", "Usuario", email);
-        }
-
         return ResponseEntity.ok(providerList);
     }
 

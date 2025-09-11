@@ -20,6 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
@@ -45,36 +46,25 @@ public class ClientController {
     }
     @Operation(summary = "Obtener un cliente por su ID")
     @GetMapping("/{id_client}")
-    public ResponseEntity<ClientResponse> getClientById(@PathVariable("id_client") Long id_client) {
-
+    public ResponseEntity<ClientResponse> getClientById(@PathVariable("id_client") Long id) {
         String email = SecurityUtil.getAuthenticatedEmail();
-        Client existingClient = clientRepository.findById(id_client)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente", "ID", id_client));
 
-        if (!existingClient.getCreatedBy().equals(email)) {
-            throw new AccessDeniedException("No puedes ver un cliente que no creaste.");
-        }
-
-        return ResponseEntity.ok(new ClientResponse(existingClient));
+        return clientRepository.findById(id)
+                .filter(client -> email.equals(client.getCreatedBy()))
+                .map(client -> ResponseEntity.ok(new ClientResponse(client)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Lista todos los Clientes",
-    description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")
-    @GetMapping("/user/{id_user}")
-    public ResponseEntity<List<ClientResponse>> getAllClients(@PathVariable("id_user") Long id_user){
-        SecurityUtil.validateUserAccess(userRepository, id_user);
-
-        User user = userRepository.findById(id_user)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id_user));
-        String email = user.getEmail();
+    description = "Necesita ingresar el id de usuario, por cuestiones de privacidad y seguridad")@GetMapping
+    public ResponseEntity<List<ClientResponse>> getAllClients() {
+        String email = SecurityUtil.getAuthenticatedEmail();
 
         List<ClientResponse> clients = clientService.getAllClient().stream()
-                .filter(client -> client.getCreatedBy().equals(email))
+                .filter(client -> email.equals(client.getCreatedBy()))
                 .map(ClientResponse::new)
-                .toList();
-        if (clients.isEmpty()) {
-            throw new ResourceNotFoundException("Clientes", "Usuario", id_user);
-        }
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(clients);
     }
     @Operation(summary = "Modificar un cliente por id")
