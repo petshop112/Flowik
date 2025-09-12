@@ -16,7 +16,7 @@ type Props = {
   isSaving?: boolean;
   client?: Client | null;
   readOnly?: boolean;
-  clientesLista?: Client[];
+  clientsList?: Client[];
   formError: string;
 };
 
@@ -145,7 +145,6 @@ const ClientFormModal: React.FC<Props> = ({
       return;
     }
 
-    // payload para el backend
     const payload: ClientFormValues = {
       name_client: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
       telephone_client: form.telephone_client.trim(),
@@ -283,7 +282,6 @@ const ClientFormModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* DNI + Correo */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-[#1E3A8A]">
