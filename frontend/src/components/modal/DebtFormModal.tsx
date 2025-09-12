@@ -8,6 +8,7 @@ import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import SuccessModal from '../modal/SuccessModal';
 import { debtColor } from '../../utils/debtColors';
 import { useQueryClient } from '@tanstack/react-query';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 interface DebtFormModalProps {
   isOpen: boolean;
@@ -304,21 +305,12 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                           <table>
                             <tbody>
                               <tr>
-                                <td className="w-[55px] pr-2 text-left text-green-600">
-                                  -$
-                                  {Number(
-                                    d.payments[d.payments.length - 1].paymentMount ?? 0
-                                  ).toLocaleString('es-AR', {
-                                    maximumFractionDigits: 0,
-                                  })}
-                                </td>
-                                <td className="pr-2 text-left align-middle text-xs whitespace-nowrap text-gray-500">
-                                  ({formatDate(d.payments[d.payments.length - 1].datePayment)})
-                                </td>
-                                <td className="align-middle">
-                                  {d.payments.length > 1 && (
+                                <td className="py-2 pl-4">
+                                  {(d.payments ?? []).length === 0 ? (
+                                    <span className="text-gray-400">-</span>
+                                  ) : (
                                     <DropdownPayments
-                                      payments={d.payments.slice(0, -1)}
+                                      payments={d.payments}
                                       formatDate={formatDate}
                                     />
                                   )}
@@ -413,37 +405,44 @@ function DropdownPayments({
 }) {
   const [open, setOpen] = useState(false);
 
+  const lastPayment = payments[payments.length - 1];
+
   return (
-    <div className="relative inline-block">
-      <button
-        className="ml-1 flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs text-blue-600 shadow-sm hover:bg-gray-50"
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {open ? '' : ``}
-        <span>
-          {open ? (
-            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 12l-5-5h10l-5 5z" />
-            </svg>
-          ) : (
-            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 8l5 5H5l5-5z" />
-            </svg>
-          )}
-        </span>
-      </button>
+    <div className="relative w-full">
+      <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+        <tbody>
+          <tr className="cursor-pointer bg-white pl-4" onClick={() => setOpen((v) => !v)}>
+            <td className="pl-4 whitespace-nowrap text-green-600" style={{ width: 55 }}>
+              -${Number(lastPayment.paymentMount ?? 0).toLocaleString('es-AR')}
+            </td>
+            <td className="pl-2 text-xs whitespace-nowrap text-gray-500">
+              ({formatDate(lastPayment.datePayment)})
+            </td>
+            <td className="pl-2 align-middle" style={{ width: 32 }}>
+              <ChevronDownIcon className="h-5 w-5 text-black" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
       {open && (
-        <div className="absolute left-0 z-10 mt-1 w-max min-w-[180px] rounded border border-gray-200 bg-white shadow-lg">
-          {payments.map((pay, i) => (
-            <div key={i} className="px-3 py-1 text-xs text-green-600 hover:bg-gray-50">
-              -$
-              {Number(pay.paymentMount ?? 0).toLocaleString('es-AR', {
-                maximumFractionDigits: 0,
-              })}{' '}
-              <span className="text-gray-500">({formatDate(pay.datePayment)})</span>
-            </div>
-          ))}
+        <div className="absolute top-full left-0 z-10 mt-1 w-full rounded border border-gray-300 bg-white shadow-lg">
+          <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+            <tbody>
+              {payments
+                .slice(0, -1)
+                .reverse()
+                .map((pay, i) => (
+                  <tr key={i} className="hover:bg-gray-50">
+                    <td className="whitespace-nowrap text-green-600" style={{ width: 55 }}>
+                      -${Number(pay.paymentMount ?? 0).toLocaleString('es-AR')}
+                    </td>
+                    <td className="pl-2 text-xs whitespace-nowrap text-gray-500">
+                      ({formatDate(pay.datePayment)})
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
