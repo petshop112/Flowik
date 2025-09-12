@@ -74,8 +74,8 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
   }, [isOpen, selectedClientIds, token]);
 
   const formatDate = (date: string) => {
-    const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) return '';
+    const [y, m, d] = date.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
     return dateObj.toLocaleDateString('es-AR');
   };
 
