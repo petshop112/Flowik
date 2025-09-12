@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ChangeEvent } from 'react';
 import type { FunctionComponent as FC } from 'react';
+
 interface ImportFileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -64,21 +65,37 @@ const ImportFileModal: FC<ImportFileModalProps> = ({
       const processed = await onImport(selectedFile, selectedProvider);
 
       if (!processed || processed === 0) {
-        onError('No se pudo leer el archivo. Verifique el origen o quite la protección.');
+        onError('El archivo está vacío o no contiene datos válidos.');
         onClose();
         return;
       }
 
       onClose();
     } catch (err: any) {
-      const msg =
-        err?.message === 'EMPTY_IMPORT'
-          ? 'No se pudo leer el archivo. Verifique el origen o quite la protección.'
-          : err?.message || 'No se pudo leer el archivo. Intente nuevamente.';
-      onError(msg);
+      const code = err?.message as string | undefined;
+
+      const message =
+        code === 'EMPTY_IMPORT'
+          ? 'El archivo está vacío o no contiene datos válidos.'
+          : code === 'INVALID_FORMAT'
+            ? 'Formato no válido. Solo se admiten archivos PDF, Excel (.xls/.xlsx) y CSV.'
+            : code === 'PROVIDER_NOT_FOUND'
+              ? 'Proveedor no encontrado. Seleccioná un proveedor válido para continuar.'
+              : 'No se pudo leer el archivo. Verifique el origen o quite la protección.';
+
+      onError(message);
       onClose();
     }
   };
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedProvider('');
+      setSelectedFile(null);
+      setFileError(null);
+      setProviderError(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
