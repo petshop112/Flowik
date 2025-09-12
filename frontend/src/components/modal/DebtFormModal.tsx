@@ -452,7 +452,7 @@ function DropdownPayments({
         <table className="w-full" style={{ borderCollapse: 'collapse' }}>
           <tbody>
             <tr
-              className={`bg-white ${hasMultiplePayments ? "cursor-pointer" : ""}`}
+              className={`bg-white ${hasMultiplePayments ? 'cursor-pointer' : ''}`}
               onClick={() => hasMultiplePayments && setOpen((v) => !v)}
               aria-expanded={hasMultiplePayments ? open : undefined}
             >
@@ -465,11 +465,11 @@ function DropdownPayments({
               <td className="pl-2 align-middle" style={{ width: 32 }}>
                 {hasMultiplePayments ? (
                   <ChevronDownIcon
-                    className={`h-5 w-5 text-black transition-transform ${open ? "rotate-180" : ""}`}
+                    className={`h-5 w-5 text-black transition-transform ${open ? 'rotate-180' : ''}`}
                     aria-hidden="true"
                   />
                 ) : (
-                  <div className="h-5 w-5 opacity-0 pointer-events-none" aria-hidden="true" />
+                  <div className="pointer-events-none h-5 w-5 opacity-0" aria-hidden="true" />
                 )}
               </td>
             </tr>
@@ -502,6 +502,5 @@ function DropdownPayments({
     </div>
   );
 }
-
 
 export default DebtFormModal;
