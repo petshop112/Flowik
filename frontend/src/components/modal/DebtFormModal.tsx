@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { debtService } from '../../api/debtService';
+import { useGetDebtsByClient, useCreateDebt } from '../../hooks/useDebts';
+import type { Debt, Payment } from '../../types/debt';
 import { paymentService } from '../../api/paymentsService';
 import { clientService } from '../../api/clientService';
 import { useSelector } from 'react-redux';
@@ -7,9 +8,8 @@ import { selectAuth } from '../../features/auth/authSlice';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import SuccessModal from '../modal/SuccessModal';
 import { debtColor } from '../../utils/debtColors';
-import { useQueryClient } from '@tanstack/react-query';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import {
   Tooltip,
   TooltipContent,
@@ -29,37 +29,21 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [debtHistory, setDebtHistory] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
-  const totalPages = Math.ceil(debtHistory.length / rowsPerPage);
 
-  const sortedDebtHistory = [...debtHistory].sort(
-    (a, b) => new Date(b.debt_date).getTime() - new Date(a.debt_date).getTime()
-  );
-
-  const paginatedRows = sortedDebtHistory.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
-
-  const [loadingDebts, setLoadingDebts] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successTitle, setSuccessTitle] = useState('');
   const [successDescription, setSuccessDescription] = useState('');
 
-  const queryClient = useQueryClient();
+  const clientId = selectedClientIds[0];
+  const {
+    data: debtHistory = [],
+    isLoading: loadingDebts,
+    refetch: refetchDebts,
+  } = useGetDebtsByClient(clientId);
 
-  useEffect(() => {
-    if (isOpen && selectedClientIds.length === 1) {
-      setLoadingDebts(true);
-      debtService
-        .getDebtsByClient(selectedClientIds[0], token!)
-        .then(setDebtHistory)
-        .catch(() => setDebtHistory([]))
-        .finally(() => setLoadingDebts(false));
-    }
-  }, [isOpen, selectedClientIds, token]);
+  const createDebt = useCreateDebt();
 
   useEffect(() => {
     if (isOpen && selectedClientIds.length === 1 && token) {
@@ -73,25 +57,34 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
     }
   }, [isOpen, selectedClientIds, token]);
 
+  const sortedDebtHistory = [...debtHistory].sort(
+    (a, b) => new Date(b.debt_date).getTime() - new Date(a.debt_date).getTime()
+  );
+  const totalPages = Math.ceil(debtHistory.length / rowsPerPage);
+  const paginatedRows = sortedDebtHistory.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
   const formatDate = (date: string) => {
-    const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) return '';
+    const [y, m, d] = date.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
     return dateObj.toLocaleDateString('es-AR');
   };
 
-  const getDebtDays = (debtDate: string, modificationDate?: string) => {
+  const getDebtDays = (debtDate: string) => {
     const from = new Date(debtDate);
-    const to = modificationDate ? new Date(modificationDate) : new Date();
+    const to = new Date();
     const diffMs = to.getTime() - from.getTime();
     return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
   };
 
-  const totalDebt = debtHistory.reduce((sum, d) => {
-    const payments = (d.payments ?? []).reduce(
-      (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
+  const totalDebt = debtHistory.reduce((sum: number, d: Debt) => {
+    const payments = d.payments.reduce(
+      (acc: number, pay: Payment) => acc + Number(pay.paymentMount ?? 0),
       0
     );
-    const remaining = Number(d.mount ?? 0) - payments;
+    const remaining = d.mount - payments;
     return sum + (remaining > 0 ? remaining : 0);
   }, 0);
 
@@ -99,22 +92,17 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
 
   const handleAddDebt = async () => {
     setLoading(true);
-
     try {
       await Promise.all(
-        selectedClientIds.map((id) => debtService.createDebt(id, { mount: Number(amount) }, token!))
+        selectedClientIds.map((id) =>
+          createDebt.mutateAsync({ clientId: id, payload: { mount: Number(amount) } })
+        )
       );
-      await queryClient.invalidateQueries({ queryKey: ['clientDebts'] });
       setAmount('');
       setSuccessTitle('¡Deuda añadida!');
       setSuccessDescription('La deuda se ha añadido correctamente.');
       setShowSuccessModal(true);
-      setLoadingDebts(true);
-      debtService
-        .getDebtsByClient(selectedClientIds[0], token!)
-        .then(setDebtHistory)
-        .catch(() => setDebtHistory([]))
-        .finally(() => setLoadingDebts(false));
+      refetchDebts();
     } catch (e: any) {
       setSuccessTitle('¡Ups, ocurrió un error!');
       setSuccessDescription(e?.message || 'No se pudo guardar la deuda.');
@@ -130,7 +118,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
 
   const handleDiscountDebt = async () => {
     setLoading(true);
-
     try {
       const today = new Date().toISOString().split('T')[0];
       await Promise.all(
@@ -145,17 +132,11 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           )
         )
       );
-      await queryClient.invalidateQueries({ queryKey: ['clientDebts'] });
       setSuccessTitle('¡Deuda modificada!');
       setSuccessDescription('La deuda se ha modificado correctamente.');
       setShowSuccessModal(true);
       setAmount('');
-      setLoadingDebts(true);
-      debtService
-        .getDebtsByClient(selectedClientIds[0], token!)
-        .then(setDebtHistory)
-        .catch(() => setDebtHistory([]))
-        .finally(() => setLoadingDebts(false));
+      refetchDebts();
     } catch (e: any) {
       setSuccessTitle('¡Ups, ocurrió un error!');
       setSuccessDescription(
@@ -216,9 +197,13 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               <div className="flex items-center rounded-md border border-[#042D95]">
                 <input
                   type="number"
+                  min={1}
                   className="w-30 border-none bg-transparent px-3 py-2 text-right text-lg"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setAmount(val === '' ? '' : String(Math.max(1, Number(val))));
+                  }}
                   placeholder="000.000"
                 />
                 <span className="ml-2">
@@ -228,19 +213,35 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             </div>
             <button
               onClick={handleAddDebt}
-              className="ml-2 rounded-md bg-[#5685FA] px-3 py-2.5 text-white transition hover:bg-blue-600"
+              className="text- ml-2 rounded-md bg-[#5685FA] px-3 py-2.5 text-white transition hover:bg-blue-600"
               type="button"
+              disabled={Number(amount) <= 0}
             >
               Agregar deuda
             </button>
-            <button
-              onClick={handleDiscountDebt}
-              className="ml-2 rounded-md bg-[#048995] px-3 py-2.5 text-white transition hover:bg-[#02747a]"
-              disabled={!amount}
-              type="button"
-            >
-              Descontar deuda
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleDiscountDebt}
+                    className="ml-2 flex items-center rounded-md bg-[#048995] px-3 py-2.5 text-white transition hover:bg-[#02747a]"
+                    disabled={!amount || Number(amount) <= 0}
+                    type="button"
+                  >
+                    Descontar deuda
+                    <InformationCircleIcon className="ml-1 h-6 w-6" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  align="center"
+                  className="relative rounded-xl bg-[#CFEAFB] px-3 py-2 text-xs shadow-md ring-1 ring-blue-200"
+                >
+                  El monto ingresado se descontará comenzando por la deuda más antigua pendiente. Si
+                  sobra algo, se aplicará al resto de tus deudas pendientes.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
@@ -249,12 +250,9 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             <table className="w-full text-sm">
               <thead className="bg-blue-50">
                 <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
-                  <th className="text-center align-middle">
-                    <input type="checkbox" className="mx-auto h-4 w-4 align-middle" />
-                  </th>
                   <th className="px-2 py-2">Fecha deuda</th>
                   <th className="px-2 py-2">Deuda</th>
-                  <th className="px-2 py-2">Fecha modificación</th>
+                  <th className="px-2 py-2">Fecha última modificación/pago</th>
                   <th className="px-2 py-2">Resto deuda</th>
                   <th className="w-[120px] px-6 py-2">
                     <span className="flex items-center">
@@ -262,7 +260,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <ExclamationCircleIcon className="ml-0.5 h-7 w-7" />
+                            <InformationCircleIcon className="ml-0.5 h-5 w-5" />
                           </TooltipTrigger>
                           <TooltipContent
                             side="right"
@@ -280,7 +278,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <ExclamationCircleIcon className="ml-0.5 h-8 w-8" />
+                          <InformationCircleIcon className="ml-0.5 h-7 w-7" />
                         </TooltipTrigger>
                         <TooltipContent
                           side="right"
@@ -308,31 +306,28 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                     </td>
                   </tr>
                 ) : (
-                  paginatedRows.map((d, idx) => {
-                    const payments = (d.payments ?? []).reduce(
-                      (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
+                  paginatedRows.map((d: Debt, idx: number) => {
+                    const payments = d.payments.reduce(
+                      (acc: number, pay: Payment) => acc + Number(pay.paymentMount ?? 0),
                       0
                     );
-                    const remaining = Number(d.mount ?? 0) - payments;
+                    const remaining = d.mount - payments;
                     return (
                       <tr
-                        key={d.debtId ?? idx}
+                        key={d.debt_date + idx}
                         className="border-b-2 border-gray-200 transition-colors hover:bg-gray-50"
                       >
-                        <td className="border-l-2 border-gray-200 px-4 py-2 text-center align-middle">
-                          <input className="h-4 w-4" type="checkbox" />
-                        </td>
                         <td className="border-l-2 border-gray-200 px-4 py-2">
                           {formatDate(d.debt_date)}
                         </td>
                         <td className="border-l-2 border-gray-200 px-4 py-2">
                           $
-                          {Number(d.mount ?? 0).toLocaleString('es-AR', {
+                          {Number(d.mount).toLocaleString('es-AR', {
                             maximumFractionDigits: 0,
                           })}
                         </td>
                         <td className="border-l-2 border-gray-200 px-4 py-2">
-                          {d.payments && d.payments.length > 0
+                          {d.payments.length > 0
                             ? formatDate(d.payments[d.payments.length - 1].datePayment)
                             : formatDate(d.debt_date)}
                         </td>
@@ -340,7 +335,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                           ${remaining.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                         </td>
                         <td className="border-l-2 border-gray-200 px-4 py-2">
-                          {(d.payments ?? []).length === 0 ? (
+                          {d.payments.length === 0 ? (
                             <span className="text-gray-400">-</span>
                           ) : (
                             <DropdownPayments payments={d.payments} formatDate={formatDate} />
@@ -348,17 +343,13 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                         </td>
                         <td className="border-l-2 border-gray-200 px-4 py-2">
                           <span className="flex w-full items-center justify-between">
-                            <span className="leading-none">
-                              {getDebtDays(d.debt_date, d.modification_date)}
-                            </span>
+                            <span className="leading-none">{getDebtDays(d.debt_date)}</span>
                             <span
                               className="ml-1 inline-block h-6 w-6 rounded-full border border-gray-200"
                               style={{
-                                background: debtColor(
-                                  getDebtDays(d.debt_date, d.modification_date)
-                                ),
+                                background: debtColor(getDebtDays(d.debt_date)),
                               }}
-                              title={`Estado de deuda: ${getDebtDays(d.debt_date, d.modification_date)} días`}
+                              title={`Estado de deuda: ${getDebtDays(d.debt_date)} días`}
                             />
                           </span>
                         </td>
@@ -427,7 +418,7 @@ function DropdownPayments({
   payments,
   formatDate,
 }: {
-  payments: any[];
+  payments: Payment[];
   formatDate: (d: string) => string;
 }) {
   const [open, setOpen] = useState(false);
