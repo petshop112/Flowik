@@ -22,22 +22,16 @@ import {
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
-const legendNames: Record<string, string> = {
+const legendLabels: Record<string, string> = {
   deudasNuevas: 'Deudas Nuevas',
   deudasAntiguas: 'Deudas Antiguas',
   deudasCobros: 'Deudas Cobradas',
 };
 
 const renderCustomLegend = (props: any) => {
-  const { payload } = props;
+  const payload = props.payload ?? [];
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 16,
-        marginTop: 8,
-      }}
-    >
+    <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
       {payload.map((entry: any) => (
         <span
           key={entry.value}
@@ -61,7 +55,7 @@ const renderCustomLegend = (props: any) => {
               borderRadius: 2,
             }}
           />
-          {legendNames[entry.value] || entry.value}
+          {legendLabels[entry.value as string] || entry.value}
         </span>
       ))}
     </div>
@@ -69,71 +63,80 @@ const renderCustomLegend = (props: any) => {
 };
 
 const Home = () => {
-  // Productos desde el backend
+  // Data hooks
   const { data: products = [], isLoading, error } = useGetAllProducts();
 
-  // Top 10 productos con más stock y activos
-  const topStockData = [...products]
-    .filter((p) => p.isActive)
+  // Products with the most stock, filtered by isActive
+  const productsWithMostStock = [...products]
+    .filter((product) => product.isActive)
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 10);
 
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-  const activeProd = topStockData.find((p) => p.id === selectedProductId) || topStockData[0];
+  const activeProduct =
+    productsWithMostStock.find((product) => product.id === selectedProductId) ||
+    productsWithMostStock[0];
 
-  // Productos con menos stock (stock bajo)
-  const topStockBajo = [...products]
-    .filter((p) => getStockStatus(p.amount) === 'critical' || getStockStatus(p.amount) === 'low')
+  // Products with lowest stock (critical/low)
+  const productsWithLowestStock = [...products]
+    .filter(
+      (product) =>
+        getStockStatus(product.amount) === 'critical' || getStockStatus(product.amount) === 'low'
+    )
     .sort((a, b) => a.amount - b.amount)
     .slice(0, 10);
 
+  // Chart y-axis formatting
   const formatYAxis = (value: number) => {
     return `${value / 1000}k`;
   };
 
-  const id_user = Number(localStorage.getItem('userId'));
+  // Auth and user data
+  const userId = Number(localStorage.getItem('userId'));
   const { token } = useSelector(selectAuth);
-  const { data: debtTotals, isLoading: loadingDebtTotals } = useDebtDashboardTotals(id_user, token);
-  const { chartData, cuatrimestres, cuatrimestreActivo, setCuatrimestreActivo } = useDebtChartData(
-    debtTotals?.clientsRaw ?? []
+
+  // Debt dashboard data and chart
+  const { data: debtDashboardTotals, isLoading: isLoadingDebtTotals } = useDebtDashboardTotals(
+    userId,
+    token
+  );
+  const { chartData, terms, activeTerm, setActiveTerm } = useDebtChartData(
+    debtDashboardTotals?.clientsRaw ?? []
   );
 
-  const maxStock = Math.max(...topStockData.map((p) => p.amount), 1);
+  const maxStock = Math.max(...productsWithMostStock.map((product) => product.amount), 1);
 
   const getCustomTicks = () => {
-    // Si el máximo es pequeño (ej: 11), pon los ticks distribuidos cada 2 o 5 unidades.
     if (maxStock <= 20) {
-      return [0, 5, 10, 15, 20].filter((t) => t <= maxStock + 2);
+      return [0, 5, 10, 15, 20].filter((tick) => tick <= maxStock + 2);
     }
-    // Si el máximo es mediano, espaciado de 10 en 10:
-    if (maxStock <= 60) return [0, 15, 30, 45, 60].filter((t) => t <= maxStock + 5);
-    // Si es grande, pon 0 y el máximo nada más:
+    if (maxStock <= 60) return [0, 15, 30, 45, 60].filter((tick) => tick <= maxStock + 5);
     return [0, maxStock];
   };
 
   return (
     <div className="bg-custom-mist text-foreground min-h-screen space-y-6 p-8">
       <div className="grid grid-cols-3 gap-6">
-        {/* COLUMNA 1 */}
+        {/* COLUMN 1 */}
         <div className="flex flex-col gap-4">
-          {/* Cartita DEUDA TOTAAL */}
+          {/* Total debt Card */}
           <Link to="/clients">
             <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white p-6 shadow">
               <span className="text-primary mb-1 text-xl font-semibold text-[#042D95]">
-                Deuda de Clientes
+                Deuda de clientes
               </span>
               <span className="mb-2 text-xs text-[#6b7280]">Suma de saldos pendientes</span>
               <div className="mt-4 flex">
                 <CurrencyDollarIcon className="mr-2 h-9 w-9 text-[#82D8E0]" />
                 <span className="text-4xl font-semibold text-[#042D95]">
-                  {loadingDebtTotals
+                  {isLoadingDebtTotals
                     ? '...'
-                    : debtTotals?.totalOutstanding?.toLocaleString('es-AR')}
+                    : debtDashboardTotals?.totalOutstanding?.toLocaleString('es-AR')}
                 </span>
               </div>
             </div>
           </Link>
-          {/* Cartita detalle NUMERICO DE LA DEUDA DEL CUATRIMESTRE */}
+          {/* Debt detail with numbers */}
           <Link to="/clients">
             <div className="dark:bg-card flex flex-col rounded-xl border border-[#9cb7fc] bg-white px-6 py-4 shadow">
               <ul className="space-y-3 text-[1rem] font-medium">
@@ -142,31 +145,42 @@ const Home = () => {
                   Deudas nuevas
                   <span className="ml-auto text-2xl font-semibold text-[#048995]">
                     {' '}
-                    ${loadingDebtTotals ? '...' : debtTotals?.totalNew?.toLocaleString('es-AR')}
+                    $
+                    {isLoadingDebtTotals
+                      ? '...'
+                      : debtDashboardTotals?.totalNew?.toLocaleString('es-AR')}
                   </span>
                 </li>
                 <li className="flex items-center gap-2 text-[#042D95]">
                   <span className="inline-block h-3 w-3 rounded bg-[#FE9B38]" />
                   Deudas antiguas
                   <span className="ml-auto text-2xl font-semibold text-[#048995]">
-                    ${loadingDebtTotals ? '...' : debtTotals?.totalOld?.toLocaleString('es-AR')}
+                    $
+                    {isLoadingDebtTotals
+                      ? '...'
+                      : debtDashboardTotals?.totalOld?.toLocaleString('es-AR')}
                   </span>
                 </li>
                 <li className="flex items-center gap-2 text-[#042D95]">
                   <span className="inline-block h-3 w-3 rounded bg-[#5685FA]" />
                   Deudas Cobradas
                   <span className="text-[#048995]] ml-auto text-2xl font-semibold text-[#048995]">
-                    ${loadingDebtTotals ? '...' : debtTotals?.totalPaid?.toLocaleString('es-AR')}
+                    $
+                    {isLoadingDebtTotals
+                      ? '...'
+                      : debtDashboardTotals?.totalPaid?.toLocaleString('es-AR')}
                   </span>
                 </li>
-                <li className="flex items-center gap-2 text-[#042D95]">
+                <li className="flex items-center gap-2 text-[#C60633]">
                   Déficit
-                  <span className="ml-auto text-2xl font-semibold text-[#048995]">
+                  <span className="ml-auto text-2xl font-semibold text-[#C60633]">
                     $
-                    {loadingDebtTotals
+                    {isLoadingDebtTotals
                       ? '...'
-                      : debtTotals
-                        ? debtTotals.balance.toLocaleString('es-AR', { maximumFractionDigits: 2 })
+                      : debtDashboardTotals
+                        ? debtDashboardTotals.balance.toLocaleString('es-AR', {
+                            maximumFractionDigits: 2,
+                          })
                         : '...'}
                   </span>
                 </li>
@@ -175,23 +189,24 @@ const Home = () => {
           </Link>
         </div>
 
+        {/* Debt chart and filter */}
         <div className="dark:bg-card col-span-2 flex flex-col rounded-xl border border-[#82D8E0] bg-white p-4 shadow">
           <div className="flex items-center justify-between">
             <span className="text-primary flex justify-center text-3xl font-semibold text-[#048995]">
               <span className="mr-1 flex items-center">
                 <CurrencyDollarIcon className="h-10 w-10 text-[#82D8E0]" />
               </span>
-              Balance de deuda
+              Balance de deuda por cuatrimestre
             </span>
             <div className="relative w-44">
               <select
                 className="w-full appearance-none rounded border border-[#5685FA] bg-white px-2 py-1 pr-7 text-xs"
-                value={cuatrimestreActivo}
-                onChange={(e) => setCuatrimestreActivo(Number(e.target.value))}
+                value={activeTerm}
+                onChange={(e) => setActiveTerm(Number(e.target.value))}
               >
-                {cuatrimestres.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
+                {terms.map((term) => (
+                  <option key={term.value} value={term.value}>
+                    {term.label}
                   </option>
                 ))}
               </select>
@@ -209,7 +224,7 @@ const Home = () => {
             </div>
           </div>
           <div className="mt-6 mb-2 h-60 px-2">
-            {/* barra recharts */}
+            {/* Recharts graphic */}
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 width={500}
@@ -256,9 +271,9 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Productos y stock bajo */}
+      {/* Low Stock Products */}
       <div className="grid grid-cols-2 gap-6">
-        {/* Movimiento de producto */}
+        {/* Product chart: most stock */}
         <div className="md:col-span-1">
           <div className="dark:bg-card flex flex-col gap-2 rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
             <div className="mb-2 flex items-center justify-between">
@@ -271,11 +286,11 @@ const Home = () => {
                 Productos con más stock
               </span>
             </div>
-            {/* GRÁFICO con Recharts */}
+            {/* Recharts graphic - most stock */}
             <div style={{ width: '100%', height: 329 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={topStockData}
+                  data={productsWithMostStock}
                   layout="vertical"
                   margin={{ top: 10, right: 27, left: 85, bottom: 0 }}
                   barCategoryGap={16}
@@ -341,10 +356,12 @@ const Home = () => {
                       fontWeight: 700,
                     }}
                   >
-                    {topStockData.map((entry) => (
+                    {productsWithMostStock.map((entry) => (
                       <Cell
                         key={`cell-${entry.id}`}
-                        fill={activeProd && entry.id === activeProd.id ? '#2563eb' : '#BBD7FF'}
+                        fill={
+                          activeProduct && entry.id === activeProduct.id ? '#2563eb' : '#BBD7FF'
+                        }
                         cursor="pointer"
                         onClick={() => setSelectedProductId(entry.id)}
                       />
@@ -357,9 +374,8 @@ const Home = () => {
               El gráfico muestra los 10 productos con mayor stock actualmente.
             </span>
           </div>
-
-          {/* Cuadro detalle producto */}
-          {activeProd && (
+          {/* Table with product details for the most stock product */}
+          {activeProduct && (
             <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
               <table className="w-full">
                 <thead className="bg-[#f8fbff]">
@@ -368,24 +384,23 @@ const Home = () => {
                       colSpan={4}
                       className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
                     >
-                      {activeProd.name}
+                      {activeProduct.name}
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white">
                   <tr>
                     <td className="px-4 py-4 text-sm font-medium">Unidades en stock</td>
-                    <td className="px-4 py-4 text-2xl font-bold">{activeProd.amount}</td>
+                    <td className="px-4 py-4 text-2xl font-bold">{activeProduct.amount}</td>
                     <td className="px-4 py-4 text-sm">Precio de venta</td>
-                    <td className="px-4 py-4 text-2xl font-bold">${activeProd.sellPrice}</td>
+                    <td className="px-4 py-4 text-2xl font-bold">${activeProduct.sellPrice}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           )}
         </div>
-
-        {/* Stock bajo */}
+        {/* Lowest Stock products */}
         <Link to="/products">
           <div className="dark:bg-card flex min-h-full flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
             <div className="mb-3 flex items-center gap-2 text-2xl font-semibold text-[#042D95]">
@@ -426,13 +441,12 @@ const Home = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white text-gray-900">
-                    {topStockBajo.map((item, i) => (
+                    {productsWithLowestStock.map((item, i) => (
                       <tr key={i} className="transition hover:bg-gray-50">
                         <td className="max-w-[220px] truncate px-4 py-2">{item.name}</td>
                         <td className="px-4 py-2">
                           {typeof item.amount === 'number' ? item.amount : '-'}
                         </td>
-
                         <td className="px-2 py-2 text-center">
                           <span
                             className={`inline-block h-4 w-4 rounded-full ${getStockColor(getStockStatus(item.amount))}`}
