@@ -9,7 +9,7 @@ import SuccessModal from '../modal/SuccessModal';
 import { debtColor } from '../../utils/debtColors';
 import { useQueryClient } from '@tanstack/react-query';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import {
   Tooltip,
   TooltipContent,
@@ -228,18 +228,19 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             </div>
             <button
               onClick={handleAddDebt}
-              className="ml-2 rounded-md bg-[#5685FA] px-3 py-2.5 text-white transition hover:bg-blue-600"
+              className="text- ml-2 rounded-md bg-[#5685FA] px-3 py-2.5 text-white transition hover:bg-blue-600"
               type="button"
             >
               Agregar deuda
             </button>
             <button
               onClick={handleDiscountDebt}
-              className="ml-2 rounded-md bg-[#048995] px-3 py-2.5 text-white transition hover:bg-[#02747a]"
+              className="ml-2 flex items-center rounded-md bg-[#048995] px-3 py-2.5 text-white transition hover:bg-[#02747a]"
               disabled={!amount}
               type="button"
             >
               Descontar deuda
+              <InformationCircleIcon className="ml-0.5 h-5 w-5" />
             </button>
           </div>
         </div>
@@ -249,9 +250,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             <table className="w-full text-sm">
               <thead className="bg-blue-50">
                 <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
-                  <th className="text-center align-middle">
-                    <input type="checkbox" className="mx-auto h-4 w-4 align-middle" />
-                  </th>
                   <th className="px-2 py-2">Fecha deuda</th>
                   <th className="px-2 py-2">Deuda</th>
                   <th className="px-2 py-2">Fecha modificación</th>
@@ -262,7 +260,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <ExclamationCircleIcon className="ml-0.5 h-7 w-7" />
+                            <InformationCircleIcon className="ml-0.5 h-5 w-5" />
                           </TooltipTrigger>
                           <TooltipContent
                             side="right"
@@ -280,7 +278,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <ExclamationCircleIcon className="ml-0.5 h-8 w-8" />
+                          <InformationCircleIcon className="ml-0.5 h-7 w-7" />
                         </TooltipTrigger>
                         <TooltipContent
                           side="right"
@@ -319,9 +317,6 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                         key={d.debtId ?? idx}
                         className="border-b-2 border-gray-200 transition-colors hover:bg-gray-50"
                       >
-                        <td className="border-l-2 border-gray-200 px-4 py-2 text-center align-middle">
-                          <input className="h-4 w-4" type="checkbox" />
-                        </td>
                         <td className="border-l-2 border-gray-200 px-4 py-2">
                           {formatDate(d.debt_date)}
                         </td>
