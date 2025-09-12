@@ -235,113 +235,105 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
           </div>
         </div>
 
-        <div className="flex flex-col overflow-x-auto px-8 pb-8">
-          <table className="w-full rounded-xl border border-blue-100 text-sm">
-            <thead className="bg-blue-50">
-              <tr>
-                <td className="px-2 py-2 text-center align-middle">
-                  <input type="checkbox" className="mx-auto h-4 w-4 align-middle" />
-                </td>
-                <th className="px-2 py-2">Fecha deuda</th>
-                <th className="px-2 py-2">Deuda</th>
-                <th className="px-2 py-2">Fecha modificación</th>
-                <th className="px-2 py-2">Resto deuda</th>
-                <th className="w-[200px] px-6 py-2">
-                  <span className="flex">
-                    Descuentos de Deuda <img className="h-6 w-6" src="/icons/alarma.svg" alt="" />
-                  </span>
-                </th>
-                <th className="flex items-center justify-between gap-1 px-1 py-2">
-                  Total días deuda
-                  <img className="h-6 w-6" src="/icons/alarma.svg" alt="" />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {loadingDebts ? (
-                <tr>
-                  <td colSpan={7} className="py-6 text-center text-blue-400">
-                    Cargando historial...
-                  </td>
+        <div className="mx-8 mb-8 flex flex-col overflow-hidden overflow-x-auto rounded-xl border border-[#9cb7fc] bg-white shadow-sm">
+          <div className="flex flex-col overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-blue-50">
+                <tr className="[&>th]:border-l-2 [&>th]:border-white [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:font-normal">
+                  <th className="text-center align-middle">
+                    <input type="checkbox" className="mx-auto h-4 w-4 align-middle" />
+                  </th>
+                  <th className="px-2 py-2">Fecha deuda</th>
+                  <th className="px-2 py-2">Deuda</th>
+                  <th className="px-2 py-2">Fecha modificación</th>
+                  <th className="px-2 py-2">Resto deuda</th>
+                  <th className="w-[120px] px-6 py-2">
+                    <span className="flex">
+                      Descuentos de deudas
+                      <img className="ml-0.5h-6 w-6" src="/icons/alarma.svg" alt="" />
+                    </span>
+                  </th>
+                  <th className="flex items-center justify-between gap-1 px-1 py-2">
+                    Total días
+                    <img className="ml-0.51 h-6 w-6" src="/icons/alarma.svg" alt="" />
+                  </th>
                 </tr>
-              ) : debtHistory.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-6 text-center text-blue-200">
-                    No hay deudas registradas.
-                  </td>
-                </tr>
-              ) : (
-                paginatedRows.map((d, idx) => {
-                  const payments = (d.payments ?? []).reduce(
-                    (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
-                    0
-                  );
-                  const remaining = Number(d.mount ?? 0) - payments;
-                  return (
-                    <tr key={d.debtId ?? idx} className="border-t border-blue-50">
-                      <td className="px-2 py-2">
-                        <div className="flex items-center justify-center">
+              </thead>
+              <tbody>
+                {loadingDebts ? (
+                  <tr>
+                    <td colSpan={7} className="py-6 text-center text-blue-400">
+                      Cargando historial...
+                    </td>
+                  </tr>
+                ) : debtHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-6 text-center text-blue-200">
+                      No hay deudas registradas.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedRows.map((d, idx) => {
+                    const payments = (d.payments ?? []).reduce(
+                      (acc: number, pay: any) => acc + Number(pay.paymentMount ?? 0),
+                      0
+                    );
+                    const remaining = Number(d.mount ?? 0) - payments;
+                    return (
+                      <tr
+                        key={d.debtId ?? idx}
+                        className="border-b-2 border-gray-200 transition-colors hover:bg-gray-50"
+                      >
+                        <td className="border-l-2 border-gray-200 px-4 py-2 text-center align-middle">
                           <input className="h-4 w-4" type="checkbox" />
-                        </div>
-                      </td>
-                      <td className="py-2 pl-4">{formatDate(d.debt_date)}</td>
-                      <td className="py-2 pl-4">
-                        $
-                        {Number(d.mount ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}
-                      </td>
-                      <td className="px-2 py-2">
-                        {d.payments && d.payments.length > 0
-                          ? formatDate(d.payments[d.payments.length - 1].datePayment)
-                          : formatDate(d.debt_date)}
-                      </td>
-                      <td className="py-2 pl-5">
-                        ${remaining.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
-                      </td>
-                      <td className="py-2 pl-4">
-                        {(d.payments ?? []).length === 0 ? (
-                          <span className="text-gray-400">-</span>
-                        ) : (
-                          // innertable for the debt payments
-                          <table>
-                            <tbody>
-                              <tr>
-                                <td className="py-2 pl-4">
-                                  {(d.payments ?? []).length === 0 ? (
-                                    <span className="text-gray-400">-</span>
-                                  ) : (
-                                    <DropdownPayments
-                                      payments={d.payments}
-                                      formatDate={formatDate}
-                                    />
-                                  )}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        )}
-                      </td>
-                      <td className="px-2 py-2">
-                        <span className="flex w-full items-center justify-between">
-                          <span className="leading-none">
-                            {getDebtDays(d.debt_date, d.modification_date)
-                              .toString()
-                              .padStart(3, '0')}
+                        </td>
+                        <td className="border-l-2 border-gray-200 px-4 py-2">
+                          {formatDate(d.debt_date)}
+                        </td>
+                        <td className="border-l-2 border-gray-200 px-4 py-2">
+                          $
+                          {Number(d.mount ?? 0).toLocaleString('es-AR', {
+                            maximumFractionDigits: 0,
+                          })}
+                        </td>
+                        <td className="border-l-2 border-gray-200 px-4 py-2">
+                          {d.payments && d.payments.length > 0
+                            ? formatDate(d.payments[d.payments.length - 1].datePayment)
+                            : formatDate(d.debt_date)}
+                        </td>
+                        <td className="border-l-2 border-gray-200 px-4 py-2">
+                          ${remaining.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
+                        </td>
+                        <td className="border-l-2 border-gray-200 px-4 py-2">
+                          {(d.payments ?? []).length === 0 ? (
+                            <span className="text-gray-400">-</span>
+                          ) : (
+                            <DropdownPayments payments={d.payments} formatDate={formatDate} />
+                          )}
+                        </td>
+                        <td className="border-l-2 border-gray-200 px-4 py-2">
+                          <span className="flex w-full items-center justify-between">
+                            <span className="leading-none">
+                              {getDebtDays(d.debt_date, d.modification_date)}
+                            </span>
+                            <span
+                              className="ml-1 inline-block h-6 w-6 rounded-full border border-gray-200"
+                              style={{
+                                background: debtColor(
+                                  getDebtDays(d.debt_date, d.modification_date)
+                                ),
+                              }}
+                              title={`Estado de deuda: ${getDebtDays(d.debt_date, d.modification_date)} días`}
+                            />
                           </span>
-                          <span
-                            className="inline-block h-6 w-6 rounded-full border border-gray-200"
-                            style={{
-                              background: debtColor(getDebtDays(d.debt_date, d.modification_date)),
-                            }}
-                            title={`Estado de deuda: ${getDebtDays(d.debt_date, d.modification_date)} días`}
-                          />
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
           {debtHistory.length > rowsPerPage && (
             <div className="flex items-center justify-center gap-2 py-4">
               <button
@@ -404,29 +396,47 @@ function DropdownPayments({
   formatDate: (d: string) => string;
 }) {
   const [open, setOpen] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (open && ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [open]);
 
   const lastPayment = payments[payments.length - 1];
 
   return (
-    <div className="relative w-full">
-      <table className="w-full" style={{ borderCollapse: 'collapse' }}>
-        <tbody>
-          <tr className="cursor-pointer bg-white pl-4" onClick={() => setOpen((v) => !v)}>
-            <td className="pl-4 whitespace-nowrap text-green-600" style={{ width: 55 }}>
-              -${Number(lastPayment.paymentMount ?? 0).toLocaleString('es-AR')}
-            </td>
-            <td className="pl-2 text-xs whitespace-nowrap text-gray-500">
-              ({formatDate(lastPayment.datePayment)})
-            </td>
-            <td className="pl-2 align-middle" style={{ width: 32 }}>
-              <ChevronDownIcon className="h-5 w-5 text-black" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    // Este wrapper “anula” el padding horizontal de la <td> (que es px-4)
+    <div ref={ref} className="relative -mx-4">
+      {/* Reponemos el padding al trigger para que el texto siga alineado */}
+      <div className="px-4">
+        <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+          <tbody>
+            <tr className="cursor-pointer bg-white" onClick={() => setOpen((v) => !v)}>
+              <td className="whitespace-nowrap text-green-600" style={{ width: 55 }}>
+                -${Number(lastPayment.paymentMount ?? 0).toLocaleString('es-AR')}
+              </td>
+              <td className="pl-2 text-xs whitespace-nowrap text-gray-500">
+                ({formatDate(lastPayment.datePayment)})
+              </td>
+              <td className="pl-2 align-middle" style={{ width: 32 }}>
+                <ChevronDownIcon
+                  className={`h-5 w-5 text-black transition-transform ${open ? 'rotate-180' : ''}`}
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       {open && (
-        <div className="absolute top-full left-0 z-10 mt-1 w-full rounded border border-gray-300 bg-white shadow-lg">
-          <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+        <div className="absolute top-full right-0 left-0 z-20 mt-3 border-r-2 border-b-2 border-l-2 border-gray-200 bg-white px-4 py-2 shadow-sm">
+          <table className="w-full border-collapse" style={{ borderCollapse: 'collapse' }}>
             <tbody>
               {payments
                 .slice(0, -1)
@@ -448,4 +458,5 @@ function DropdownPayments({
     </div>
   );
 }
+
 export default DebtFormModal;
