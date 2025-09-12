@@ -22,11 +22,11 @@ const termsArray = [
   { label: '3º Cuatrimestre', value: 2, months: [8, 9, 10, 11] },
 ];
 
-export type ChartDataItem = {
+export type DebtChartDataItem = {
   name: string;
-  deudasNuevas: number;
-  deudasAntiguas: number;
-  deudasCobros: number;
+  newDebts: number;
+  oldDebts: number;
+  paidDebts: number;
 };
 
 export function useDebtChartData(clients: Client[], year = new Date().getFullYear()) {
@@ -34,12 +34,12 @@ export function useDebtChartData(clients: Client[], year = new Date().getFullYea
   const initialTerm = Math.floor(currentMonth / 4);
   const [activeTerm, setActiveTerm] = useState(initialTerm);
 
-  const chartData: ChartDataItem[] = useMemo(() => {
-    const base: ChartDataItem[] = monthsArray.map((name) => ({
+  const chartData: DebtChartDataItem[] = useMemo(() => {
+    const base: DebtChartDataItem[] = monthsArray.map((name) => ({
       name,
-      deudasNuevas: 0,
-      deudasAntiguas: 0,
-      deudasCobros: 0,
+      newDebts: 0,
+      oldDebts: 0,
+      paidDebts: 0,
     }));
 
     clients.forEach((cli) => {
@@ -47,18 +47,18 @@ export function useDebtChartData(clients: Client[], year = new Date().getFullYea
         const debtDate = new Date(debt.debt_date);
         if (debtDate.getFullYear() !== year) return;
 
-        base[debtDate.getMonth()].deudasNuevas += debt.mount ?? 0;
+        base[debtDate.getMonth()].newDebts += debt.mount ?? 0;
 
         (debt.payments ?? []).forEach((pay) => {
           const payDate = new Date(pay.datePayment);
           if (payDate.getFullYear() === year)
-            base[payDate.getMonth()].deudasCobros += pay.paymentMount ?? 0;
+            base[payDate.getMonth()].paidDebts += pay.paymentMount ?? 0;
         });
       });
     });
 
     base.forEach((row, idx) => {
-      let oldDebts = 0;
+      let oldDebtsSum = 0;
       clients.forEach((cli) => {
         (cli.debts ?? []).forEach((debt) => {
           const debtDate = new Date(debt.debt_date);
@@ -71,11 +71,11 @@ export function useDebtChartData(clients: Client[], year = new Date().getFullYea
               })
               .reduce((acc, p) => acc + (p.paymentMount ?? 0), 0);
             const pending = (debt.mount ?? 0) - payments;
-            if (pending > 0) oldDebts += pending;
+            if (pending > 0) oldDebtsSum += pending;
           }
         });
       });
-      row.deudasAntiguas = oldDebts;
+      row.oldDebts = oldDebtsSum;
     });
 
     return base;

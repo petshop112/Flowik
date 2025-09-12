@@ -26,9 +26,9 @@ import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 const legendLabels: Record<string, string> = {
-  deudasNuevas: 'Deudas nuevas',
-  deudasAntiguas: 'Deudas antiguas',
-  deudasCobros: 'Deudas cobradas',
+  newDebts: 'Deudas nuevas',
+  oldDebts: 'Deudas antiguas',
+  paidDebts: 'Deudas cobradas',
 };
 
 const renderCustomLegend = (props: any) => {
@@ -307,20 +307,20 @@ const Home = () => {
                     <Tooltip />
                     <Legend content={renderCustomLegend} />
                     <Bar
-                      dataKey="deudasNuevas"
+                      dataKey="newDebts"
                       stackId="a"
                       fill="#82D8E0"
                       barSize={40}
                       radius={[2, 2, 0, 0]}
                     />
                     <Bar
-                      dataKey="deudasAntiguas"
+                      dataKey="oldDebts"
                       stackId="a"
                       fill="#FE9B38"
                       barSize={40}
                       radius={[2, 2, 0, 0]}
                     />
-                    <Bar dataKey="deudasCobros" fill="#5685FA" barSize={40} radius={[2, 2, 0, 0]} />
+                    <Bar dataKey="paidDebts" fill="#5685FA" barSize={40} radius={[2, 2, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
