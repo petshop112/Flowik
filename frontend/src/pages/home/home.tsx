@@ -215,7 +215,6 @@ const Home = () => {
           )}
         </div>
 
-        {/* Balance de deuda - El gráfico o la cartita */}
         <div className="dark:bg-card col-span-2 flex min-h-[330px] flex-col rounded-xl border border-[#82D8E0] bg-white p-4 shadow">
           {shouldShowFullEmptyState ? (
             <div className="flex h-full flex-col items-center justify-center py-12">
