@@ -9,6 +9,13 @@ import SuccessModal from '../modal/SuccessModal';
 import { debtColor } from '../../utils/debtColors';
 import { useQueryClient } from '@tanstack/react-query';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../../components/ui/tooltip';
 
 interface DebtFormModalProps {
   isOpen: boolean;
@@ -191,23 +198,25 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
 
         <div className="flex flex-wrap items-end justify-between gap-2 px-8 py-8">
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-blue-900">Deuda Acumulada</span>
-            <div className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-lg font-semibold text-blue-800">
-              <span className="text-2xl text-blue-400">
-                <CurrencyDollarIcon className="mr-2 h-9 w-9 text-[#82D8E0]" />
-              </span>
-              <span className="tracking-widest" style={{ minWidth: '70px' }}>
-                {totalDebt.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
-              </span>
+            <div className="flex flex-col gap-2 rounded-lg border-2 border-[#9CB7FC] px-3 py-2 text-lg font-semibold text-blue-800">
+              <span className="mb-2 text-sm font-semibold text-[#042D95]">Deuda Acumulada</span>
+              <div className="flex items-center">
+                <span className="text-2xl text-blue-400">
+                  <CurrencyDollarIcon className="mr-2 h-8 w-8 text-[#82D8E0]" />
+                </span>
+                <span className="tracking-widest" style={{ minWidth: '70px' }}>
+                  {totalDebt.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex items-end gap-2">
             <div className="flex flex-col items-start">
-              <label className="mb-1 text-xs font-semibold text-blue-900">Monto</label>
+              <label className="mb-1 text-base font-semibold text-[#042D95]">Monto</label>
               <div className="flex items-center rounded-md border border-[#042D95]">
                 <input
                   type="number"
-                  className="w-30 border-none bg-transparent px-3 py-1.5 text-right text-lg"
+                  className="w-30 border-none bg-transparent px-3 py-2 text-right text-lg"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="000.000"
@@ -219,14 +228,14 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
             </div>
             <button
               onClick={handleAddDebt}
-              className="ml-2 rounded-md bg-[#5685FA] px-3 py-1.5 font-medium text-white transition hover:bg-blue-600"
+              className="ml-2 rounded-md bg-[#5685FA] px-3 py-2.5 text-white transition hover:bg-blue-600"
               type="button"
             >
               Agregar deuda
             </button>
             <button
               onClick={handleDiscountDebt}
-              className="ml-2 rounded-md bg-[#048995] px-3 py-1.5 font-medium text-white transition hover:bg-[#02747a]"
+              className="ml-2 rounded-md bg-[#048995] px-3 py-2.5 text-white transition hover:bg-[#02747a]"
               disabled={!amount}
               type="button"
             >
@@ -248,14 +257,40 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
                   <th className="px-2 py-2">Fecha modificación</th>
                   <th className="px-2 py-2">Resto deuda</th>
                   <th className="w-[120px] px-6 py-2">
-                    <span className="flex">
+                    <span className="flex items-center">
                       Descuentos de deudas
-                      <img className="ml-0.5h-6 w-6" src="/icons/alarma.svg" alt="" />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <ExclamationCircleIcon className="ml-0.5 h-7 w-7" />
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="right"
+                            align="center"
+                            className="relative rounded-xl bg-[#CFEAFB] px-3 py-2 text-xs shadow-md ring-1 ring-blue-200"
+                          >
+                            Aquí verás los descuentos aplicados a la deuda.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </span>
                   </th>
                   <th className="flex items-center justify-between gap-1 px-1 py-2">
                     Total días
-                    <img className="ml-0.51 h-6 w-6" src="/icons/alarma.svg" alt="" />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ExclamationCircleIcon className="ml-0.5 h-8 w-8" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          align="center"
+                          className="relative rounded-xl bg-[#CFEAFB] px-3 py-2 text-xs shadow-md ring-1 ring-blue-200"
+                        >
+                          Aquí verás los días que lleva la deuda en específico.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </th>
                 </tr>
               </thead>
@@ -409,15 +444,18 @@ function DropdownPayments({
   }, [open]);
 
   const lastPayment = payments[payments.length - 1];
+  const hasMultiplePayments = payments.length > 1;
 
   return (
-    // Este wrapper “anula” el padding horizontal de la <td> (que es px-4)
     <div ref={ref} className="relative -mx-4">
-      {/* Reponemos el padding al trigger para que el texto siga alineado */}
       <div className="px-4">
         <table className="w-full" style={{ borderCollapse: 'collapse' }}>
           <tbody>
-            <tr className="cursor-pointer bg-white" onClick={() => setOpen((v) => !v)}>
+            <tr
+              className={`bg-white ${hasMultiplePayments ? "cursor-pointer" : ""}`}
+              onClick={() => hasMultiplePayments && setOpen((v) => !v)}
+              aria-expanded={hasMultiplePayments ? open : undefined}
+            >
               <td className="whitespace-nowrap text-green-600" style={{ width: 55 }}>
                 -${Number(lastPayment.paymentMount ?? 0).toLocaleString('es-AR')}
               </td>
@@ -425,16 +463,21 @@ function DropdownPayments({
                 ({formatDate(lastPayment.datePayment)})
               </td>
               <td className="pl-2 align-middle" style={{ width: 32 }}>
-                <ChevronDownIcon
-                  className={`h-5 w-5 text-black transition-transform ${open ? 'rotate-180' : ''}`}
-                />
+                {hasMultiplePayments ? (
+                  <ChevronDownIcon
+                    className={`h-5 w-5 text-black transition-transform ${open ? "rotate-180" : ""}`}
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <div className="h-5 w-5 opacity-0 pointer-events-none" aria-hidden="true" />
+                )}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      {open && (
+      {hasMultiplePayments && open && (
         <div className="absolute top-full right-0 left-0 z-20 mt-3 border-r-2 border-b-2 border-l-2 border-gray-200 bg-white px-4 py-2 shadow-sm">
           <table className="w-full border-collapse" style={{ borderCollapse: 'collapse' }}>
             <tbody>
@@ -449,6 +492,7 @@ function DropdownPayments({
                     <td className="pl-2 text-xs whitespace-nowrap text-gray-500">
                       ({formatDate(pay.datePayment)})
                     </td>
+                    <td style={{ width: 32 }} />
                   </tr>
                 ))}
             </tbody>
@@ -458,5 +502,6 @@ function DropdownPayments({
     </div>
   );
 }
+
 
 export default DebtFormModal;
