@@ -369,7 +369,7 @@ const Home = () => {
                     <BarChart
                       data={productsWithMostStock}
                       layout="vertical"
-                      margin={{ top: 10, right: 27, left: 85, bottom: 0 }}
+                      margin={{ top: 10, right: 50, left: 85, bottom: 0 }}
                       barCategoryGap={16}
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} />
@@ -448,7 +448,7 @@ const Home = () => {
                   </ResponsiveContainer>
                 </div>
                 <span className="mt-2 ml-2 text-xs text-[#999999]">
-                  El gráfico muestra los 10 productos con mayor stock actualmente.
+                  El gráfico muestra los 7 productos con mayor stock actualmente.
                 </span>
                 {/* Table with product details for the most stock product */}
                 {activeProduct && (
