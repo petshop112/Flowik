@@ -2,8 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 interface ImportErrorModalProps {
+  title?: string;
   errorMessage: string;
   onClose: () => void;
+  buttonText?: string;
 }
 
 const ImportErrorModal: React.FC<ImportErrorModalProps> = ({ errorMessage, onClose }) => {
