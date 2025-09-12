@@ -216,9 +216,13 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               <div className="flex items-center rounded-md border border-[#042D95]">
                 <input
                   type="number"
+                  min={1}
                   className="w-30 border-none bg-transparent px-3 py-2 text-right text-lg"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setAmount(val === '' ? '' : String(Math.max(1, Number(val))));
+                  }}
                   placeholder="000.000"
                 />
                 <span className="ml-2">
@@ -230,18 +234,33 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
               onClick={handleAddDebt}
               className="text- ml-2 rounded-md bg-[#5685FA] px-3 py-2.5 text-white transition hover:bg-blue-600"
               type="button"
+              disabled={Number(amount) <= 0}
             >
               Agregar deuda
             </button>
-            <button
-              onClick={handleDiscountDebt}
-              className="ml-2 flex items-center rounded-md bg-[#048995] px-3 py-2.5 text-white transition hover:bg-[#02747a]"
-              disabled={!amount}
-              type="button"
-            >
-              Descontar deuda
-              <InformationCircleIcon className="ml-0.5 h-5 w-5" />
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleDiscountDebt}
+                    className="ml-2 flex items-center rounded-md bg-[#048995] px-3 py-2.5 text-white transition hover:bg-[#02747a]"
+                    disabled={!amount || Number(amount) <= 0}
+                    type="button"
+                  >
+                    Descontar deuda
+                    <InformationCircleIcon className="ml-1 h-5 w-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  align="center"
+                  className="relative rounded-xl bg-[#CFEAFB] px-3 py-2 text-xs shadow-md ring-1 ring-blue-200"
+                >
+                  El monto ingresado se descontará comenzando por la deuda más antigua pendiente. Si
+                  sobra algo, se aplicará al resto de tus deudas pendientes.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
