@@ -123,7 +123,7 @@ const Home = () => {
                 <span className="mb-2 text-xs text-[#6b7280]">Cargando...</span>
               </div>
             ) : shouldShowFullEmptyState ? (
-              <div className="flex flex-col items-center rounded-xl border border-[#9cb7fc] bg-white p-6 opacity-80 shadow">
+              <div className="flex h-[400px] flex-col items-center justify-center rounded-xl border border-[#9cb7fc] bg-white p-6 text-center opacity-80 shadow">
                 <span className="text-primary mb-1 text-xl font-semibold text-[#042D95]">
                   Deuda de clientes
                 </span>
@@ -226,15 +226,15 @@ const Home = () => {
               <span className="mt-1 text-base text-[#C5C8D6]">
                 Todavía no hay registros de deudas.
               </span>
-              <button
-                onClick={() => navigate('/clients')}
-                className="mt-5 rounded-md bg-[#5685FA] px-5 py-2 font-semibold text-white transition-colors hover:bg-[#2563eb]"
-              >
-                Ir a clientes
-              </button>
             </div>
           ) : chartData.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center py-12">
+              <span className="text-primary flex justify-center text-3xl font-semibold text-[#048995]">
+                <span className="mr-1 flex items-center">
+                  <CurrencyDollarIcon className="h-10 w-10 text-[#82D8E0]" />
+                </span>
+                Balance de deuda por cuatrimestre
+              </span>
               <ChartBarIcon className="mb-4 h-14 w-14 text-[#E6E6E6]" />
               <span className="text-lg font-bold text-[#BABABA]">
                 Aún no hay datos para mostrar el balance.
