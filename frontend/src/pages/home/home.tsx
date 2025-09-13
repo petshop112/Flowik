@@ -327,7 +327,7 @@ const Home = () => {
                 </ResponsiveContainer>
               </div>
               <span className="mt-2 ml-2 text-xs text-[#999999]">
-                El gráfico muestra la evolución de las deudas agrupadas.
+                El gráfico muestra la evolución mensual de las deudas agrupada por semestres.
               </span>
             </>
           )}
