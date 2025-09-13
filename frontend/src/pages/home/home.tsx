@@ -173,7 +173,7 @@ const Home = () => {
                       $
                       {isLoadingDebtTotals
                         ? '...'
-                        : debtDashboardTotals?.totalNew?.toLocaleString('es-AR')}
+                        : formatMoney(debtDashboardTotals?.totalNew ?? 0)}
                     </span>
                   </li>
                   <li className="flex items-center gap-2 text-[#042D95]">
@@ -183,7 +183,7 @@ const Home = () => {
                       $
                       {isLoadingDebtTotals
                         ? '...'
-                        : debtDashboardTotals?.totalOld?.toLocaleString('es-AR')}
+                        : formatMoney(debtDashboardTotals?.totalOld ?? 0)}
                     </span>
                   </li>
                   <li className="flex items-center gap-2 text-[#042D95]">
@@ -193,7 +193,7 @@ const Home = () => {
                       $
                       {isLoadingDebtTotals
                         ? '...'
-                        : debtDashboardTotals?.totalPaid?.toLocaleString('es-AR')}
+                        : formatMoney(debtDashboardTotals?.totalPaid ?? 0)}
                     </span>
                   </li>
                   <li className="flex items-center gap-2 text-[#C60633]">
@@ -203,9 +203,7 @@ const Home = () => {
                       {isLoadingDebtTotals
                         ? '...'
                         : debtDashboardTotals
-                          ? debtDashboardTotals.balance.toLocaleString('es-AR', {
-                              maximumFractionDigits: 2,
-                            })
+                          ? formatMoney(debtDashboardTotals.balance)
                           : '...'}
                     </span>
                   </li>
@@ -303,7 +301,12 @@ const Home = () => {
                       axisLine={false}
                       width={40}
                     />
-                    <Tooltip />
+                    <Tooltip
+                      formatter={(value: number, name: string) => [
+                        formatMoney(Number(value)),
+                        legendLabels[name] || name,
+                      ]}
+                    />
                     <Legend content={renderCustomLegend} />
                     <Bar
                       dataKey="newDebts"
@@ -324,7 +327,7 @@ const Home = () => {
                 </ResponsiveContainer>
               </div>
               <span className="mt-2 ml-2 text-xs text-[#999999]">
-                El gráfico muestra la evolución mensual de deudas agrupada por cuatrimestres.
+                El gráfico muestra la evolución de las deudas agrupadas.
               </span>
             </>
           )}

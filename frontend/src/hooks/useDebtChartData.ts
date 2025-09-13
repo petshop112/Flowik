@@ -47,7 +47,15 @@ export function useDebtChartData(clients: Client[], year = new Date().getFullYea
         const debtDate = new Date(debt.debt_date);
         if (debtDate.getFullYear() !== year) return;
 
-        base[debtDate.getMonth()].newDebts += debt.mount ?? 0;
+        const totalPayments = (debt.payments ?? []).reduce(
+          (acc, pay) => acc + (pay.paymentMount ?? 0),
+          0
+        );
+        const pending = (debt.mount ?? 0) - totalPayments;
+
+        if (pending > 0) {
+          base[debtDate.getMonth()].newDebts += pending;
+        }
 
         (debt.payments ?? []).forEach((pay) => {
           const payDate = new Date(pay.datePayment);
@@ -64,13 +72,11 @@ export function useDebtChartData(clients: Client[], year = new Date().getFullYea
           const debtDate = new Date(debt.debt_date);
           if (debtDate.getFullYear() !== year) return;
           if (debtDate.getMonth() < idx) {
-            const payments = (debt.payments ?? [])
-              .filter((p) => {
-                const pd = new Date(p.datePayment);
-                return pd.getFullYear() === year && pd.getMonth() < idx;
-              })
-              .reduce((acc, p) => acc + (p.paymentMount ?? 0), 0);
-            const pending = (debt.mount ?? 0) - payments;
+            const totalPayments = (debt.payments ?? []).reduce(
+              (acc, p) => acc + (p.paymentMount ?? 0),
+              0
+            );
+            const pending = (debt.mount ?? 0) - totalPayments;
             if (pending > 0) oldDebtsSum += pending;
           }
         });
