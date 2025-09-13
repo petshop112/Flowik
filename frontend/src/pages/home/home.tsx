@@ -21,7 +21,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-
+import { formatMoney } from '../../utils/formatMoney';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
@@ -155,7 +155,7 @@ const Home = () => {
                 <div className="mt-4 flex items-center">
                   <CurrencyDollarIcon className="mr-2 h-9 w-9 text-[#82D8E0]" />
                   <span className="text-4xl font-semibold text-[#042D95]">
-                    {debtDashboardTotals?.totalOutstanding?.toLocaleString('es-AR') ?? 0}
+                    {formatMoney(debtDashboardTotals?.totalOutstanding ?? 0)}
                   </span>
                 </div>
               </div>
@@ -513,7 +513,7 @@ const Home = () => {
               </span>
             </div>
           ) : (
-            // Caso 3: there are some products on low stok
+            // Case 3: there are some products on low stok
             <div className="overflow-x-auto rounded-xl border border-[#CDDBFE]">
               {isLoading ? (
                 <div className="py-8 text-center text-lg font-semibold text-blue-400">
