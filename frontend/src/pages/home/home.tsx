@@ -73,7 +73,7 @@ const Home = () => {
   const productsWithMostStock = [...products]
     .filter((product) => product.isActive)
     .sort((a, b) => b.amount - a.amount)
-    .slice(0, 10);
+    .slice(0, 7);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const activeProduct =
     productsWithMostStock.find((product) => product.id === selectedProductId) ||
@@ -491,7 +491,7 @@ const Home = () => {
             />
             Stock Bajo
           </div>
-          {productsWithLowestStock.length === 0 ? (
+          {products.length === 0 ? ( // Case 1: no product on db
             <div className="flex flex-col items-center py-14">
               <ShoppingBagIcon className="mb-4 h-14 w-14 text-[#E6E6E6]" />
               <span className="text-center text-lg font-bold text-[#BABABA]">
@@ -504,7 +504,18 @@ const Home = () => {
                 Agrega Productos
               </button>
             </div>
+          ) : productsWithLowestStock.length === 0 ? ( // Caso 2: no products on low stock status
+            <div className="flex flex-col items-center py-14">
+              <ShoppingBagIcon className="mb-4 h-14 w-14 text-[#52c1cb]" />
+              <span className="text-center text-lg font-bold text-[#048995]">
+                ¡Ningún producto con bajo stock!
+              </span>
+              <span className="mt-2 text-center text-base text-[#999]">
+                Todos tus productos están bien surtidos.
+              </span>
+            </div>
           ) : (
+            // Caso 3: there are some products on low stok
             <div className="overflow-x-auto rounded-xl border border-[#CDDBFE]">
               {isLoading ? (
                 <div className="py-8 text-center text-lg font-semibold text-blue-400">
