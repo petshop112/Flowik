@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGetDebtsByClient, useCreateDebt } from '../../hooks/useDebts';
 import type { Debt, Payment } from '../../types/debt';
 import { paymentService } from '../../api/paymentsService';
@@ -28,6 +29,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
   const [clientInfo, setClientInfo] = useState<{ name_client?: string } | null>(null);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
@@ -103,6 +105,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
       setSuccessDescription('La deuda se ha añadido correctamente.');
       setShowSuccessModal(true);
       refetchDebts();
+      queryClient.invalidateQueries({ queryKey: ['clientDebts'] });
     } catch (e: any) {
       setSuccessTitle('¡Ups, ocurrió un error!');
       setSuccessDescription(e?.message || 'No se pudo guardar la deuda.');
@@ -137,6 +140,7 @@ const DebtFormModal: React.FC<DebtFormModalProps> = ({ isOpen, onClose, selected
       setShowSuccessModal(true);
       setAmount('');
       refetchDebts();
+      queryClient.invalidateQueries({ queryKey: ['clientDebts'] });
     } catch (e: any) {
       setSuccessTitle('¡Ups, ocurrió un error!');
       setSuccessDescription(
