@@ -37,7 +37,7 @@ export function useDebtDashboardTotals(id_user?: number, token?: string | null) 
         totalNew,
         totalOld,
         totalPaid,
-        balance: totalPaid - totalOutstanding,
+        balance: totalOutstanding,
         clientsRaw: clients,
       };
     },
