@@ -28,7 +28,7 @@ export function useDebtDashboardTotals(id_user?: number, token?: string | null) 
             if (days < 30) totalNew += pending;
             else totalOld += pending;
           }
-          totalPaid += payments; // esto es OK si tienes un widget para pagos "realizados"
+          totalPaid += payments;
         });
       });
 
