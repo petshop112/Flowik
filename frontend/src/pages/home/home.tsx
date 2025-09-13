@@ -450,36 +450,34 @@ const Home = () => {
                 <span className="mt-2 ml-2 text-xs text-[#999999]">
                   El gráfico muestra los 7 productos con mayor stock actualmente.
                 </span>
-                {/* Table with product details for the most stock product */}
-                {activeProduct && (
-                  <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
-                    <table className="w-full">
-                      <thead className="bg-[#f8fbff]">
-                        <tr>
-                          <th
-                            colSpan={4}
-                            className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
-                          >
-                            {activeProduct.name}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white">
-                        <tr>
-                          <td className="px-4 py-4 text-sm font-medium">Unidades en stock</td>
-                          <td className="px-4 py-4 text-2xl font-bold">{activeProduct.amount}</td>
-                          <td className="px-4 py-4 text-sm">Precio de venta</td>
-                          <td className="px-4 py-4 text-2xl font-bold">
-                            ${activeProduct.sellPrice}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
               </>
             )}
           </div>
+          {/* Table with product details for the most stock product */}
+          {activeProduct && (
+            <div className="mt-2 w-full overflow-hidden rounded-xl border border-[#3056d3] bg-white shadow-sm">
+              <table className="w-full">
+                <thead className="bg-[#f8fbff]">
+                  <tr>
+                    <th
+                      colSpan={4}
+                      className="border-b border-[#3056d3] px-6 py-2 text-left text-lg font-semibold text-[#3056d3]"
+                    >
+                      {activeProduct.name}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white">
+                  <tr>
+                    <td className="px-4 py-4 text-sm font-medium">Unidades en stock</td>
+                    <td className="px-4 py-4 text-2xl font-bold">{activeProduct.amount}</td>
+                    <td className="px-4 py-4 text-sm">Precio de venta</td>
+                    <td className="px-4 py-4 text-2xl font-bold">${activeProduct.sellPrice}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
         {/* Lowest Stock products */}
         <div className="dark:bg-card flex min-h-full flex-col rounded-2xl border border-[#5685FA] bg-white p-6 shadow">
@@ -504,7 +502,7 @@ const Home = () => {
                 Agrega Productos
               </button>
             </div>
-          ) : productsWithLowestStock.length === 0 ? ( // Caso 2: no products on low stock status
+          ) : productsWithLowestStock.length === 0 ? ( // Case 2: no products on low stock status
             <div className="flex flex-col items-center py-14">
               <ShoppingBagIcon className="mb-4 h-14 w-14 text-[#52c1cb]" />
               <span className="text-center text-lg font-bold text-[#048995]">
