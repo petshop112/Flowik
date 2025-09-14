@@ -15,10 +15,8 @@ const RecoverPassword = () => {
         </div>
       </div>
 
-      {/* Línea divisoria */}
       <div className="mt-35 h-150 w-[5px] rounded-[10px] bg-[#7FE8F2]"></div>
 
-      {/* Columna derecha */}
       <div className="flex w-2/5 flex-col items-center justify-center gap-[113px] pt-[260px] pr-[117px] pb-[261px] pl-[116px]">
         <img src="/icons/logo_login.svg" alt="Flowik Logo" className="w-3/4" />
         <p className="font-albert text-center text-[24px] leading-[33.6px] text-black">

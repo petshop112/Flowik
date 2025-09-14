@@ -139,7 +139,6 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
   return (
     <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="relative max-h-[90vh] w-full max-w-[58rem] overflow-y-auto rounded-lg bg-white shadow-xl">
-        {/* Header */}
         <header className="flex items-center justify-between px-9 pt-12">
           <h2 className="text-2xl font-semibold text-gray-900">Cambiar Precio</h2>
           <article className="flex items-center gap-1 text-sm font-semibold">
@@ -155,10 +154,8 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
           </button>
         </header>
 
-        {/* Form */}
         <main className="px-8 pt-4 pb-2">
           <div className="mb-8 grid max-w-[34rem] grid-cols-1 items-stretch gap-5 text-sm md:grid-cols-3">
-            {/* Valor de ajuste */}
             <div className="flex h-full flex-col">
               <label className="text-dark-blue mb-2 block text-sm font-semibold">
                 Valor de ajuste
@@ -189,7 +186,6 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
               </div>
             </div>
 
-            {/* Tipo de ajuste */}
             <div className="flex h-full flex-col">
               <label className="text-dark-blue mb-2 block text-sm font-semibold">
                 Tipo de ajuste
@@ -207,7 +203,6 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
               </select>
             </div>
 
-            {/* Calcular button */}
             <div className="flex items-end">
               <button
                 onClick={handleCalculate}
@@ -224,7 +219,6 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
             </div>
           </div>
 
-          {/* Errors */}
           {errors.length > 0 && (
             <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-3">
               <div className="flex">
@@ -242,7 +236,6 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
             </div>
           )}
 
-          {/* Preview Table */}
           <div className="mb-4">
             <div className="border-sky-glimmer overflow-hidden rounded-lg border">
               <table className="w-full table-fixed">
@@ -296,7 +289,6 @@ const AdjustPricesModal: React.FC<AdjustPricesModalProps> = ({
           </div>
         </main>
 
-        {/* Footer */}
         <footer className="flex justify-center gap-4 pb-8 text-sm [&>button]:px-10 [&>button]:py-[8px] [&>button]:transition-colors">
           <button
             onClick={onClose}

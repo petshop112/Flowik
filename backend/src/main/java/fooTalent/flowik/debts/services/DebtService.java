@@ -45,7 +45,7 @@ public class DebtService {
 
     @Transactional
     public List<DebtResponse> getDebtsByClient(Long clientId, String email) {
-        Client client = clientRepository.findById(clientId)
+               Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente"));
 
         return client.getDebts().stream()

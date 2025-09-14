@@ -11,7 +11,7 @@ type Props = {
   isSaving?: boolean;
   provider?: Provider | null;
   readOnly?: boolean;
-  proveedoresLista?: Provider[];
+  providersList?: Provider[];
   formError: string;
 };
 

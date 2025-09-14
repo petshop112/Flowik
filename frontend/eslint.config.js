@@ -22,7 +22,7 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
         ecmaFeatures: { jsx: true },
-        // Plara aplicar reglas "type-aware", descomenta y apunta a tus tsconfig:
+        // To apply type-aware rules, uncomment and point to your tsconfig:
         // project: ["./tsconfig.json", "./tsconfig.app.json", "./tsconfig.node.json"],
         // tsconfigRootDir: new URL(".", import.meta.url),
       },

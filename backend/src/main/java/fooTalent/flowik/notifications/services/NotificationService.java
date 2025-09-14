@@ -58,17 +58,11 @@ public class NotificationService {
             });
         }
 
-        public List<Notification> listAll(String userEmail) {
-        if (repository.findByCreatedBy(userEmail).isEmpty()){
-            throw new ResourceNotFoundException("Notificaciones");
-        }
-            return repository.findByCreatedBy(userEmail);
-        }
+    public List<Notification> listAll() {
+        return repository.findAll();
+    }
 
         public List<Notification> listByType(String userEmail, NotificationType type) {
-           if(repository.findByCreatedByAndType(userEmail, type).isEmpty()) {
-               throw new ResourceNotFoundException("Notificaciones");
-           }
             return repository.findByCreatedByAndType(userEmail, type);
         }
 
