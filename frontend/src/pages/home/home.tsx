@@ -199,12 +199,17 @@ const Home = () => {
                   <li className="flex items-center gap-2 text-[#C60633]">
                     Déficit
                     <span className="ml-auto text-2xl font-semibold text-[#C60633]">
-                      $
-                      {isLoadingDebtTotals
-                        ? '...'
-                        : debtDashboardTotals
-                          ? formatMoney(debtDashboardTotals.balance)
-                          : '...'}
+                      {isLoadingDebtTotals ? (
+                        '...'
+                      ) : debtDashboardTotals ? (
+                        debtDashboardTotals.balance !== 0 ? (
+                          <>- ${formatMoney(Math.abs(debtDashboardTotals.balance))}</>
+                        ) : (
+                          <>${formatMoney(debtDashboardTotals.balance)}</>
+                        )
+                      ) : (
+                        '...'
+                      )}
                     </span>
                   </li>
                 </ul>
