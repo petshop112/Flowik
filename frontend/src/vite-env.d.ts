@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-// Para SVG como componente React
+// To SVG as React component
 declare module '*.svg?react' {
   import * as React from 'react';
   export const ReactComponent: React.FunctionComponent<
@@ -9,7 +9,7 @@ declare module '*.svg?react' {
   export default ReactComponent;
 }
 
-// Para SVG como archivo (URL)
+// To SVG as file (URL)
 declare module '*.svg' {
   const src: string;
   export default src;

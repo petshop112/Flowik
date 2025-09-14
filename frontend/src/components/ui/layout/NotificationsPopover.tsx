@@ -70,14 +70,6 @@ export const NotificationsPopover = () => {
           )}
           {!isLoading && notifications.length === 0 && (
             <div className="flex flex-col items-center gap-2 py-8">
-              <img
-                src="https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-                width={80}
-                height={80}
-                alt="Sin notificaciones"
-                className="rounded-full"
-                style={{ objectFit: 'cover' }}
-              />
               <span className="text-xs text-[#B3B3B3]">No tienes notificaciones nuevas</span>
             </div>
           )}

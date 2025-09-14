@@ -49,7 +49,7 @@ export class AuthService {
     });
 
     if (!response.ok) {
-      throw new Error('Error en la solicitud de recuperación');
+      throw new Error('Password recovery request failed');
     }
 
     const message = await response.text();
@@ -66,7 +66,7 @@ export class AuthService {
     });
 
     if (!response.ok) {
-      throw new Error('Error en cambio de contraseña');
+      throw new Error('Error changing password');
     }
 
     const data: NewPasswordResponse = await response.json();

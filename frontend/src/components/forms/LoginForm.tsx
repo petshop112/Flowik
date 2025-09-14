@@ -14,6 +14,10 @@ const validationSchema = Yup.object({
   password: Yup.string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(16, 'La contraseña no debe superar los 16 caracteres')
+    .matches(/\d/, 'Debe contener al menos un caracter numérico')
+    .matches(/[A-Z]/, 'Debe contener al menos una letra mayúscula')
+    .matches(/[a-z]/, 'Debe contener al menos una letra minúscula')
+    .matches(/[!@#$%^&*(),.?":{}|<>_-]/, 'Debe contener al menos un caracter especial')
     .required('La contraseña es obligatoria'),
 });
 
@@ -23,6 +27,11 @@ const LoginForm = () => {
   const dispatch = useAppDispatch();
 
   const { loading, error } = useAppSelector(selectAuth);
+
+  const errorMessage =
+    error === 'Failed to fetch'
+      ? 'No se pudo realizar la conexión, por favor intente más tarde.'
+      : error;
 
   const handleSubmit = async (
     values: { email: string; password: string },
@@ -126,10 +135,10 @@ const LoginForm = () => {
             />
           </div>
 
-          {error && (
+          {errorMessage && (
             <div className="mt-2 flex items-center justify-center gap-1 text-sm text-red-500">
               <ExclamationCircleIcon className="h-4.5 w-4.5" strokeWidth={2.5} />
-              {error}
+              {errorMessage}
             </div>
           )}
 

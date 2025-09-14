@@ -13,7 +13,7 @@ type Debt = {
   payments?: { paymentMount: number }[];
   debt_date: string;
   modification_date?: string;
-  modificacion?: string;
+  modification?: string;
 };
 
 type HookData = {
@@ -33,30 +33,30 @@ export function useClientsDebtTotals(clientIds: number[], token?: string | null)
         clientIds.map(async (id) => {
           try {
             const debts: Debt[] = await debtService.getDebtsByClient(id, token!);
-            let deudaTotal = 0;
+            let totalDebt = 0;
             let lastDate: string | null = null;
             let maxDays = 0;
 
             for (const d of debts) {
-              const pagos = (d.payments ?? []).reduce(
+              const payments = (d.payments ?? []).reduce(
                 (acc, p) => acc + Number(p.paymentMount ?? 0),
                 0
               );
-              const resto = Number(d.mount ?? 0) - pagos;
-              if (resto > 0) {
-                deudaTotal += resto;
+              const remaining = Number(d.mount ?? 0) - payments;
+              if (remaining > 0) {
+                totalDebt += remaining;
 
-                const modif = d.modification_date || d.modificacion || d.debt_date;
+                const modif = d.modification_date || d.modification || d.debt_date;
                 if (!lastDate || new Date(modif) > new Date(lastDate)) lastDate = modif;
 
-                const dias = getDiasDeuda(d.debt_date, modif);
-                if (dias > maxDays) maxDays = dias;
+                const days = getDiasDeuda(d.debt_date, modif);
+                if (days > maxDays) maxDays = days;
               }
             }
             return [
               id,
               {
-                total: deudaTotal,
+                total: totalDebt,
                 lastModified: lastDate,
                 maxDays,
               },

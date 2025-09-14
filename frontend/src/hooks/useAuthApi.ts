@@ -9,7 +9,7 @@ export function useAuthApi(token: string | null) {
     options: globalThis.RequestInit = {}
   ): Promise<T> => {
     if (!token) {
-      throw new Error('No hay token de autenticación');
+      throw new Error('No token found, access denied.');
     }
 
     setLoading(true);
@@ -49,7 +49,7 @@ export function useAuthApi(token: string | null) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Error desconocido');
+        setError('Unknown error');
       }
       throw err;
     } finally {

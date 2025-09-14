@@ -1,6 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
 import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
 import Home from '../pages/home/home';
 import NotFoundPage from '../pages/notfound/NotFoundPage';
 import ClientsPage from '../pages/clients/Clients';
@@ -32,7 +31,6 @@ const router = createBrowserRouter([
         ],
       },
       { path: 'login', element: <Login /> },
-      { path: 'register', element: <Register /> },
       { path: 'recover-password', element: <RecoverPassword /> },
       { path: 'verify-email', element: <VerifyEmail /> },
       { path: 'new-password', element: <NewPassword /> },

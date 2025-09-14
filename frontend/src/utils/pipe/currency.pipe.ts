@@ -1,4 +1,3 @@
-//convertir cualquier valor en un numero para calcular
 export function toNumber(v?: number | string) {
   const n = typeof v === 'string' ? Number(v.replace(/[^\d.-]/g, '')) : (v ?? 0);
   return Number.isFinite(n) ? Number(n) : 0;

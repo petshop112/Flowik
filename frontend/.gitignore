@@ -23,8 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# ignorar backend
+# Ignore backend folder
 /backend/
 
-# variables de entorno
+# Environment variables
 .env
