@@ -9,7 +9,7 @@ export const useGetAllProviders = () => {
   return useQuery<Provider[], Error>({
     queryKey: ['providers', token],
     queryFn: () => {
-      if (!token) throw new Error('No hay token, no se puede acceder');
+      if (!token) throw new Error('No token, no access');
       return providerService.getAllProviders(token);
     },
     enabled: !!getUserTokenFromStorage(),
@@ -25,7 +25,7 @@ export const useDeactivateProvider = (id_user?: number) => {
   const key = ['providers', id_user];
   return useMutation<Provider, Error, number[]>({
     mutationFn: (ids) => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token');
       return providerService.deactivateProvider(ids, token);
     },
     onMutate: async (ids) => {
@@ -52,7 +52,7 @@ export const useEditProvider = () => {
   return useMutation<Provider, Error, { id_provider: number; values: ProviderFormValues }>({
     mutationFn: ({ id_provider, values }) => {
       const token = getUserTokenFromStorage();
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token');
       return providerService.editProvider(id_provider, values, token);
     },
     onSuccess: () => {
@@ -66,7 +66,7 @@ export const useCreateProvider = () => {
   return useMutation<Provider, Error, ProviderFormValues>({
     mutationFn: (values) => {
       const token = getUserTokenFromStorage();
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token');
       return providerService.createProvider(values, token);
     },
     onSuccess: () => {
@@ -93,7 +93,7 @@ export const useDeleteProvider = (id_provider?: number) => {
   const key = ['providers', id_provider];
   return useMutation({
     mutationFn: async (id_provider: number) => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token');
       await providerService.deleteProvider(id_provider, token);
     },
     onMutate: async (id_provider) => {

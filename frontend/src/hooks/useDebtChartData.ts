@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Client } from '../types/clients';
 
-const mesesArray = [
+const monthsArray = [
   'Enero',
   'Febrero',
   'Marzo',
@@ -16,30 +16,30 @@ const mesesArray = [
   'Diciembre',
 ];
 
-const cuatrimestresArray = [
-  { label: '1º Cuatrimestre', value: 0, meses: [0, 1, 2, 3] },
-  { label: '2º Cuatrimestre', value: 1, meses: [4, 5, 6, 7] },
-  { label: '3º Cuatrimestre', value: 2, meses: [8, 9, 10, 11] },
+const termsArray = [
+  { label: '1º Cuatrimestre', value: 0, months: [0, 1, 2, 3] },
+  { label: '2º Cuatrimestre', value: 1, months: [4, 5, 6, 7] },
+  { label: '3º Cuatrimestre', value: 2, months: [8, 9, 10, 11] },
 ];
 
-export type ChartDataItem = {
+export type DebtChartDataItem = {
   name: string;
-  deudasNuevas: number;
-  deudasAntiguas: number;
-  deudasCobros: number;
+  newDebts: number;
+  oldDebts: number;
+  paidDebts: number;
 };
 
 export function useDebtChartData(clients: Client[], year = new Date().getFullYear()) {
-  const mesActual = new Date().getMonth();
-  const cuatrimestreInicial = Math.floor(mesActual / 4);
-  const [cuatrimestreActivo, setCuatrimestreActivo] = useState(cuatrimestreInicial);
+  const currentMonth = new Date().getMonth();
+  const initialTerm = Math.floor(currentMonth / 4);
+  const [activeTerm, setActiveTerm] = useState(initialTerm);
 
-  const chartData: ChartDataItem[] = useMemo(() => {
-    const base: ChartDataItem[] = mesesArray.map((name) => ({
+  const chartData: DebtChartDataItem[] = useMemo(() => {
+    const base: DebtChartDataItem[] = monthsArray.map((name) => ({
       name,
-      deudasNuevas: 0,
-      deudasAntiguas: 0,
-      deudasCobros: 0,
+      newDebts: 0,
+      oldDebts: 0,
+      paidDebts: 0,
     }));
 
     clients.forEach((cli) => {
@@ -47,47 +47,55 @@ export function useDebtChartData(clients: Client[], year = new Date().getFullYea
         const debtDate = new Date(debt.debt_date);
         if (debtDate.getFullYear() !== year) return;
 
-        base[debtDate.getMonth()].deudasNuevas += debt.mount ?? 0;
+        const totalPayments = (debt.payments ?? []).reduce(
+          (acc, pay) => acc + (pay.paymentMount ?? 0),
+          0
+        );
+        const pending = (debt.mount ?? 0) - totalPayments;
+
+        if (pending > 0) {
+          base[debtDate.getMonth()].newDebts += pending;
+        }
 
         (debt.payments ?? []).forEach((pay) => {
           const payDate = new Date(pay.datePayment);
           if (payDate.getFullYear() === year)
-            base[payDate.getMonth()].deudasCobros += pay.paymentMount ?? 0;
+            base[payDate.getMonth()].paidDebts += pay.paymentMount ?? 0;
         });
       });
     });
 
     base.forEach((row, idx) => {
-      let antiguas = 0;
+      let oldDebtsSum = 0;
       clients.forEach((cli) => {
         (cli.debts ?? []).forEach((debt) => {
           const debtDate = new Date(debt.debt_date);
           if (debtDate.getFullYear() !== year) return;
           if (debtDate.getMonth() < idx) {
-            const pagos = (debt.payments ?? [])
-              .filter((p) => {
-                const pd = new Date(p.datePayment);
-                return pd.getFullYear() === year && pd.getMonth() < idx;
-              })
-              .reduce((acc, p) => acc + (p.paymentMount ?? 0), 0);
-            const pendiente = (debt.mount ?? 0) - pagos;
-            if (pendiente > 0) antiguas += pendiente;
+            const totalPayments = (debt.payments ?? []).reduce(
+              (acc, p) => acc + (p.paymentMount ?? 0),
+              0
+            );
+            const pending = (debt.mount ?? 0) - totalPayments;
+            if (pending > 0) oldDebtsSum += pending;
           }
         });
       });
-      row.deudasAntiguas = antiguas;
+      row.oldDebts = oldDebtsSum;
     });
 
     return base;
   }, [clients, year]);
 
-  const cuatri = cuatrimestresArray[cuatrimestreActivo];
-  const filteredData = cuatri ? cuatri.meses.map((i) => chartData[i]) : chartData.slice(0, 4);
+  const selectedTerm = termsArray[activeTerm];
+  const filteredData = selectedTerm
+    ? selectedTerm.months.map((i) => chartData[i])
+    : chartData.slice(0, 4);
 
   return {
     chartData: filteredData,
-    cuatrimestres: cuatrimestresArray,
-    cuatrimestreActivo,
-    setCuatrimestreActivo,
+    terms: termsArray,
+    activeTerm,
+    setActiveTerm,
   };
 }

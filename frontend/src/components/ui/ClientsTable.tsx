@@ -30,10 +30,6 @@ type ClientWithDebt = Client & {
   is_active?: boolean;
 };
 
-// function hasDebt(v?: number | string) {
-//   return toNumber(v) > 0;
-// }
-
 function getUserId() {
   const storedId = localStorage.getItem('userId');
   return storedId ? Number(storedId) : undefined;
@@ -102,7 +98,6 @@ const ClientsTable: React.FC = () => {
     token
   );
 
-  // Ajusta la página si el total de páginas cambia tras eliminar clientes
   React.useEffect(() => {
     const total = filteredClients.length;
     const pages = Math.max(1, Math.ceil(total / itemsPerPage));
@@ -340,13 +335,13 @@ const ClientsTable: React.FC = () => {
                       />
                       <input
                         type="text"
-                        placeholder="Buscar"
+                        placeholder="Nombre, Apellido, DNI, Contacto"
                         value={searchTerm}
                         onChange={(e) => {
                           setSearchTerm(e.target.value);
                           setCurrentPage(1);
                         }}
-                        className="border-dark-blue text-dark-blue w-48 rounded-md border bg-white py-2 pr-4 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="border-dark-blue text-dark-blue w-[300px] rounded-md border bg-white py-2 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </article>
                     <button

@@ -9,11 +9,11 @@ export function useFetch<T = unknown>(url: string) {
     const fetchData = async () => {
       try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Error a la petición');
+        if (!res.ok) throw new Error('Request failed');
         const json = await res.json();
         setData(json);
       } catch (err: any) {
-        setError(err.message || 'Error desconocido');
+        setError(err.message || 'Unknown error');
       } finally {
         setLoading(false);
       }

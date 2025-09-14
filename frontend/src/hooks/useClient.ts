@@ -8,7 +8,7 @@ export const useGetAllClients = (id_user?: number) => {
   return useQuery<Client[], Error>({
     queryKey: ['clients', id_user],
     enabled: !!token && typeof id_user === 'number',
-    queryFn: () => clientService.getAllClients(id_user!, token!),
+    queryFn: () => clientService.getAllClients(token!),
     staleTime: 2 * 60 * 1000,
     retry: 1,
     refetchOnWindowFocus: false,
@@ -21,7 +21,8 @@ export const useDeleteClient = (id_user?: number) => {
   const key = ['clients', id_user];
   return useMutation({
     mutationFn: async (id_client: number) => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No token found, access denied.');
+      if (!id_client) throw new Error('Client ID is required.');
       await clientService.deleteClient(id_client, token);
     },
     onMutate: async (id_client) => {
@@ -46,7 +47,8 @@ export const useEditClient = () => {
   return useMutation<Client, Error, { id_client: number; values: ClientFormValues }>({
     mutationFn: ({ id_client, values }) => {
       const token = getUserTokenFromStorage();
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No token found, access denied.');
+      if (!id_client) throw new Error('Client ID is required.');
       return clientService.editClient(id_client, values, token);
     },
     onSuccess: () => {
@@ -72,7 +74,7 @@ export const useCreateClient = () => {
   return useMutation<Client, Error, ClientFormValues>({
     mutationFn: (values) => {
       const token = getUserTokenFromStorage();
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No token found, access denied.');
       return clientService.createClient(values, token);
     },
     onSuccess: () => {
@@ -87,7 +89,8 @@ export const useDeactivateClient = (id_user?: number) => {
   const key = ['clients', id_user];
   return useMutation<Client, Error, number>({
     mutationFn: (id_client) => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No token found, access denied.');
+      if (!id_client) throw new Error('Client ID is required.');
       return clientService.deactivateClient(id_client, token);
     },
     onMutate: async (id_client) => {

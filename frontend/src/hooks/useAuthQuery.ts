@@ -8,7 +8,7 @@ export function useAuthQuery<T = unknown>(url: string, token?: string | null) {
   useEffect(() => {
     if (!token) {
       setLoading(false);
-      setError('No hay token de autenticación');
+      setError('No token found, access denied.');
       return;
     }
 
@@ -35,7 +35,7 @@ export function useAuthQuery<T = unknown>(url: string, token?: string | null) {
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError('Error desconocido');
+          setError('Unknown error');
         }
       } finally {
         setLoading(false);

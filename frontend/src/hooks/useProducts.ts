@@ -9,7 +9,7 @@ export const useGetAllProducts = () => {
   return useQuery<Product[], Error>({
     queryKey: ['products'],
     queryFn: async () => {
-      if (!token) throw new Error('No hay token, no se puede acceder');
+      if (!token) throw new Error('No token found, access denied.');
       try {
         return await productService.getAllProducts(token);
       } catch (error: any) {
@@ -36,7 +36,7 @@ export const useGetProductById = (id: number) => {
   return useQuery({
     queryKey: ['product', id],
     queryFn: () => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token found');
       return productService.getProductById(id as number, token);
     },
     enabled: !!id && !!token,
@@ -52,7 +52,7 @@ export const useCreateProduct = () => {
 
   return useMutation({
     mutationFn: (data: ProductUpdateData) => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token found');
       return productService.createProduct(data, token);
     },
     onSuccess: () => {
@@ -67,7 +67,7 @@ export const useUpdateProduct = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id?: number; data: ProductUpdateData }) => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token found');
       return productService.updateProduct(id ?? 0, data, token);
     },
     onSuccess: (_, variables) => {
@@ -88,8 +88,8 @@ export const useDeleteProduct = () => {
 
   return useMutation({
     mutationFn: (ids: number[]) => {
-      if (!token) throw new Error('No hay token de autenticación');
-      if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a eliminar');
+      if (!token) throw new Error('No token found, access denied.');
+      if (!ids || ids.length === 0) throw new Error('No IDs of products to delete');
       return productService.deleteProduct(ids, token);
     },
     onSuccess: (_, ids) => {
@@ -107,8 +107,8 @@ export const useDeactivateProduct = () => {
 
   return useMutation({
     mutationFn: (ids: number[]) => {
-      if (!token) throw new Error('No hay token de autenticación');
-      if (!ids || ids.length === 0) throw new Error('No hay IDs de productos a desactivar');
+      if (!token) throw new Error('No authentication token found');
+      if (!ids || ids.length === 0) throw new Error('No IDs of products to deactivate');
       return productService.deactivateProduct(ids, token);
     },
     onSuccess: (_, ids) => {
@@ -126,7 +126,7 @@ export const useAdjustProductPrices = () => {
 
   return useMutation({
     mutationFn: (data: AdjustProductPriceData) => {
-      if (!token) throw new Error('No hay token de autenticación');
+      if (!token) throw new Error('No authentication token found');
       return productService.adjustProductPrices(data, token);
     },
     onSuccess: (_, data) => {
